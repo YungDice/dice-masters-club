@@ -88,7 +88,7 @@ function Create() {
           <div><Label>XP reward (max 200)</Label><Input type="number" min={0} max={200} value={form.xp_reward} onChange={(e) => setForm({...form, xp_reward: +e.target.value})} /></div>
         </div>
         <div><Label>Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({...form, tags: e.target.value})} placeholder="fitness, fun" /></div>
-        <Button disabled={busy} className="w-full glow-red">{busy ? "Submitting..." : "Submit for review"}</Button>
+        <Button disabled={busy} className="w-full glow-red">{busy ? "Submitting..." : fee > 0 ? `Submit (−${fee} DICE)` : "Submit for review"}</Button>
       </form>
     </Card>
   );
