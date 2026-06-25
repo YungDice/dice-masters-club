@@ -254,3 +254,222 @@ export const vpDraw = createServerFn({ method: "POST" })
   });
 
 export const VP_PAYTABLE = VP_PAY;
+
+// ============================================================
+// MULTIPLAYER BLACKJACK (lobbies, turn-based, shared dealer)
+// ============================================================
+// state shape (game_rooms.state):
+// {
+//   phase: 'lobby'|'playing'|'finished',
+//   turn: number,
+//   bet: number,
+//   seats: [{ userId, displayName, hand: Card[], status:'playing'|'stand'|'bust'|'blackjack', doubled:boolean, outcome?:'win'|'loss'|'push'|'blackjack', delta?:number, bet:number }],
+//   dealer: Card[],
+//   deck: Card[],
+//   revealDealer: boolean,
+// }
+
+function mbjPublicView(state: any) {
+  return {
+    phase: state.phase,
+    turn: state.turn,
+    bet: state.bet,
+    revealDealer: !!state.revealDealer,
+    dealer: state.revealDealer ? state.dealer : (state.dealer?.length ? [state.dealer[0], { r: "?", s: "?" }] : []),
+    dealerScore: state.revealDealer ? bjScore(state.dealer) : (state.dealer?.length ? bjScore([state.dealer[0]]) : 0),
+    seats: (state.seats ?? []).map((s: any) => ({
+      userId: s.userId, displayName: s.displayName,
+      hand: s.hand, score: bjScore(s.hand ?? []),
+      status: s.status, doubled: s.doubled, outcome: s.outcome ?? null,
+      delta: s.delta ?? 0, bet: s.bet, leftEarly: !!s.leftEarly,
+    })),
+  };
+}
+
+export const mbjCreate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { bet: number; maxPlayers: number }) =>
+    z.object({ bet: z.number().int().min(10).max(2000), maxPlayers: z.number().int().min(2).max(4) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Stake from host
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -data.bet, _type: "game_stake",
+      _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: null as any, _note: "Lobby create",
+    });
+    const { data: prof } = await supabaseAdmin.from("profiles").select("display_name,username").eq("id", context.userId).single();
+    const seat = { userId: context.userId, displayName: prof?.display_name ?? prof?.username ?? "Host",
+      hand: [], status: "playing", doubled: false, bet: data.bet };
+    const state = { phase: "lobby", turn: 0, bet: data.bet, seats: [seat], dealer: [], deck: [], revealDealer: false };
+    const { data: room, error } = await supabaseAdmin.from("game_rooms").insert({
+      kind: "blackjack", host_id: context.userId, stake: data.bet,
+      max_players: data.maxPlayers, is_private: false, status: "waiting", state,
+    }).select("id").single();
+    if (error) throw error;
+    return { roomId: room.id };
+  });
+
+export const mbjJoin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string }) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.kind !== "blackjack") throw new Error("Wrong game");
+    if (room.status !== "waiting") throw new Error("Game already started");
+    const s = room.state as any;
+    if (s.seats.find((x: any) => x.userId === context.userId)) throw new Error("Already in lobby");
+    if (s.seats.length >= (room.max_players ?? 4)) throw new Error("Lobby full");
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -room.stake, _type: "game_stake",
+      _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: "Lobby join",
+    });
+    const { data: prof } = await supabaseAdmin.from("profiles").select("display_name,username").eq("id", context.userId).single();
+    s.seats.push({ userId: context.userId, displayName: prof?.display_name ?? prof?.username ?? "Player",
+      hand: [], status: "playing", doubled: false, bet: room.stake });
+    await supabaseAdmin.from("game_rooms").update({ state: s }).eq("id", room.id);
+    return { ok: true };
+  });
+
+export const mbjLeave = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string }) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.status !== "waiting") throw new Error("Already started — can't leave");
+    const s = room.state as any;
+    const idx = s.seats.findIndex((x: any) => x.userId === context.userId);
+    if (idx < 0) throw new Error("Not in lobby");
+    // refund
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: room.stake, _type: "refund",
+      _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: "Leave lobby",
+    });
+    s.seats.splice(idx, 1);
+    if (s.seats.length === 0) {
+      await supabaseAdmin.from("game_rooms").update({ state: s, status: "cancelled", finished_at: new Date().toISOString() }).eq("id", room.id);
+    } else {
+      await supabaseAdmin.from("game_rooms").update({ state: s }).eq("id", room.id);
+    }
+    return { ok: true };
+  });
+
+async function mbjResolve(adm: any, room: any, s: any) {
+  // dealer draws to 17
+  while (bjScore(s.dealer) < 17) s.dealer.push(s.deck.pop()!);
+  s.revealDealer = true;
+  const ds = bjScore(s.dealer);
+  for (const seat of s.seats) {
+    const ps = bjScore(seat.hand);
+    let outcome: "win" | "loss" | "push" | "blackjack";
+    let pay = 0;
+    if (seat.status === "blackjack") { outcome = "blackjack"; pay = Math.floor(seat.bet * 2.5); }
+    else if (seat.leftEarly || seat.status === "bust" || ps > 21) outcome = "loss";
+    else if (ds > 21 || ps > ds) { outcome = "win"; pay = seat.bet * 2; }
+    else if (ps === ds) { outcome = "push"; pay = seat.bet; }
+    else outcome = "loss";
+    seat.outcome = outcome;
+    seat.delta = pay - seat.bet;
+    if (pay > 0 && !seat.leftEarly) {
+      await adm.rpc("wallet_adjust", {
+        _user: seat.userId, _delta: pay,
+        _type: outcome === "win" || outcome === "blackjack" ? "game_payout" : "refund",
+        _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: outcome,
+      });
+    }
+    // notification
+    await adm.from("notifications").insert({
+      user_id: seat.userId, kind: "game_turn",
+      title: `Blackjack: ${outcome.toUpperCase()}`,
+      body: `Hand ${ps} vs Dealer ${ds} · ${seat.delta >= 0 ? "+" : ""}${seat.delta} DICE`,
+      link: `/play/blackjack`,
+    });
+  }
+  s.phase = "finished";
+}
+
+export const mbjStart = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string }) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.host_id !== context.userId) throw new Error("Only host can start");
+    if (room.status !== "waiting") throw new Error("Already started");
+    const s = room.state as any;
+    if (s.seats.length < 1) throw new Error("Need at least 1 player");
+    const deck = newDeck();
+    // deal 2 cards each, then 2 to dealer
+    for (const seat of s.seats) seat.hand = [deck.pop()!, deck.pop()!];
+    const dealer = [deck.pop()!, deck.pop()!];
+    s.deck = deck;
+    s.dealer = dealer;
+    s.phase = "playing";
+    s.revealDealer = false;
+    // detect naturals
+    for (const seat of s.seats) {
+      if (bjScore(seat.hand) === 21) seat.status = "blackjack";
+    }
+    // advance turn to first non-blackjack seat
+    s.turn = 0;
+    while (s.turn < s.seats.length && s.seats[s.turn].status !== "playing") s.turn++;
+    if (s.turn >= s.seats.length) {
+      // everyone has blackjack — resolve immediately
+      await mbjResolve(supabaseAdmin, room, s);
+      await supabaseAdmin.from("game_rooms").update({
+        state: s, status: "finished", finished_at: new Date().toISOString(),
+      }).eq("id", room.id);
+    } else {
+      await supabaseAdmin.from("game_rooms").update({ state: s, status: "active" }).eq("id", room.id);
+    }
+    return { ok: true };
+  });
+
+export const mbjAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string; action: "hit" | "stand" | "double" }) =>
+    z.object({ roomId: z.string().uuid(), action: z.enum(["hit", "stand", "double"]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    const s = room.state as any;
+    if (s.phase !== "playing") throw new Error("Not playing");
+    const seat = s.seats[s.turn];
+    if (!seat || seat.userId !== context.userId) throw new Error("Not your turn");
+    if (data.action === "double") {
+      if (seat.hand.length !== 2 || seat.doubled) throw new Error("Cannot double");
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: -seat.bet, _type: "game_stake",
+        _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: "Double",
+      });
+      seat.doubled = true;
+      seat.bet = seat.bet * 2;
+      seat.hand.push(s.deck.pop()!);
+      if (bjScore(seat.hand) > 21) seat.status = "bust";
+      else seat.status = "stand";
+    } else if (data.action === "hit") {
+      seat.hand.push(s.deck.pop()!);
+      if (bjScore(seat.hand) > 21) seat.status = "bust";
+      else if (bjScore(seat.hand) === 21) seat.status = "stand";
+    } else {
+      seat.status = "stand";
+    }
+    // advance turn
+    while (s.turn < s.seats.length && s.seats[s.turn].status !== "playing") s.turn++;
+    if (s.turn >= s.seats.length) {
+      await mbjResolve(supabaseAdmin, room, s);
+      await supabaseAdmin.from("game_rooms").update({
+        state: s, status: "finished", finished_at: new Date().toISOString(),
+      }).eq("id", room.id);
+    } else {
+      await supabaseAdmin.from("game_rooms").update({ state: s }).eq("id", room.id);
+    }
+    return { ok: true };
+  });
+
+export const mbjView = mbjPublicView;
