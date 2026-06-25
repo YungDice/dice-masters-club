@@ -57,6 +57,11 @@ function Create() {
         All challenges are moderated. Don't post anything unsafe — no alcohol, no self-harm,
         no harassment, nothing explicit. Keep it fun.
       </p>
+      <div className={`mt-3 rounded-md border px-3 py-2 text-sm ${fee > 0 ? "border-primary/40 bg-primary/10" : "border-emerald-500/40 bg-emerald-500/10"}`}>
+        {fee > 0
+          ? <>Creating a challenge costs <b>{fee} DICE</b>. Your balance: <b>{wallet?.balance ?? 0}</b>.</>
+          : <>Staff: free challenge creation.</>}
+      </div>
       <form onSubmit={submit} className="mt-5 space-y-4">
         <div className="space-y-2"><Label>Title</Label><Input required maxLength={100} value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} /></div>
         <div className="space-y-2"><Label>Description</Label><Textarea required maxLength={1000} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} /></div>
