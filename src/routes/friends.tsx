@@ -57,12 +57,13 @@ function Friends() {
 
   async function sendReq(id: string) {
     if (!user) return;
-    const { error } = await supabase.from("friendships").insert({ requester_id: user.id, addressee_id: id, status: "pending" });
-    if (error) toast.error(error.message); else toast.success("Friend request sent");
+    try { await sendReqFn({ data: { addresseeId: id } }); toast.success("Friend request sent"); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
     qc.invalidateQueries();
   }
   async function respond(fid: string, accept: boolean) {
-    await supabase.from("friendships").update({ status: accept ? "accepted" : "blocked" }).eq("id", fid);
+    try { await respondFn({ data: { friendshipId: fid, accept } }); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
     qc.invalidateQueries();
   }
 
