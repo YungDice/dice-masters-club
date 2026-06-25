@@ -23,6 +23,8 @@ function Friends() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const sendReqFn = useServerFn(sendFriendRequest);
+  const respondFn = useServerFn(respondFriendRequest);
 
   const friends = useQuery({
     queryKey: ["friends", user?.id],
