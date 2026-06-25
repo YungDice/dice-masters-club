@@ -591,14 +591,14 @@ export const createChallengePaid = createServerFn({ method: "POST" })
     const fee = staff ? 0 : 500;
     if (fee > 0) {
       await supabaseAdmin.rpc("wallet_adjust", {
-        _user: context.userId, _delta: -fee, _type: "purchase",
+        _user: context.userId, _delta: -fee, _type: "marketplace_purchase",
         _source: "challenge_create", _ref_kind: "challenge", _ref_id: null as any, _note: "Challenge creation fee",
       });
     }
     const { data: row, error } = await supabaseAdmin.from("challenges").insert({
       creator_id: context.userId,
       title: data.title, description: data.description, rules: data.rules ?? null,
-      category: data.category, difficulty: data.difficulty, proof_type: data.proof_type,
+      category: data.category as any, difficulty: data.difficulty as any, proof_type: data.proof_type as any,
       dice_reward: data.dice_reward, xp_reward: data.xp_reward,
       tags: data.tags, status: "pending_review",
     }).select("id").single();
