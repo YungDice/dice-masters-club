@@ -27,9 +27,21 @@ function Settings() {
   const [displayName, setDisplayName] = useState("");
   const [privacy, setPrivacy] = useState<string>("public");
   const [activityPrivacy, setActivityPrivacy] = useState<string>("friends");
+  const [newUsername, setNewUsername] = useState("");
+  const [changingU, setChangingU] = useState(false);
+  const changeUser = useServerFn(changeUsername);
   useEffect(() => {
-    if (profile) { setBio(profile.bio ?? ""); setCountry(profile.country ?? ""); setDisplayName(profile.display_name); setPrivacy(profile.privacy_profile); setActivityPrivacy(profile.privacy_activity); }
+    if (profile) {
+      setBio(profile.bio ?? ""); setCountry(profile.country ?? ""); setDisplayName(profile.display_name);
+      setPrivacy(profile.privacy_profile); setActivityPrivacy(profile.privacy_activity);
+      setNewUsername(profile.username);
+    }
   }, [profile]);
+
+  const lastChange: string | null = (profile as any)?.username_changed_at ?? null;
+  const cooldownMs = 90 * 24 * 60 * 60 * 1000;
+  const nextChangeAt = lastChange ? new Date(new Date(lastChange).getTime() + cooldownMs) : null;
+  const canChange = !nextChangeAt || nextChangeAt.getTime() <= Date.now();
 
   async function save() {
     if (!user) return;
@@ -40,6 +52,20 @@ function Settings() {
     toast.success("Saved");
     refetch();
   }
+
+  async function saveUsername() {
+    if (!profile) return;
+    if (newUsername === profile.username) return;
+    setChangingU(true);
+    try {
+      await changeUser({ data: { username: newUsername.trim() } });
+      toast.success("Username updated");
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Could not change username");
+    } finally { setChangingU(false); }
+  }
+
 
   async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f || !user) return;
