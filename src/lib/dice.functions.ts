@@ -645,3 +645,131 @@ export const createChallengePaid = createServerFn({ method: "POST" })
     }
     return { id: row.id, fee };
   });
+
+// ---------- Send friend request (with notification) ----------
+export const sendFriendRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { addresseeId: string }) => z.object({ addresseeId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    if (data.addresseeId === context.userId) throw new Error("Can't friend yourself");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin.from("friendships").select("id,status")
+      .or(`and(requester_id.eq.${context.userId},addressee_id.eq.${data.addresseeId}),and(requester_id.eq.${data.addresseeId},addressee_id.eq.${context.userId})`)
+      .maybeSingle();
+    if (existing) throw new Error("Already exists");
+    const { error } = await supabaseAdmin.from("friendships").insert({
+      requester_id: context.userId, addressee_id: data.addresseeId, status: "pending",
+    });
+    if (error) throw error;
+    const { data: me } = await supabaseAdmin.from("profiles").select("username,display_name").eq("id", context.userId).single();
+    await supabaseAdmin.from("notifications").insert({
+      user_id: data.addresseeId, kind: "friend_request",
+      title: "New friend request",
+      body: `${me?.display_name ?? me?.username ?? "Someone"} wants to be friends`,
+      link: "/friends",
+    });
+    return { ok: true };
+  });
+
+// ---------- Respond to friend request ----------
+export const respondFriendRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { friendshipId: string; accept: boolean }) =>
+    z.object({ friendshipId: z.string().uuid(), accept: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin.from("friendships").select("*").eq("id", data.friendshipId).single();
+    if (!row) throw new Error("Not found");
+    if (row.addressee_id !== context.userId) throw new Error("Not your request");
+    await supabaseAdmin.from("friendships").update({
+      status: data.accept ? "accepted" : "blocked",
+    }).eq("id", data.friendshipId);
+    if (data.accept) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("username,display_name").eq("id", context.userId).single();
+      await supabaseAdmin.from("notifications").insert({
+        user_id: row.requester_id, kind: "friend_accept",
+        title: "Friend request accepted",
+        body: `${me?.display_name ?? me?.username ?? "Someone"} accepted your request`,
+        link: "/friends",
+      });
+    }
+    return { ok: true };
+  });
+
+// ---------- Buy VIP status (7 days, 5000 DICE) ----------
+const VIP_COST = 5000;
+const VIP_DAYS = 7;
+export const buyVip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -VIP_COST, _type: "marketplace_purchase",
+      _source: "vip", _ref_kind: "vip", _ref_id: null as any, _note: `VIP ${VIP_DAYS} days`,
+    });
+    const { data: prof } = await supabaseAdmin.from("profiles").select("vip_until").eq("id", context.userId).single();
+    const base = prof?.vip_until && new Date(prof.vip_until) > new Date() ? new Date(prof.vip_until) : new Date();
+    base.setDate(base.getDate() + VIP_DAYS);
+    await supabaseAdmin.from("profiles").update({ vip_until: base.toISOString() }).eq("id", context.userId);
+    return { ok: true, vip_until: base.toISOString() };
+  });
+
+// ---------- Buy a level-up ----------
+// Cost = current_level * 500. Level 10 grants 1h VIP bonus.
+export const buyLevelUp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prof } = await supabaseAdmin.from("profiles").select("level,vip_until").eq("id", context.userId).single();
+    const lvl = prof?.level ?? 1;
+    const cost = lvl * 500;
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -cost, _type: "marketplace_purchase",
+      _source: "level_up", _ref_kind: "level", _ref_id: null as any, _note: `Lvl ${lvl} -> ${lvl + 1}`,
+    });
+    const newLevel = lvl + 1;
+    const updates: any = { level: newLevel };
+    let bonus: string | null = null;
+    if (newLevel === 10) {
+      const base = prof?.vip_until && new Date(prof.vip_until) > new Date() ? new Date(prof.vip_until) : new Date();
+      base.setHours(base.getHours() + 1);
+      updates.vip_until = base.toISOString();
+      bonus = "1 hour VIP unlocked!";
+    } else if (newLevel % 5 === 0) {
+      // every 5 levels: small DICE gift
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: 250, _type: "event",
+        _source: "level_up_bonus", _ref_kind: "level", _ref_id: null as any, _note: `Level ${newLevel} bonus`,
+      });
+      bonus = "+250 DICE bonus";
+    }
+    await supabaseAdmin.from("profiles").update(updates).eq("id", context.userId);
+    return { ok: true, level: newLevel, cost, bonus };
+  });
+
+// ---------- Send chat message (with optional media for VIP) ----------
+export const sendChatMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { body: string; mediaUrl?: string | null; mediaKind?: string | null }) =>
+    z.object({
+      body: z.string().max(4000),
+      mediaUrl: z.string().url().nullable().optional(),
+      mediaKind: z.string().max(60).nullable().optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prof } = await supabaseAdmin.from("profiles").select("vip_until").eq("id", context.userId).single();
+    const isVip = !!prof?.vip_until && new Date(prof.vip_until) > new Date();
+    const maxLen = isVip ? 4000 : 500;
+    if ((data.body?.length ?? 0) > maxLen) throw new Error(`Message too long (limit ${maxLen})`);
+    if (data.mediaUrl && !isVip) throw new Error("VIP required to send images");
+    if (!data.body?.trim() && !data.mediaUrl) throw new Error("Empty message");
+    const { error } = await supabaseAdmin.from("chat_messages").insert({
+      user_id: context.userId,
+      body: data.body ?? "",
+      media_url: data.mediaUrl ?? null,
+      media_kind: data.mediaKind ?? null,
+    });
+    if (error) throw error;
+    return { ok: true };
+  });

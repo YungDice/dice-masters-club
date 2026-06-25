@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Search, UserPlus, Check, X, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/dice/EmptyState";
+import { sendFriendRequest, respondFriendRequest } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/friends")({
@@ -21,6 +23,8 @@ function Friends() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const sendReqFn = useServerFn(sendFriendRequest);
+  const respondFn = useServerFn(respondFriendRequest);
 
   const friends = useQuery({
     queryKey: ["friends", user?.id],
@@ -38,8 +42,12 @@ function Friends() {
     queryKey: ["friend-requests", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("friendships").select("*, profiles!friendships_requester_id_fkey(*)").eq("addressee_id", user!.id).eq("status", "pending");
-      return data ?? [];
+      const { data } = await supabase.from("friendships").select("*").eq("addressee_id", user!.id).eq("status", "pending");
+      const rows = data ?? [];
+      const ids = rows.map((r: any) => r.requester_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return rows.map((r: any) => ({ ...r, profiles: m[r.requester_id] }));
     },
   });
   const search = useQuery({
@@ -53,12 +61,13 @@ function Friends() {
 
   async function sendReq(id: string) {
     if (!user) return;
-    const { error } = await supabase.from("friendships").insert({ requester_id: user.id, addressee_id: id, status: "pending" });
-    if (error) toast.error(error.message); else toast.success("Friend request sent");
+    try { await sendReqFn({ data: { addresseeId: id } }); toast.success("Friend request sent"); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
     qc.invalidateQueries();
   }
   async function respond(fid: string, accept: boolean) {
-    await supabase.from("friendships").update({ status: accept ? "accepted" : "blocked" }).eq("id", fid);
+    try { await respondFn({ data: { friendshipId: fid, accept } }); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
     qc.invalidateQueries();
   }
 

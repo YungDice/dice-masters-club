@@ -25,19 +25,18 @@ function DikDok() {
   const qc = useQueryClient();
   const like = useServerFn(toggleGalleryLike);
   const [idx, setIdx] = useState(0);
-  const [ratio, setRatio] = useState<number | null>(null); // width/height
+  const [ratio, setRatio] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const q = useQuery({
-    queryKey: ["dikdok"],
+    queryKey: ["dikdok-all"],
     queryFn: async () => {
       const { data } = await supabase
         .from("gallery_items")
         .select("*")
         .eq("is_public", true)
-        .like("media_kind", "video/%")
         .order("created_at", { ascending: false })
-        .limit(80);
+        .limit(120);
       const list = data ?? [];
       const withUrls = await Promise.all(list.map(async (i: any) => ({ ...i, _url: await signedUrl(i.media_path) })));
       const ids = list.map((i: any) => i.user_id);
@@ -62,7 +61,7 @@ function DikDok() {
   });
 
   useEffect(() => {
-    const ch = supabase.channel("gallery_likes").on("postgres_changes", { event: "*", schema: "public", table: "gallery_likes" }, () => qc.invalidateQueries({ queryKey: ["dikdok-likes"] })).subscribe();
+    const ch = supabase.channel("gallery_likes_feed").on("postgres_changes", { event: "*", schema: "public", table: "gallery_likes" }, () => qc.invalidateQueries({ queryKey: ["dikdok-likes"] })).subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [qc]);
 
@@ -81,6 +80,8 @@ function DikDok() {
   function next() { setIdx((i) => Math.min(feed.length - 1, i + 1)); }
   function prev() { setIdx((i) => Math.max(0, i - 1)); }
 
+  const cur = feed[idx];
+
   async function onLike() {
     if (!user || !cur) { toast.error("Sign in to like"); return; }
     try { await like({ data: { itemId: cur.id } }); }
@@ -93,37 +94,47 @@ function DikDok() {
       <div className="max-w-md mx-auto text-center py-20">
         <Music2 className="mx-auto text-primary size-10" />
         <h1 className="mt-3 font-display text-2xl font-bold">DikDok is empty</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Upload a video to the Gallery to start the feed.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Upload an image or video to the Gallery to start the feed.</p>
       </div>
     );
   }
 
-  const cur = feed[idx];
+  const isVideo = (cur.media_kind ?? "").startsWith("video/");
+  const isImage = (cur.media_kind ?? "").startsWith("image/");
   const isWide = ratio !== null && ratio > 1;
   const count = likesQ.data?.counts[cur.id] ?? 0;
   const liked = !!likesQ.data?.mine[cur.id];
 
   return (
     <div className={`${isWide ? "max-w-4xl" : "max-w-md"} mx-auto transition-all`}>
-      <div
-        className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}
-      >
-        <video
-          key={cur.id}
-          ref={videoRef}
-          src={cur._url}
-          className={`absolute inset-0 w-full h-full ${isWide ? "object-contain" : "object-cover"}`}
-          autoPlay loop playsInline controls={false}
-          onLoadedMetadata={(e) => {
-            const v = e.currentTarget;
-            if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
-          }}
-          onEnded={next}
-          onClick={(e) => {
-            const v = e.currentTarget;
-            if (v.paused) v.play(); else v.pause();
-          }}
-        />
+      <div className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}>
+        {isVideo && (
+          <video
+            key={cur.id}
+            ref={videoRef}
+            src={cur._url}
+            className={`absolute inset-0 w-full h-full ${isWide ? "object-contain" : "object-cover"}`}
+            autoPlay loop playsInline controls={false}
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
+            }}
+            onEnded={next}
+            onClick={(e) => { const v = e.currentTarget; if (v.paused) v.play(); else v.pause(); }}
+          />
+        )}
+        {isImage && (
+          <img
+            key={cur.id}
+            src={cur._url}
+            alt={cur.caption ?? "post"}
+            className={`absolute inset-0 w-full h-full ${isWide ? "object-contain" : "object-cover"}`}
+            onLoad={(e) => {
+              const img = e.currentTarget;
+              if (img.naturalWidth && img.naturalHeight) setRatio(img.naturalWidth / img.naturalHeight);
+            }}
+          />
+        )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white pr-16">
           <div className="text-sm font-semibold">@{cur.user?.username ?? "user"}</div>
           {cur.caption && <div className="text-xs mt-1 line-clamp-3">{cur.caption}</div>}
@@ -138,7 +149,7 @@ function DikDok() {
         </div>
         <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a video to give the creator +5 DICE</p>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a post: you +5, creator +10 DICE</p>
     </div>
   );
 }
