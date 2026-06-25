@@ -98,11 +98,10 @@ export const playSlots = createServerFn({ method: "POST" })
 // ---------- Coin flip PvP: create / join / resolve ----------
 export const createCoinFlip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { stake: number; isPrivate: boolean; pick: "heads" | "tails" }) =>
+  .inputValidator((d: { stake: number; isPrivate: boolean }) =>
     z.object({
       stake: z.number().int().min(10).max(10000),
       isPrivate: z.boolean(),
-      pick: z.enum(["heads", "tails"]),
     }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -115,7 +114,7 @@ export const createCoinFlip = createServerFn({ method: "POST" })
     const { data: room, error } = await supabaseAdmin.from("game_rooms").insert({
       kind: "coinflip", host_id: context.userId, stake: data.stake,
       max_players: 2, is_private: data.isPrivate, invite_code: code,
-      status: "waiting", state: { host_pick: data.pick },
+      status: "waiting", state: {},
     }).select().single();
     if (error) throw error;
     await supabaseAdmin.from("game_players").insert({
@@ -139,27 +138,68 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
-    // Resolve immediately
+    await supabaseAdmin.from("game_rooms").update({
+      status: "active",
+      state: { ...(room.state as any), joiner_id: context.userId },
+    }).eq("id", room.id);
+    return { ok: true, roomId: room.id };
+  });
+
+// Either player picks a side; the other gets the opposite. Once both sides are
+// known the coin is flipped and the room resolves.
+export const pickCoinFlipSide = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string; side: "heads" | "tails" }) =>
+    z.object({ roomId: z.string().uuid(), side: z.enum(["heads", "tails"]) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.status !== "active") throw new Error("Room not in pick phase");
+    const state: any = room.state ?? {};
+    if (context.userId !== room.host_id && context.userId !== state.joiner_id) {
+      throw new Error("Not a player in this room");
+    }
+    const isHost = context.userId === room.host_id;
+    const other = data.side === "heads" ? "tails" : "heads";
+    const next = {
+      ...state,
+      host_pick: isHost ? data.side : (state.host_pick ?? other),
+      joiner_pick: isHost ? (state.joiner_pick ?? other) : data.side,
+    };
+    // Resolve
     const flip = Math.random() < 0.5 ? "heads" : "tails";
-    const hostPick = (room.state as any)?.host_pick ?? "heads";
-    const hostWon = hostPick === flip;
+    const hostWon = next.host_pick === flip;
     const pot = room.stake * 2;
-    const winnerId = hostWon ? room.host_id : context.userId;
-    const loserId = hostWon ? context.userId : room.host_id;
+    const winnerId = hostWon ? room.host_id : state.joiner_id;
+    const loserId = hostWon ? state.joiner_id : room.host_id;
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: winnerId, _delta: pot, _type: "game_win",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Coin flip win",
     });
     await supabaseAdmin.from("game_rooms").update({
-      status: "finished", winner_id: winnerId, state: { ...(room.state as any), flip },
+      status: "finished", winner_id: winnerId,
+      state: { ...next, flip },
       finished_at: new Date().toISOString(),
     }).eq("id", room.id);
     await supabaseAdmin.from("game_results").insert([
       { room_id: room.id, user_id: winnerId, kind: "coinflip", delta: room.stake, outcome: "win", details: { flip } },
       { room_id: room.id, user_id: loserId, kind: "coinflip", delta: -room.stake, outcome: "loss", details: { flip } },
     ]);
-    return { flip, winnerId, pot };
+    return { flip, winnerId, pot, hostPick: next.host_pick, joinerPick: next.joiner_pick };
   });
+
+// Change username (90-day cooldown, server-enforced)
+export const changeUsername = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { username: string }) =>
+    z.object({ username: z.string().regex(/^[a-zA-Z0-9_]{3,20}$/, "3-20 chars, letters/numbers/underscore") }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: res, error } = await context.supabase.rpc("change_username", { _new_username: data.username });
+    if (error) throw new Error(error.message);
+    return res as { ok: boolean; username: string };
+  });
+
 
 // ---------- Blackjack solo (simplified, server-authoritative) ----------
 type Card = { r: string; s: string; v: number };
