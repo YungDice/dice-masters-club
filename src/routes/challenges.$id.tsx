@@ -18,8 +18,8 @@ export const Route = createFileRoute("/challenges/$id")({
   component: () => <AppShell><Detail /></AppShell>,
 });
 
-async function fetchProfiles(ids: string[]) {
-  const unique = Array.from(new Set(ids.filter(Boolean)));
+async function fetchProfiles(ids: (string | null | undefined)[]) {
+  const unique = Array.from(new Set(ids.filter((x): x is string => !!x)));
   if (!unique.length) return {} as Record<string, any>;
   const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", unique);
   return Object.fromEntries((data ?? []).map((p: any) => [p.id, p]));
