@@ -42,8 +42,12 @@ function Friends() {
     queryKey: ["friend-requests", user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("friendships").select("*, profiles!friendships_requester_id_fkey(*)").eq("addressee_id", user!.id).eq("status", "pending");
-      return data ?? [];
+      const { data } = await supabase.from("friendships").select("*").eq("addressee_id", user!.id).eq("status", "pending");
+      const rows = data ?? [];
+      const ids = rows.map((r: any) => r.requester_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return rows.map((r: any) => ({ ...r, profiles: m[r.requester_id] }));
     },
   });
   const search = useQuery({
