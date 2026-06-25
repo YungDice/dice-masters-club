@@ -128,6 +128,56 @@ function Settings() {
         )}
       </Card>
 
+      {(() => {
+        const vipUntil = (profile as any)?.vip_until ? new Date((profile as any).vip_until) : null;
+        const vipActive = vipUntil && vipUntil > new Date();
+        const lvl = profile?.level ?? 1;
+        const lvlCost = lvl * 500;
+        async function doBuyVip() {
+          if ((wallet?.balance ?? 0) < 5000) { toast.error("Need 5,000 DICE"); return; }
+          setBusyVip(true);
+          try { await buyVipFn({ data: undefined as any }); toast.success("VIP unlocked for 7 days!"); refetch(); qc.invalidateQueries({ queryKey: ["wallet"] }); }
+          catch (e: any) { toast.error(e.message ?? "Failed"); }
+          finally { setBusyVip(false); }
+        }
+        async function doBuyLvl() {
+          if ((wallet?.balance ?? 0) < lvlCost) { toast.error(`Need ${lvlCost} DICE`); return; }
+          setBusyLvl(true);
+          try {
+            const r = await buyLevelFn({ data: undefined as any });
+            toast.success(`Level ${r.level}!${r.bonus ? " " + r.bonus : ""}`);
+            refetch(); qc.invalidateQueries({ queryKey: ["wallet"] });
+          } catch (e: any) { toast.error(e.message ?? "Failed"); }
+          finally { setBusyLvl(false); }
+        }
+        return (
+          <>
+            <Card className="glass p-6 space-y-3 border-amber-400/40">
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Crown className="text-amber-400" /> VIP Status</h2>
+              {vipActive ? (
+                <p className="text-sm text-emerald-400">Active until {vipUntil!.toLocaleString()}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Buy VIP for 5,000 DICE. Lasts 7 days. Send images in global chat, bigger message limit (4,000 chars vs 500).</p>
+              )}
+              <Button onClick={doBuyVip} disabled={busyVip} className="glow-red">
+                {busyVip ? "Processing..." : vipActive ? "Extend VIP (+7 days · 5,000 DICE)" : "Buy VIP — 5,000 DICE"}
+              </Button>
+            </Card>
+
+            <Card className="glass p-6 space-y-3">
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Sparkles className="text-primary" /> Level up</h2>
+              <p className="text-sm text-muted-foreground">You are <b>Level {lvl}</b>. Buy your way up — cost rises each level. Every 5th level: <b>+250 DICE bonus</b>. <b>Level 10: 1 hour of VIP</b>.</p>
+              <div className="flex items-center justify-between rounded-md bg-white/5 p-3">
+                <div className="text-sm">Next level: <b>{lvl + 1}</b></div>
+                <div className="text-sm">Cost: <b>{fmt(lvlCost)} DICE</b></div>
+              </div>
+              <Button onClick={doBuyLvl} disabled={busyLvl}>{busyLvl ? "Processing..." : `Buy Level ${lvl + 1}`}</Button>
+            </Card>
+          </>
+        );
+      })()}
+
+
       <Card className="glass p-6 space-y-3">
         <h2 className="font-display text-lg font-semibold">Responsible play</h2>
         <p className="text-sm text-muted-foreground">DICE is meant to be fun. Long sessions get a reminder to take a break. Need to stop for now? Sign out and come back tomorrow.</p>
