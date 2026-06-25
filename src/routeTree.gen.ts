@@ -9,38 +9,376 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as FriendsRouteImport } from './routes/friends'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlayIndexRouteImport } from './routes/play.index'
+import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
+import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
+import { Route as UUsernameRouteImport } from './routes/u.$username'
+import { Route as PlaySplitStealRouteImport } from './routes/play.split-steal'
+import { Route as PlaySlotsRouteImport } from './routes/play.slots'
+import { Route as PlayPokerRouteImport } from './routes/play.poker'
+import { Route as PlayDiceRouteImport } from './routes/play.dice'
+import { Route as PlayCoinflipRouteImport } from './routes/play.coinflip'
+import { Route as PlayBlackjackRouteImport } from './routes/play.blackjack'
+import { Route as MarketplaceNewRouteImport } from './routes/marketplace.new'
+import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
+import { Route as ChallengesNewRouteImport } from './routes/challenges.new'
+import { Route as ChallengesIdRouteImport } from './routes/challenges.$id'
+import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FriendsRoute = FriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayIndexRoute = PlayIndexRouteImport.update({
+  id: '/play/',
+  path: '/play/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
+  id: '/marketplace/',
+  path: '/marketplace/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
+  id: '/challenges/',
+  path: '/challenges/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UUsernameRoute = UUsernameRouteImport.update({
+  id: '/u/$username',
+  path: '/u/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaySplitStealRoute = PlaySplitStealRouteImport.update({
+  id: '/play/split-steal',
+  path: '/play/split-steal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaySlotsRoute = PlaySlotsRouteImport.update({
+  id: '/play/slots',
+  path: '/play/slots',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayPokerRoute = PlayPokerRouteImport.update({
+  id: '/play/poker',
+  path: '/play/poker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayDiceRoute = PlayDiceRouteImport.update({
+  id: '/play/dice',
+  path: '/play/dice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayCoinflipRoute = PlayCoinflipRouteImport.update({
+  id: '/play/coinflip',
+  path: '/play/coinflip',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayBlackjackRoute = PlayBlackjackRouteImport.update({
+  id: '/play/blackjack',
+  path: '/play/blackjack',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceNewRoute = MarketplaceNewRouteImport.update({
+  id: '/marketplace/new',
+  path: '/marketplace/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
+  id: '/marketplace/$id',
+  path: '/marketplace/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesNewRoute = ChallengesNewRouteImport.update({
+  id: '/challenges/new',
+  path: '/challenges/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesIdRoute = ChallengesIdRouteImport.update({
+  id: '/challenges/$id',
+  path: '/challenges/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesIdSubmitRoute = ChallengesIdSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
+  getParentRoute: () => ChallengesIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/friends': typeof FriendsRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/challenges/$id': typeof ChallengesIdRouteWithChildren
+  '/challenges/new': typeof ChallengesNewRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/marketplace/new': typeof MarketplaceNewRoute
+  '/play/blackjack': typeof PlayBlackjackRoute
+  '/play/coinflip': typeof PlayCoinflipRoute
+  '/play/dice': typeof PlayDiceRoute
+  '/play/poker': typeof PlayPokerRoute
+  '/play/slots': typeof PlaySlotsRoute
+  '/play/split-steal': typeof PlaySplitStealRoute
+  '/u/$username': typeof UUsernameRoute
+  '/challenges/': typeof ChallengesIndexRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
+  '/play/': typeof PlayIndexRoute
+  '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/friends': typeof FriendsRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/challenges/$id': typeof ChallengesIdRouteWithChildren
+  '/challenges/new': typeof ChallengesNewRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/marketplace/new': typeof MarketplaceNewRoute
+  '/play/blackjack': typeof PlayBlackjackRoute
+  '/play/coinflip': typeof PlayCoinflipRoute
+  '/play/dice': typeof PlayDiceRoute
+  '/play/poker': typeof PlayPokerRoute
+  '/play/slots': typeof PlaySlotsRoute
+  '/play/split-steal': typeof PlaySplitStealRoute
+  '/u/$username': typeof UUsernameRoute
+  '/challenges': typeof ChallengesIndexRoute
+  '/marketplace': typeof MarketplaceIndexRoute
+  '/play': typeof PlayIndexRoute
+  '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
+  '/friends': typeof FriendsRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/notifications': typeof NotificationsRoute
+  '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/challenges/$id': typeof ChallengesIdRouteWithChildren
+  '/challenges/new': typeof ChallengesNewRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/marketplace/new': typeof MarketplaceNewRoute
+  '/play/blackjack': typeof PlayBlackjackRoute
+  '/play/coinflip': typeof PlayCoinflipRoute
+  '/play/dice': typeof PlayDiceRoute
+  '/play/poker': typeof PlayPokerRoute
+  '/play/slots': typeof PlaySlotsRoute
+  '/play/split-steal': typeof PlaySplitStealRoute
+  '/u/$username': typeof UUsernameRoute
+  '/challenges/': typeof ChallengesIndexRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
+  '/play/': typeof PlayIndexRoute
+  '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/friends'
+    | '/leaderboard'
+    | '/notifications'
+    | '/profile'
+    | '/settings'
+    | '/challenges/$id'
+    | '/challenges/new'
+    | '/marketplace/$id'
+    | '/marketplace/new'
+    | '/play/blackjack'
+    | '/play/coinflip'
+    | '/play/dice'
+    | '/play/poker'
+    | '/play/slots'
+    | '/play/split-steal'
+    | '/u/$username'
+    | '/challenges/'
+    | '/marketplace/'
+    | '/play/'
+    | '/challenges/$id/submit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/friends'
+    | '/leaderboard'
+    | '/notifications'
+    | '/profile'
+    | '/settings'
+    | '/challenges/$id'
+    | '/challenges/new'
+    | '/marketplace/$id'
+    | '/marketplace/new'
+    | '/play/blackjack'
+    | '/play/coinflip'
+    | '/play/dice'
+    | '/play/poker'
+    | '/play/slots'
+    | '/play/split-steal'
+    | '/u/$username'
+    | '/challenges'
+    | '/marketplace'
+    | '/play'
+    | '/challenges/$id/submit'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/friends'
+    | '/leaderboard'
+    | '/notifications'
+    | '/profile'
+    | '/settings'
+    | '/challenges/$id'
+    | '/challenges/new'
+    | '/marketplace/$id'
+    | '/marketplace/new'
+    | '/play/blackjack'
+    | '/play/coinflip'
+    | '/play/dice'
+    | '/play/poker'
+    | '/play/slots'
+    | '/play/split-steal'
+    | '/u/$username'
+    | '/challenges/'
+    | '/marketplace/'
+    | '/play/'
+    | '/challenges/$id/submit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
+  FriendsRoute: typeof FriendsRoute
+  LeaderboardRoute: typeof LeaderboardRoute
+  NotificationsRoute: typeof NotificationsRoute
+  ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
+  ChallengesIdRoute: typeof ChallengesIdRouteWithChildren
+  ChallengesNewRoute: typeof ChallengesNewRoute
+  MarketplaceIdRoute: typeof MarketplaceIdRoute
+  MarketplaceNewRoute: typeof MarketplaceNewRoute
+  PlayBlackjackRoute: typeof PlayBlackjackRoute
+  PlayCoinflipRoute: typeof PlayCoinflipRoute
+  PlayDiceRoute: typeof PlayDiceRoute
+  PlayPokerRoute: typeof PlayPokerRoute
+  PlaySlotsRoute: typeof PlaySlotsRoute
+  PlaySplitStealRoute: typeof PlaySplitStealRoute
+  UUsernameRoute: typeof UUsernameRoute
+  ChallengesIndexRoute: typeof ChallengesIndexRoute
+  MarketplaceIndexRoute: typeof MarketplaceIndexRoute
+  PlayIndexRoute: typeof PlayIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/friends': {
+      id: '/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof FriendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +386,150 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/': {
+      id: '/play/'
+      path: '/play'
+      fullPath: '/play/'
+      preLoaderRoute: typeof PlayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace/': {
+      id: '/marketplace/'
+      path: '/marketplace'
+      fullPath: '/marketplace/'
+      preLoaderRoute: typeof MarketplaceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges/': {
+      id: '/challenges/'
+      path: '/challenges'
+      fullPath: '/challenges/'
+      preLoaderRoute: typeof ChallengesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$username': {
+      id: '/u/$username'
+      path: '/u/$username'
+      fullPath: '/u/$username'
+      preLoaderRoute: typeof UUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/split-steal': {
+      id: '/play/split-steal'
+      path: '/play/split-steal'
+      fullPath: '/play/split-steal'
+      preLoaderRoute: typeof PlaySplitStealRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/slots': {
+      id: '/play/slots'
+      path: '/play/slots'
+      fullPath: '/play/slots'
+      preLoaderRoute: typeof PlaySlotsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/poker': {
+      id: '/play/poker'
+      path: '/play/poker'
+      fullPath: '/play/poker'
+      preLoaderRoute: typeof PlayPokerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/dice': {
+      id: '/play/dice'
+      path: '/play/dice'
+      fullPath: '/play/dice'
+      preLoaderRoute: typeof PlayDiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/coinflip': {
+      id: '/play/coinflip'
+      path: '/play/coinflip'
+      fullPath: '/play/coinflip'
+      preLoaderRoute: typeof PlayCoinflipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/blackjack': {
+      id: '/play/blackjack'
+      path: '/play/blackjack'
+      fullPath: '/play/blackjack'
+      preLoaderRoute: typeof PlayBlackjackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace/new': {
+      id: '/marketplace/new'
+      path: '/marketplace/new'
+      fullPath: '/marketplace/new'
+      preLoaderRoute: typeof MarketplaceNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketplace/$id': {
+      id: '/marketplace/$id'
+      path: '/marketplace/$id'
+      fullPath: '/marketplace/$id'
+      preLoaderRoute: typeof MarketplaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges/new': {
+      id: '/challenges/new'
+      path: '/challenges/new'
+      fullPath: '/challenges/new'
+      preLoaderRoute: typeof ChallengesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges/$id': {
+      id: '/challenges/$id'
+      path: '/challenges/$id'
+      fullPath: '/challenges/$id'
+      preLoaderRoute: typeof ChallengesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges/$id/submit': {
+      id: '/challenges/$id/submit'
+      path: '/submit'
+      fullPath: '/challenges/$id/submit'
+      preLoaderRoute: typeof ChallengesIdSubmitRouteImport
+      parentRoute: typeof ChallengesIdRoute
+    }
   }
 }
 
+interface ChallengesIdRouteChildren {
+  ChallengesIdSubmitRoute: typeof ChallengesIdSubmitRoute
+}
+
+const ChallengesIdRouteChildren: ChallengesIdRouteChildren = {
+  ChallengesIdSubmitRoute: ChallengesIdSubmitRoute,
+}
+
+const ChallengesIdRouteWithChildren = ChallengesIdRoute._addFileChildren(
+  ChallengesIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
+  FriendsRoute: FriendsRoute,
+  LeaderboardRoute: LeaderboardRoute,
+  NotificationsRoute: NotificationsRoute,
+  ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
+  ChallengesIdRoute: ChallengesIdRouteWithChildren,
+  ChallengesNewRoute: ChallengesNewRoute,
+  MarketplaceIdRoute: MarketplaceIdRoute,
+  MarketplaceNewRoute: MarketplaceNewRoute,
+  PlayBlackjackRoute: PlayBlackjackRoute,
+  PlayCoinflipRoute: PlayCoinflipRoute,
+  PlayDiceRoute: PlayDiceRoute,
+  PlayPokerRoute: PlayPokerRoute,
+  PlaySlotsRoute: PlaySlotsRoute,
+  PlaySplitStealRoute: PlaySplitStealRoute,
+  UUsernameRoute: UUsernameRoute,
+  ChallengesIndexRoute: ChallengesIndexRoute,
+  MarketplaceIndexRoute: MarketplaceIndexRoute,
+  PlayIndexRoute: PlayIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
