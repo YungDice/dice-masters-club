@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Cherry } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
@@ -19,42 +19,170 @@ export const Route = createFileRoute("/play/slots")({
   component: () => <AppShell><Slots /></AppShell>,
 });
 
+const SYMBOLS = ["7", "BAR", "🍒", "🍋", "🔔", "💎"];
+const SYMBOL_COLORS: Record<string, string> = {
+  "7": "text-amber-400", "BAR": "text-red-400", "🍒": "", "🍋": "", "🔔": "", "💎": "",
+};
+const ROW_H = 96; // px, matches h-24 for symbol cells
+
+// Build a long randomized strip for each reel; last 3 symbols of the strip
+// will be: [above, target, below] so target lands on the visible center row.
+function buildStrip(target: string, length = 32): string[] {
+  const strip: string[] = [];
+  for (let i = 0; i < length - 3; i++) {
+    strip.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+  }
+  strip.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]); // above
+  strip.push(target);                                              // center
+  strip.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]); // below
+  return strip;
+}
+
+function Reel({ strip, spinning, stopDelayMs, isWin }: { strip: string[]; spinning: boolean; stopDelayMs: number; isWin: boolean }) {
+  // Final offset positions the "target" (index length-2) in the center of a 3-row window.
+  // Window height = 3*ROW_H; center row top = ROW_H. Strip translateY = -(targetIndex*ROW_H - ROW_H).
+  const targetIndex = strip.length - 2;
+  const finalY = -(targetIndex * ROW_H - ROW_H);
+
+  return (
+    <div className="relative w-24 overflow-hidden rounded-lg bg-black/40 border border-white/10"
+      style={{ height: ROW_H * 3 }}>
+      {/* gradient mask */}
+      <div className="pointer-events-none absolute inset-0 z-10"
+        style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.85) 100%)" }} />
+      {/* highlight center on win */}
+      {isWin && !spinning && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0.4, 1] }} transition={{ duration: 1.4, repeat: Infinity }}
+          className="pointer-events-none absolute left-0 right-0 z-20"
+          style={{ top: ROW_H, height: ROW_H, boxShadow: "inset 0 0 24px 4px hsl(var(--primary) / 0.6)", border: "2px solid hsl(var(--primary))", borderRadius: 6 }} />
+      )}
+      <motion.div
+        key={spinning ? "spinning" : "stop-" + strip.join("")}
+        initial={{ y: 0 }}
+        animate={spinning
+          ? { y: [-ROW_H * 6, -ROW_H * 6 + 1] } // continuously cycling animation
+          : { y: finalY }}
+        transition={spinning
+          ? { duration: 0.18, repeat: Infinity, ease: "linear" }
+          : { duration: 1.1 + stopDelayMs / 1000, ease: [0.16, 1, 0.3, 1], delay: stopDelayMs / 1000 }}
+      >
+        {strip.map((s, i) => (
+          <div key={i} className={`grid place-items-center font-display font-bold ${SYMBOL_COLORS[s] ?? ""}`}
+            style={{ height: ROW_H, fontSize: s === "BAR" ? 28 : 44 }}>
+            {s}
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
 function Slots() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
   const qc = useQueryClient();
   const [bet, setBet] = useState(25);
-  const [reels, setReels] = useState<string[]>(["?", "?", "?"]);
+  const [strips, setStrips] = useState<string[][]>(() => [
+    buildStrip("?"), buildStrip("?"), buildStrip("?"),
+  ]);
+  const [results, setResults] = useState<string[] | null>(null);
   const [payout, setPayout] = useState<number | null>(null);
   const [spinning, setSpinning] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const play = useServerFn(playSlots);
+
+  // Lever click sound (tiny synthesized blip via WebAudio)
+  function blip(frequency = 220, duration = 0.08) {
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx: AudioContext = audioRef.current ? (audioRef.current as any).ctx : new Ctx();
+      if (!audioRef.current) (audioRef.current as any) = { ctx };
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.frequency.value = frequency; o.type = "square";
+      g.gain.value = 0.04;
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      o.stop(ctx.currentTime + duration);
+    } catch {}
+  }
 
   async function spin() {
     if (!wallet || wallet.balance < bet) return toast.error("Not enough DICE");
-    setSpinning(true); setPayout(null);
+    setSpinning(true); setPayout(null); setResults(null);
+    blip(180, 0.12);
+    // Pre-build new spinning strips
+    setStrips([
+      buildStrip(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]),
+      buildStrip(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]),
+      buildStrip(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]),
+    ]);
     try {
       const r = await play({ data: { bet } });
-      setTimeout(() => { setReels(r.reels as string[]); setPayout(r.payout); setSpinning(false); qc.invalidateQueries({ queryKey: ["wallet"] }); if (r.payout > 0) toast.success(`+${fmt(r.payout)} DICE!`); }, 900);
-    } catch (e: any) { toast.error(e.message); setSpinning(false); }
+      const reels = r.reels as string[];
+      // Build final strips ending on real result
+      const newStrips = reels.map((sym) => buildStrip(sym, 36));
+      setStrips(newStrips);
+      // Stagger the reel stops
+      setTimeout(() => { blip(440, 0.05); }, 1100);
+      setTimeout(() => { blip(523, 0.05); }, 1500);
+      setTimeout(() => { blip(659, 0.08); }, 1900);
+      setTimeout(() => {
+        setSpinning(false);
+        setResults(reels);
+        setPayout(r.payout);
+        qc.invalidateQueries({ queryKey: ["wallet"] });
+        if (r.payout > 0) {
+          toast.success(`+${fmt(r.payout)} DICE!`);
+          blip(880, 0.2);
+          setTimeout(() => blip(1100, 0.25), 220);
+        }
+      }, 2300);
+    } catch (e: any) {
+      toast.error(e.message); setSpinning(false);
+    }
   }
+
+  const isWin = !!(payout && payout > 0);
+
+  useEffect(() => () => {
+    try { (audioRef.current as any)?.ctx?.close(); } catch {}
+  }, []);
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <Card className="glass p-8 text-center">
-        <h1 className="font-display text-3xl font-bold flex items-center justify-center gap-2"><Cherry />Slots</h1>
-        <div className="mt-8 flex justify-center gap-3">
-          {reels.map((s, i) => (
-            <motion.div key={i} animate={spinning ? { y: [0, -20, 0] } : {}} transition={{ duration: 0.5, repeat: spinning ? 3 : 0, delay: i * 0.1 }} className="size-24 rounded-lg glass grid place-items-center font-display text-4xl font-bold">{s}</motion.div>
+      <Card className="glass p-8 text-center relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-20" style={{
+          background: "radial-gradient(circle at 50% 30%, hsl(var(--primary) / 0.5), transparent 60%)",
+        }} />
+        <h1 className="font-display text-3xl font-bold flex items-center justify-center gap-2 relative"><Cherry className="text-red-400" />Slots</h1>
+
+        <div className="mt-8 inline-flex gap-3 p-4 rounded-2xl bg-gradient-to-b from-amber-700/30 to-amber-900/30 border-2 border-amber-500/40 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.6)]">
+          {strips.map((strip, i) => (
+            <Reel key={i} strip={strip} spinning={spinning}
+              stopDelayMs={i * 350}
+              isWin={isWin && !!results && results[0] === results[1] && results[1] === results[2]} />
           ))}
         </div>
-        {payout !== null && payout > 0 && <div className="mt-6 font-display text-2xl text-emerald-400">WIN +{fmt(payout)} DICE</div>}
-        {payout === 0 && <div className="mt-6 font-display text-2xl text-muted-foreground">No luck this time</div>}
+
+        {!spinning && payout !== null && payout > 0 && (
+          <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="mt-6 font-display text-3xl text-emerald-400">
+            🎉 WIN +{fmt(payout)} DICE
+          </motion.div>
+        )}
+        {!spinning && payout === 0 && <div className="mt-6 font-display text-xl text-muted-foreground">No win — spin again</div>}
       </Card>
+
       <Card className="glass p-5">
         <div className="text-xs text-muted-foreground mb-3">Paytable: 3× 7=25x · 3× BAR=15x · 3× 💎=10x · 3× 🔔=7x · 3× 🍒=5x · 3× 🍋=3x · two-match=1.5x</div>
         <div className="flex justify-between text-sm"><span>Bet</span><span className="font-semibold">{fmt(bet)} DICE</span></div>
         <Slider min={5} max={Math.min(500, Number(wallet?.balance ?? 50))} step={5} value={[bet]} onValueChange={(v) => setBet(v[0])} className="mt-2" />
-        <Button onClick={spin} disabled={spinning} className="mt-4 w-full glow-red">{spinning ? "Spinning..." : "Spin"}</Button>
+        <Button onClick={spin} disabled={spinning} className="mt-4 w-full glow-red text-lg py-6">
+          {spinning ? "Spinning..." : "🎰 Pull the lever"}
+        </Button>
       </Card>
     </div>
   );
