@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { createCoinFlip, joinCoinFlip, pickCoinFlipSide } from "@/lib/dice.functions";
+import { createCoinFlip, joinCoinFlip, pickCoinFlipSide, cancelRoom } from "@/lib/dice.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -149,7 +149,9 @@ function RoomView({ roomId, onLeave }: { roomId: string; onLeave: () => void }) 
   const { user } = useAuth();
   const qc = useQueryClient();
   const pick = useServerFn(pickCoinFlipSide);
+  const cancel = useServerFn(cancelRoom);
   const [picking, setPicking] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const room = useQuery({
     queryKey: ["cf-room", roomId],
@@ -188,6 +190,19 @@ function RoomView({ roomId, onLeave }: { roomId: string; onLeave: () => void }) 
     finally { setPicking(false); }
   }
 
+  async function leaveLobby() {
+    setCancelling(true);
+    try {
+      await cancel({ data: { roomId } });
+      toast.success("Lobby cancelled — stake refunded");
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["cf-rooms"] });
+      qc.invalidateQueries({ queryKey: ["cf-my"] });
+      onLeave();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setCancelling(false); }
+  }
+
   return (
     <div className="max-w-xl mx-auto space-y-4">
       <Card className="glass p-6 text-center felt-bg">
@@ -195,7 +210,14 @@ function RoomView({ roomId, onLeave }: { roomId: string; onLeave: () => void }) 
         {r.invite_code && <p className="text-xs text-muted-foreground mt-1">Invite code: <span className="font-mono font-bold text-foreground">{r.invite_code}</span></p>}
 
         {r.status === "waiting" && (
-          <p className="mt-6 text-muted-foreground">Waiting for an opponent to join…</p>
+          <div className="mt-6 space-y-4">
+            <p className="text-muted-foreground">Waiting for an opponent to join…</p>
+            {isHost && (
+              <Button variant="outline" disabled={cancelling} onClick={leaveLobby}>
+                {cancelling ? "Cancelling…" : "Leave lobby & refund"}
+              </Button>
+            )}
+          </div>
         )}
 
         {r.status === "active" && !youPick && (

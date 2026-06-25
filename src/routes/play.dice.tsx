@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { playDiceSolo, createDiceRoom, joinDiceRoom } from "@/lib/dice.functions";
+import { playDiceSolo, createDiceRoom, joinDiceRoom, cancelRoom } from "@/lib/dice.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +87,7 @@ function PvP() {
   const [lastResult, setLastResult] = useState<{ hostRoll: number; joinRoll: number; winnerId: string | null; pot: number } | null>(null);
   const create = useServerFn(createDiceRoom);
   const join = useServerFn(joinDiceRoom);
+  const cancel = useServerFn(cancelRoom);
 
   const rooms = useQuery({
     queryKey: ["dice-rooms"],
@@ -148,6 +149,23 @@ function PvP() {
           <label className="flex items-center gap-2 mt-3 text-sm"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private (invite code)</label>
         </div>
         <Button className="mt-4 glow-red" onClick={host} disabled={!!activeRoomId}>{activeRoomId ? "Lobby waiting…" : "Create lobby"}</Button>
+        {activeRoomId && (
+          <Button
+            variant="outline"
+            className="mt-2 ml-2"
+            onClick={async () => {
+              try {
+                await cancel({ data: { roomId: activeRoomId } });
+                toast.success("Lobby cancelled — refunded");
+                setActiveRoomId(null);
+                qc.invalidateQueries({ queryKey: ["wallet"] });
+                qc.invalidateQueries({ queryKey: ["dice-rooms"] });
+              } catch (e: any) { toast.error(e.message); }
+            }}
+          >
+            Leave lobby & refund
+          </Button>
+        )}
       </Card>
 
       {lastResult && (

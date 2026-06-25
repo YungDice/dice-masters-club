@@ -564,11 +564,36 @@ export const toggleGalleryLike = createServerFn({ method: "POST" })
     await supabaseAdmin.from("gallery_likes").insert({ item_id: data.itemId, user_id: context.userId });
     if (item.user_id !== context.userId) {
       await supabaseAdmin.rpc("wallet_adjust", {
-        _user: item.user_id, _delta: 10, _type: "event",
+        _user: item.user_id, _delta: 5, _type: "event",
         _source: "gallery_like", _ref_kind: "gallery_item", _ref_id: data.itemId, _note: "Video liked",
       });
     }
     return { liked: true };
+  });
+
+// ---------- Cancel a waiting room (host only) — refunds escrow ----------
+export const cancelRoom = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { roomId: string }) => z.object({ roomId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
+    if (!room) throw new Error("Room not found");
+    if (room.host_id !== context.userId) throw new Error("Only the host can cancel");
+    if (room.status !== "waiting") throw new Error("Room already has players — cannot cancel");
+    const sourceMap: Record<string, string> = {
+      coinflip: "coinflip", dice: "dice_pvp", split_steal: "split_steal",
+    };
+    const src = sourceMap[room.kind as string] ?? (room.kind as string);
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: room.host_id, _delta: room.stake, _type: "refund",
+      _source: src, _ref_kind: room.kind, _ref_id: room.id, _note: "Lobby cancelled — refund",
+    });
+    await supabaseAdmin.from("game_players").delete().eq("room_id", room.id);
+    await supabaseAdmin.from("game_rooms").update({
+      status: "cancelled", finished_at: new Date().toISOString(),
+    }).eq("id", room.id);
+    return { ok: true };
   });
 
 // ---------- Create challenge (charges 500 DICE for non-staff) ----------
