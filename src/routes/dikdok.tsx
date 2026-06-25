@@ -1,0 +1,99 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Music2, ChevronUp, ChevronDown } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { AppShell } from "@/components/dice/TopNav";
+import { Button } from "@/components/ui/button";
+
+export const Route = createFileRoute("/dikdok")({
+  head: () => ({ meta: [{ title: "DikDok — DICE" }] }),
+  component: () => <AppShell><DikDok /></AppShell>,
+});
+
+async function signedUrl(path: string) {
+  const { data } = await supabase.storage.from("gallery").createSignedUrl(path, 60 * 60 * 6);
+  return data?.signedUrl ?? "";
+}
+
+function DikDok() {
+  const [idx, setIdx] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const q = useQuery({
+    queryKey: ["dikdok"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("gallery_items")
+        .select("*")
+        .eq("is_public", true)
+        .like("media_kind", "video/%")
+        .order("created_at", { ascending: false })
+        .limit(80);
+      const list = data ?? [];
+      const withUrls = await Promise.all(list.map(async (i: any) => ({ ...i, _url: await signedUrl(i.media_path) })));
+      const ids = list.map((i: any) => i.user_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return withUrls.map((i: any) => ({ ...i, user: m[i.user_id] }));
+    },
+  });
+
+  // Randomize order once per fetch
+  const feed = useMemo(() => {
+    const arr = [...(q.data ?? [])];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [q.data]);
+
+  useEffect(() => { setIdx(0); }, [feed.length]);
+  useEffect(() => { videoRef.current?.play().catch(() => {}); }, [idx]);
+
+  function next() { setIdx((i) => Math.min(feed.length - 1, i + 1)); }
+  function prev() { setIdx((i) => Math.max(0, i - 1)); }
+
+  if (q.isLoading) return <div className="text-center text-muted-foreground py-10">Loading…</div>;
+  if (!feed.length) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20">
+        <Music2 className="mx-auto text-primary size-10" />
+        <h1 className="mt-3 font-display text-2xl font-bold">DikDok is empty</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Upload a video to the Gallery to start the feed.</p>
+      </div>
+    );
+  }
+
+  const cur = feed[idx];
+
+  return (
+    <div className="max-w-sm mx-auto">
+      <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-border/60 glow-red">
+        <video
+          key={cur.id}
+          ref={videoRef}
+          src={cur._url}
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay loop playsInline muted={false} controls={false}
+          onEnded={next}
+          onClick={(e) => {
+            const v = e.currentTarget;
+            if (v.paused) v.play(); else v.pause();
+          }}
+        />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
+          <div className="text-sm font-semibold">@{cur.user?.username ?? "user"}</div>
+          {cur.caption && <div className="text-xs mt-1 line-clamp-3">{cur.caption}</div>}
+        </div>
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+          <Button size="icon" variant="secondary" onClick={prev} disabled={idx === 0}><ChevronUp /></Button>
+          <Button size="icon" variant="secondary" onClick={next} disabled={idx === feed.length - 1}><ChevronDown /></Button>
+        </div>
+        <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
+      </div>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · arrows to navigate</p>
+    </div>
+  );
+}
