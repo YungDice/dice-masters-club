@@ -102,6 +102,22 @@ function Settings() {
         </div>
         <Button onClick={save}>Save</Button>
       </Card>
+
+      <Card className="glass p-6 space-y-3">
+        <h2 className="font-display text-lg font-semibold">Username</h2>
+        <p className="text-xs text-muted-foreground">Your @handle. Can be changed once every 90 days. 3–20 chars, letters/numbers/underscore.</p>
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">@</span>
+          <Input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} maxLength={20} disabled={!canChange} />
+          <Button onClick={saveUsername} disabled={!canChange || changingU || !profile || newUsername === profile.username}>
+            {changingU ? "Saving..." : "Change"}
+          </Button>
+        </div>
+        {!canChange && nextChangeAt && (
+          <p className="text-xs text-amber-400">You can change your username again on {nextChangeAt.toLocaleDateString()}.</p>
+        )}
+      </Card>
+
       <Card className="glass p-6 space-y-3">
         <h2 className="font-display text-lg font-semibold">Responsible play</h2>
         <p className="text-sm text-muted-foreground">DICE is meant to be fun. Long sessions get a reminder to take a break. Need to stop for now? Sign out and come back tomorrow.</p>
