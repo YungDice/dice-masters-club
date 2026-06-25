@@ -38,7 +38,7 @@ function Detail() {
       if (error) throw error;
       if (!data) return null;
       const profiles = await fetchProfiles([data.creator_id]);
-      return { ...data, creator: profiles[data.creator_id] ?? null };
+      return { ...data, creator: data.creator_id ? profiles[data.creator_id] ?? null : null };
     },
   });
 
