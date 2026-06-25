@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-profile";
@@ -9,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
+import { changeUsername } from "@/lib/dice.functions";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — DICE" }] }),
@@ -25,9 +27,21 @@ function Settings() {
   const [displayName, setDisplayName] = useState("");
   const [privacy, setPrivacy] = useState<string>("public");
   const [activityPrivacy, setActivityPrivacy] = useState<string>("friends");
+  const [newUsername, setNewUsername] = useState("");
+  const [changingU, setChangingU] = useState(false);
+  const changeUser = useServerFn(changeUsername);
   useEffect(() => {
-    if (profile) { setBio(profile.bio ?? ""); setCountry(profile.country ?? ""); setDisplayName(profile.display_name); setPrivacy(profile.privacy_profile); setActivityPrivacy(profile.privacy_activity); }
+    if (profile) {
+      setBio(profile.bio ?? ""); setCountry(profile.country ?? ""); setDisplayName(profile.display_name);
+      setPrivacy(profile.privacy_profile); setActivityPrivacy(profile.privacy_activity);
+      setNewUsername(profile.username);
+    }
   }, [profile]);
+
+  const lastChange: string | null = (profile as any)?.username_changed_at ?? null;
+  const cooldownMs = 90 * 24 * 60 * 60 * 1000;
+  const nextChangeAt = lastChange ? new Date(new Date(lastChange).getTime() + cooldownMs) : null;
+  const canChange = !nextChangeAt || nextChangeAt.getTime() <= Date.now();
 
   async function save() {
     if (!user) return;
@@ -38,6 +52,20 @@ function Settings() {
     toast.success("Saved");
     refetch();
   }
+
+  async function saveUsername() {
+    if (!profile) return;
+    if (newUsername === profile.username) return;
+    setChangingU(true);
+    try {
+      await changeUser({ data: { username: newUsername.trim() } });
+      toast.success("Username updated");
+      refetch();
+    } catch (e: any) {
+      toast.error(e.message || "Could not change username");
+    } finally { setChangingU(false); }
+  }
+
 
   async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f || !user) return;
@@ -74,6 +102,22 @@ function Settings() {
         </div>
         <Button onClick={save}>Save</Button>
       </Card>
+
+      <Card className="glass p-6 space-y-3">
+        <h2 className="font-display text-lg font-semibold">Username</h2>
+        <p className="text-xs text-muted-foreground">Your @handle. Can be changed once every 90 days. 3–20 chars, letters/numbers/underscore.</p>
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground">@</span>
+          <Input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} maxLength={20} disabled={!canChange} />
+          <Button onClick={saveUsername} disabled={!canChange || changingU || !profile || newUsername === profile.username}>
+            {changingU ? "Saving..." : "Change"}
+          </Button>
+        </div>
+        {!canChange && nextChangeAt && (
+          <p className="text-xs text-amber-400">You can change your username again on {nextChangeAt.toLocaleDateString()}.</p>
+        )}
+      </Card>
+
       <Card className="glass p-6 space-y-3">
         <h2 className="font-display text-lg font-semibold">Responsible play</h2>
         <p className="text-sm text-muted-foreground">DICE is meant to be fun. Long sessions get a reminder to take a break. Need to stop for now? Sign out and come back tomorrow.</p>

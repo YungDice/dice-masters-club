@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Heart, MessageSquare, Camera, Flag, ArrowLeft } from "lucide-react";
+import { MessageSquare, Camera, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/dice/TopNav";
@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/challenges/$id")({
   head: () => ({ meta: [{ title: `Challenge — DICE` }, { name: "description", content: "Challenge details, comments, leaderboard. Submit your proof on DICE." }] }),
@@ -29,7 +30,9 @@ function Detail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [comment, setComment] = useState("");
+  const [opening, setOpening] = useState(false);
 
   const chal = useQuery({
     queryKey: ["challenge", id],
@@ -65,25 +68,23 @@ function Detail() {
     },
   });
 
-  async function like() {
-    if (!user) return toast.error("Sign in first");
-    await supabase.from("challenge_likes").upsert({ challenge_id: id, user_id: user.id } as any);
-    toast.success("Liked");
-  }
   async function postComment() {
     if (!user || !comment.trim()) return;
     await supabase.from("challenge_comments").insert({ challenge_id: id, user_id: user.id, body: comment.trim() });
     setComment(""); qc.invalidateQueries({ queryKey: ["challenge-comments", id] });
   }
-  async function report() {
-    if (!user) return toast.error("Sign in first");
-    await supabase.from("reports").insert({ reporter_id: user.id, target_kind: "challenge", target_id: id, reason: "unsafe_or_inappropriate" });
-    toast.success("Report submitted to moderators");
+  async function openRecord() {
+    if (!user) { toast.error("Sign in to record proof"); return; }
+    setOpening(true);
+    try {
+      await supabase.from("challenge_participants").upsert(
+        { challenge_id: id, user_id: user.id } as any,
+        { onConflict: "challenge_id,user_id" },
+      );
+    } catch { /* ignore — navigate anyway */ }
+    navigate({ to: "/challenges/$id/submit", params: { id } });
   }
-  async function joinAndOpenCamera() {
-    if (!user) return;
-    await supabase.from("challenge_participants").upsert({ challenge_id: id, user_id: user.id } as any, { onConflict: "challenge_id,user_id" });
-  }
+
 
   if (chal.isLoading) {
     return (
@@ -133,10 +134,9 @@ function Detail() {
           </div>
         </div>
         <div className="mt-5 flex gap-2 flex-wrap">
-          <Link to="/challenges/$id/submit" params={{ id }} onClick={joinAndOpenCamera}><Button className="glow-red"><Camera className="size-4 mr-1" />Record proof</Button></Link>
-          <Button variant="outline" onClick={like}><Heart className="size-4 mr-1" />Like</Button>
-          <Button variant="outline" onClick={report}><Flag className="size-4 mr-1" />Report</Button>
+          <Button className="glow-red" onClick={openRecord} disabled={opening}><Camera className="size-4 mr-1" />Record proof</Button>
         </div>
+
         {c.creator && <div className="mt-4 text-xs text-muted-foreground">Created by @{c.creator.username}</div>}
       </Card>
 

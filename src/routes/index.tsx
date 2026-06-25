@@ -92,6 +92,23 @@ function Dashboard() {
   const claim = useServerFn(claimDaily);
   const [claiming, setClaiming] = useState(false);
 
+  const dailyClaimed = useQuery({
+    queryKey: ["daily-claimed", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const since = new Date(); since.setUTCHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("dice_transactions")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("source", "daily")
+        .gte("created_at", since.toISOString())
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+  });
+
+
   const daily = useQuery({
     queryKey: ["daily-challenge"],
     queryFn: async () => {
@@ -150,9 +167,11 @@ function Dashboard() {
       const r = await claim();
       if (r.ok) toast.success(`+${r.reward} DICE — daily reward claimed!`);
       else toast("Already claimed today. Come back tomorrow!");
+      dailyClaimed.refetch();
     } catch (e: any) { toast.error(e.message); }
     finally { setClaiming(false); }
   }
+
 
   const xp = profile?.xp ?? 0;
   const lvl = profile?.level ?? 1;
@@ -171,9 +190,14 @@ function Dashboard() {
               <div className="font-display text-4xl font-bold">{fmt(wallet?.balance ?? 0)}</div>
               <div className="mt-1 text-xs text-muted-foreground">Lifetime earned: {fmt(wallet?.lifetime_earned ?? 0)}</div>
             </div>
-            <Button onClick={onClaim} disabled={claiming} className="glow-red">
-              <Flame className="size-4 mr-1" /> Daily reward
-            </Button>
+            {dailyClaimed.data ? (
+              <div className="text-xs text-emerald-400 font-medium flex items-center gap-1"><Flame className="size-4" /> Claimed today</div>
+            ) : (
+              <Button onClick={onClaim} disabled={claiming} className="glow-red">
+                <Flame className="size-4 mr-1" /> Daily reward
+              </Button>
+            )}
+
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-xs mb-1"><span>Level {lvl}</span><span>{fmt(xp)} / {fmt(nextXp)} XP</span></div>

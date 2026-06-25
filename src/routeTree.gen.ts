@@ -13,7 +13,9 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FriendsRouteImport } from './routes/friends'
+import { Route as DikdokRouteImport } from './routes/dikdok'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -53,9 +55,19 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FriendsRoute = FriendsRouteImport.update({
   id: '/friends',
   path: '/friends',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DikdokRoute = DikdokRouteImport.update({
+  id: '/dikdok',
+  path: '/dikdok',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -153,7 +165,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
+  '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -178,7 +192,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
+  '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -204,7 +220,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
+  '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -231,7 +249,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/dikdok'
     | '/friends'
+    | '/gallery'
     | '/leaderboard'
     | '/notifications'
     | '/profile'
@@ -256,7 +276,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/dikdok'
     | '/friends'
+    | '/gallery'
     | '/leaderboard'
     | '/notifications'
     | '/profile'
@@ -281,7 +303,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/dikdok'
     | '/friends'
+    | '/gallery'
     | '/leaderboard'
     | '/notifications'
     | '/profile'
@@ -307,7 +331,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  DikdokRoute: typeof DikdokRoute
   FriendsRoute: typeof FriendsRoute
+  GalleryRoute: typeof GalleryRoute
   LeaderboardRoute: typeof LeaderboardRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
@@ -358,11 +384,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/friends': {
       id: '/friends'
       path: '/friends'
       fullPath: '/friends'
       preLoaderRoute: typeof FriendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dikdok': {
+      id: '/dikdok'
+      path: '/dikdok'
+      fullPath: '/dikdok'
+      preLoaderRoute: typeof DikdokRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -510,7 +550,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  DikdokRoute: DikdokRoute,
   FriendsRoute: FriendsRoute,
+  GalleryRoute: GalleryRoute,
   LeaderboardRoute: LeaderboardRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,

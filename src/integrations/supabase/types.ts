@@ -439,6 +439,39 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_items: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          is_public: boolean
+          media_kind: string
+          media_path: string
+          media_url: string
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          media_kind: string
+          media_path: string
+          media_url: string
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          media_kind?: string
+          media_path?: string
+          media_url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_invites: {
         Row: {
           created_at: string
@@ -801,6 +834,7 @@ export type Database = {
           terms_accepted_at: string
           updated_at: string
           username: string
+          username_changed_at: string | null
           xp: number
         }
         Insert: {
@@ -821,6 +855,7 @@ export type Database = {
           terms_accepted_at?: string
           updated_at?: string
           username: string
+          username_changed_at?: string | null
           xp?: number
         }
         Update: {
@@ -841,6 +876,7 @@ export type Database = {
           terms_accepted_at?: string
           updated_at?: string
           username?: string
+          username_changed_at?: string | null
           xp?: number
         }
         Relationships: []
@@ -963,6 +999,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      change_username: { Args: { _new_username: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
