@@ -92,6 +92,23 @@ function Dashboard() {
   const claim = useServerFn(claimDaily);
   const [claiming, setClaiming] = useState(false);
 
+  const dailyClaimed = useQuery({
+    queryKey: ["daily-claimed", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const since = new Date(); since.setUTCHours(0, 0, 0, 0);
+      const { data } = await supabase
+        .from("dice_transactions")
+        .select("id")
+        .eq("user_id", user!.id)
+        .eq("source", "daily")
+        .gte("created_at", since.toISOString())
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
+  });
+
+
   const daily = useQuery({
     queryKey: ["daily-challenge"],
     queryFn: async () => {
@@ -150,9 +167,11 @@ function Dashboard() {
       const r = await claim();
       if (r.ok) toast.success(`+${r.reward} DICE — daily reward claimed!`);
       else toast("Already claimed today. Come back tomorrow!");
+      dailyClaimed.refetch();
     } catch (e: any) { toast.error(e.message); }
     finally { setClaiming(false); }
   }
+
 
   const xp = profile?.xp ?? 0;
   const lvl = profile?.level ?? 1;
