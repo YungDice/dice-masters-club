@@ -256,7 +256,7 @@ function Room({ roomId, onLeave, userId }: { roomId: string; onLeave: () => void
 
   const room = q.data;
   if (!room) return <p className="text-sm text-muted-foreground p-6">Loading…</p>;
-  const view = mbjView(room.state);
+  const view = mbjView(room.state ?? { phase: "lobby", turn: 0, bet: room.stake, seats: [], dealer: [] });
   const isHost = room.host_id === userId;
   const mySeatIdx = view.seats.findIndex((s: any) => s.userId === userId);
   const isMyTurn = view.phase === "playing" && view.turn === mySeatIdx;
