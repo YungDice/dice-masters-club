@@ -11,6 +11,8 @@ import {
   Shield,
   LogOut,
   Menu,
+  Images,
+  Music2,
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,10 +35,13 @@ const items = [
   { to: "/", label: "Home", icon: Home, exact: true },
   { to: "/challenges", label: "Challenges", icon: Trophy },
   { to: "/play", label: "Play", icon: Gamepad2 },
-  { to: "/marketplace", label: "Marketplace", icon: ShoppingBag },
+  { to: "/gallery", label: "Gallery", icon: Images },
+  { to: "/dikdok", label: "DikDok", icon: Music2 },
+  { to: "/marketplace", label: "Market", icon: ShoppingBag },
   { to: "/friends", label: "Friends", icon: Users },
-  { to: "/leaderboard", label: "Leaderboard", icon: BarChart3 },
+  { to: "/leaderboard", label: "Ranks", icon: BarChart3 },
 ] as const;
+
 
 export function TopNav() {
   const { user } = useAuth();
