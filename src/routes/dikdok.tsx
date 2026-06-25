@@ -104,7 +104,7 @@ function DikDok() {
   const liked = !!likesQ.data?.mine[cur.id];
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className={`${isWide ? "max-w-4xl" : "max-w-md"} mx-auto transition-all`}>
       <div
         className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}
       >
@@ -124,7 +124,7 @@ function DikDok() {
             if (v.paused) v.play(); else v.pause();
           }}
         />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-white pr-16">
           <div className="text-sm font-semibold">@{cur.user?.username ?? "user"}</div>
           {cur.caption && <div className="text-xs mt-1 line-clamp-3">{cur.caption}</div>}
         </div>
@@ -138,7 +138,7 @@ function DikDok() {
         </div>
         <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a video to give the creator +10 DICE</p>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a video to give the creator +5 DICE</p>
     </div>
   );
 }
