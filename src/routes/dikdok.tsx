@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Music2, ChevronUp, ChevronDown } from "lucide-react";
+import { Music2, ChevronUp, ChevronDown, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/dice/TopNav";
 import { Button } from "@/components/ui/button";
+import { toggleGalleryLike } from "@/lib/dice.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dikdok")({
   head: () => ({ meta: [{ title: "DikDok — DICE" }] }),
@@ -17,7 +21,11 @@ async function signedUrl(path: string) {
 }
 
 function DikDok() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const like = useServerFn(toggleGalleryLike);
   const [idx, setIdx] = useState(0);
+  const [ratio, setRatio] = useState<number | null>(null); // width/height
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const q = useQuery({
@@ -39,7 +47,25 @@ function DikDok() {
     },
   });
 
-  // Randomize order once per fetch
+  const likesQ = useQuery({
+    queryKey: ["dikdok-likes"],
+    queryFn: async () => {
+      const { data } = await supabase.from("gallery_likes").select("item_id,user_id");
+      const counts: Record<string, number> = {};
+      const mine: Record<string, boolean> = {};
+      for (const r of data ?? []) {
+        counts[r.item_id] = (counts[r.item_id] ?? 0) + 1;
+        if (user && r.user_id === user.id) mine[r.item_id] = true;
+      }
+      return { counts, mine };
+    },
+  });
+
+  useEffect(() => {
+    const ch = supabase.channel("gallery_likes").on("postgres_changes", { event: "*", schema: "public", table: "gallery_likes" }, () => qc.invalidateQueries({ queryKey: ["dikdok-likes"] })).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
+
   const feed = useMemo(() => {
     const arr = [...(q.data ?? [])];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -50,10 +76,16 @@ function DikDok() {
   }, [q.data]);
 
   useEffect(() => { setIdx(0); }, [feed.length]);
-  useEffect(() => { videoRef.current?.play().catch(() => {}); }, [idx]);
+  useEffect(() => { setRatio(null); videoRef.current?.play().catch(() => {}); }, [idx]);
 
   function next() { setIdx((i) => Math.min(feed.length - 1, i + 1)); }
   function prev() { setIdx((i) => Math.max(0, i - 1)); }
+
+  async function onLike() {
+    if (!user || !cur) { toast.error("Sign in to like"); return; }
+    try { await like({ data: { itemId: cur.id } }); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+  }
 
   if (q.isLoading) return <div className="text-center text-muted-foreground py-10">Loading…</div>;
   if (!feed.length) {
@@ -67,16 +99,25 @@ function DikDok() {
   }
 
   const cur = feed[idx];
+  const isWide = ratio !== null && ratio > 1;
+  const count = likesQ.data?.counts[cur.id] ?? 0;
+  const liked = !!likesQ.data?.mine[cur.id];
 
   return (
-    <div className="max-w-sm mx-auto">
-      <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-black border border-border/60 glow-red">
+    <div className="max-w-md mx-auto">
+      <div
+        className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}
+      >
         <video
           key={cur.id}
           ref={videoRef}
           src={cur._url}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay loop playsInline muted={false} controls={false}
+          className={`absolute inset-0 w-full h-full ${isWide ? "object-contain" : "object-cover"}`}
+          autoPlay loop playsInline controls={false}
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            if (v.videoWidth && v.videoHeight) setRatio(v.videoWidth / v.videoHeight);
+          }}
           onEnded={next}
           onClick={(e) => {
             const v = e.currentTarget;
@@ -87,13 +128,17 @@ function DikDok() {
           <div className="text-sm font-semibold">@{cur.user?.username ?? "user"}</div>
           {cur.caption && <div className="text-xs mt-1 line-clamp-3">{cur.caption}</div>}
         </div>
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-2 items-center">
           <Button size="icon" variant="secondary" onClick={prev} disabled={idx === 0}><ChevronUp /></Button>
+          <Button size="icon" variant={liked ? "default" : "secondary"} onClick={onLike} className={liked ? "glow-red" : ""}>
+            <Heart className={`size-4 ${liked ? "fill-current" : ""}`} />
+          </Button>
+          <span className="text-xs text-white bg-black/60 rounded px-1.5">{count}</span>
           <Button size="icon" variant="secondary" onClick={next} disabled={idx === feed.length - 1}><ChevronDown /></Button>
         </div>
         <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · arrows to navigate</p>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a video to give the creator +10 DICE</p>
     </div>
   );
 }
