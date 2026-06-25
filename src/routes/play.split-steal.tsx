@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { createSplitSteal, joinSplitSteal, choiceSplitSteal } from "@/lib/dice.functions";
+import { createSplitSteal, joinSplitSteal, choiceSplitSteal, cancelRoom } from "@/lib/dice.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +30,7 @@ function SS() {
   const create = useServerFn(createSplitSteal);
   const join = useServerFn(joinSplitSteal);
   const choose = useServerFn(choiceSplitSteal);
+  const cancel = useServerFn(cancelRoom);
 
   const rooms = useQuery({
     queryKey: ["ss-rooms"],
@@ -61,6 +62,22 @@ function SS() {
             <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
             <label className="flex items-center gap-2 mt-3 text-sm"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private</label>
             <Button className="mt-3 glow-red" onClick={host}>Create room</Button>
+            {active && (
+              <Button
+                variant="outline"
+                className="mt-2 ml-2"
+                onClick={async () => {
+                  try {
+                    await cancel({ data: { roomId: active } });
+                    toast.success("Lobby cancelled — refunded");
+                    setActive(null);
+                    qc.invalidateQueries();
+                  } catch (e: any) { toast.error(e.message); }
+                }}
+              >
+                Leave & refund
+              </Button>
+            )}
           </div>
           {active && (
             <div className="rounded-lg border border-border/60 p-4 text-center">
