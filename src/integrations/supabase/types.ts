@@ -345,21 +345,27 @@ export type Database = {
       }
       chat_messages: {
         Row: {
-          body: string
+          body: string | null
           created_at: string
           id: string
+          media_kind: string | null
+          media_url: string | null
           user_id: string
         }
         Insert: {
-          body: string
+          body?: string | null
           created_at?: string
           id?: string
+          media_kind?: string | null
+          media_url?: string | null
           user_id: string
         }
         Update: {
-          body?: string
+          body?: string | null
           created_at?: string
           id?: string
+          media_kind?: string | null
+          media_url?: string | null
           user_id?: string
         }
         Relationships: []
@@ -885,6 +891,7 @@ export type Database = {
           updated_at: string
           username: string
           username_changed_at: string | null
+          vip_until: string | null
           xp: number
         }
         Insert: {
@@ -906,6 +913,7 @@ export type Database = {
           updated_at?: string
           username: string
           username_changed_at?: string | null
+          vip_until?: string | null
           xp?: number
         }
         Update: {
@@ -927,6 +935,7 @@ export type Database = {
           updated_at?: string
           username?: string
           username_changed_at?: string | null
+          vip_until?: string | null
           xp?: number
         }
         Relationships: []
