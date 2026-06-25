@@ -13,12 +13,12 @@ import {
   Menu,
   Images,
   Music2,
-  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DiceLogo } from "./Logo";
 import { DiceBadge } from "./DiceBadge";
+import { ChatPopover } from "./ChatPopover";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet, useMyRoles } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -41,7 +41,6 @@ const items = [
   { to: "/gallery", label: "Gallery", icon: Images },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/leaderboard", label: "Ranks", icon: BarChart3 },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
 ] as const;
 
 
@@ -105,6 +104,7 @@ export function TopNav() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           {wallet && <DiceBadge amount={wallet.balance} />}
+          <ChatPopover />
           <Link to="/notifications" className="grid size-9 place-items-center rounded-md hover:bg-white/5">
             <Bell className="size-4" />
           </Link>
