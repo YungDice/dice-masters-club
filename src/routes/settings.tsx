@@ -27,13 +27,19 @@ function Settings() {
   const { user } = useAuth();
   const nav = useNavigate();
   const { data: profile, refetch } = useMyProfile(user?.id);
+  const { data: wallet } = useWallet(user?.id);
+  const qc = useQueryClient();
   const [bio, setBio] = useState(""); const [country, setCountry] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [privacy, setPrivacy] = useState<string>("public");
   const [activityPrivacy, setActivityPrivacy] = useState<string>("friends");
   const [newUsername, setNewUsername] = useState("");
   const [changingU, setChangingU] = useState(false);
+  const [busyVip, setBusyVip] = useState(false);
+  const [busyLvl, setBusyLvl] = useState(false);
   const changeUser = useServerFn(changeUsername);
+  const buyVipFn = useServerFn(buyVip);
+  const buyLevelFn = useServerFn(buyLevelUp);
   useEffect(() => {
     if (profile) {
       setBio(profile.bio ?? ""); setCountry(profile.country ?? ""); setDisplayName(profile.display_name);
