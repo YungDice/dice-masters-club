@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { changeUsername } from "@/lib/dice.functions";
+import { changeUsername, buyVip, buyLevelUp } from "@/lib/dice.functions";
+import { useWallet } from "@/hooks/use-profile";
+import { Crown, Sparkles } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 
