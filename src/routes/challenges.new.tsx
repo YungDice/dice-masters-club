@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
 import { useAuth } from "@/hooks/use-auth";
+import { useWallet, useMyRoles } from "@/hooks/use-profile";
 import { AppShell } from "@/components/dice/TopNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createChallengePaid } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/challenges/new")({
@@ -18,7 +20,12 @@ export const Route = createFileRoute("/challenges/new")({
 
 function Create() {
   const { user } = useAuth();
+  const { data: wallet } = useWallet(user?.id);
+  const { data: roles } = useMyRoles(user?.id);
+  const isStaff = roles?.some((r) => r === "admin" || r === "moderator");
+  const fee = isStaff ? 0 : 500;
   const nav = useNavigate();
+  const create = useServerFn(createChallengePaid);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     title: "", description: "", rules: "",
@@ -29,17 +36,19 @@ function Create() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (fee > 0 && (wallet?.balance ?? 0) < fee) { toast.error(`Need ${fee} DICE to create a challenge`); return; }
     setBusy(true);
-    const { error } = await supabase.from("challenges").insert({
-      creator_id: user.id, title: form.title, description: form.description, rules: form.rules || null,
-      category: form.category, difficulty: form.difficulty, proof_type: form.proof_type,
-      dice_reward: Number(form.dice_reward), xp_reward: Number(form.xp_reward),
-      tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
-      status: "pending_review",
-    });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Submitted! A moderator will review your challenge."); nav({ to: "/challenges" }); }
+    try {
+      await create({ data: {
+        title: form.title, description: form.description, rules: form.rules || null,
+        category: form.category, difficulty: form.difficulty, proof_type: form.proof_type,
+        dice_reward: Number(form.dice_reward), xp_reward: Number(form.xp_reward),
+        tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
+      } });
+      toast.success(fee > 0 ? `Submitted! ${fee} DICE charged.` : "Submitted!");
+      nav({ to: "/challenges" });
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
   }
   return (
     <Card className="glass p-6 max-w-2xl mx-auto">
@@ -48,6 +57,11 @@ function Create() {
         All challenges are moderated. Don't post anything unsafe — no alcohol, no self-harm,
         no harassment, nothing explicit. Keep it fun.
       </p>
+      <div className={`mt-3 rounded-md border px-3 py-2 text-sm ${fee > 0 ? "border-primary/40 bg-primary/10" : "border-emerald-500/40 bg-emerald-500/10"}`}>
+        {fee > 0
+          ? <>Creating a challenge costs <b>{fee} DICE</b>. Your balance: <b>{wallet?.balance ?? 0}</b>.</>
+          : <>Staff: free challenge creation.</>}
+      </div>
       <form onSubmit={submit} className="mt-5 space-y-4">
         <div className="space-y-2"><Label>Title</Label><Input required maxLength={100} value={form.title} onChange={(e) => setForm({...form, title: e.target.value})} /></div>
         <div className="space-y-2"><Label>Description</Label><Textarea required maxLength={1000} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})} /></div>
@@ -74,7 +88,7 @@ function Create() {
           <div><Label>XP reward (max 200)</Label><Input type="number" min={0} max={200} value={form.xp_reward} onChange={(e) => setForm({...form, xp_reward: +e.target.value})} /></div>
         </div>
         <div><Label>Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({...form, tags: e.target.value})} placeholder="fitness, fun" /></div>
-        <Button disabled={busy} className="w-full glow-red">{busy ? "Submitting..." : "Submit for review"}</Button>
+        <Button disabled={busy} className="w-full glow-red">{busy ? "Submitting..." : fee > 0 ? `Submit (−${fee} DICE)` : "Submit for review"}</Button>
       </form>
     </Card>
   );

@@ -547,3 +547,70 @@ export const claimFirstAdmin = createServerFn({ method: "POST" })
     await supabaseAdmin.from("user_roles").upsert({ user_id: context.userId, role: "admin" } as any, { onConflict: "user_id,role" });
     return { ok: true };
   });
+
+// ---------- Gallery: like + reward creator ----------
+export const toggleGalleryLike = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { itemId: string }) => z.object({ itemId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: item } = await supabaseAdmin.from("gallery_items").select("id,user_id").eq("id", data.itemId).maybeSingle();
+    if (!item) throw new Error("Not found");
+    const { data: existing } = await supabaseAdmin.from("gallery_likes").select("id").eq("item_id", data.itemId).eq("user_id", context.userId).maybeSingle();
+    if (existing) {
+      await supabaseAdmin.from("gallery_likes").delete().eq("id", existing.id);
+      return { liked: false };
+    }
+    await supabaseAdmin.from("gallery_likes").insert({ item_id: data.itemId, user_id: context.userId });
+    if (item.user_id !== context.userId) {
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: item.user_id, _delta: 10, _type: "event",
+        _source: "gallery_like", _ref_kind: "gallery_item", _ref_id: data.itemId, _note: "Video liked",
+      });
+    }
+    return { liked: true };
+  });
+
+// ---------- Create challenge (charges 500 DICE for non-staff) ----------
+export const createChallengePaid = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: any) => z.object({
+    title: z.string().min(3).max(100),
+    description: z.string().min(3).max(1000),
+    rules: z.string().max(1000).nullable().optional(),
+    category: z.string(),
+    difficulty: z.string(),
+    proof_type: z.string(),
+    dice_reward: z.number().int().min(0).max(500),
+    xp_reward: z.number().int().min(0).max(200),
+    tags: z.array(z.string()).max(10),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: staff } = await supabaseAdmin.rpc("is_staff", { _user_id: context.userId });
+    const fee = staff ? 0 : 500;
+    if (fee > 0) {
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: -fee, _type: "marketplace_purchase",
+        _source: "challenge_create", _ref_kind: "challenge", _ref_id: null as any, _note: "Challenge creation fee",
+      });
+    }
+    const { data: row, error } = await supabaseAdmin.from("challenges").insert({
+      creator_id: context.userId,
+      title: data.title, description: data.description, rules: data.rules ?? null,
+      category: data.category as any, difficulty: data.difficulty as any, proof_type: data.proof_type as any,
+      dice_reward: data.dice_reward, xp_reward: data.xp_reward,
+      tags: data.tags, status: "pending_review",
+    }).select("id").single();
+    if (error) {
+      // refund
+      if (fee > 0) {
+        await supabaseAdmin.rpc("wallet_adjust", {
+          _user: context.userId, _delta: fee, _type: "refund",
+          _source: "challenge_create", _ref_kind: "challenge", _ref_id: null as any, _note: "Refund — insert failed",
+        });
+      }
+      throw error;
+    }
+    return { id: row.id, fee };
+  });

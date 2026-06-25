@@ -343,6 +343,27 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dice_transactions: {
         Row: {
           amount: number
@@ -471,6 +492,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      gallery_likes: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_likes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       game_invites: {
         Row: {

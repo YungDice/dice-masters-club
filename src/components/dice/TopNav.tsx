@@ -13,6 +13,7 @@ import {
   Menu,
   Images,
   Music2,
+  MessageSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,11 +36,12 @@ const items = [
   { to: "/", label: "Home", icon: Home, exact: true },
   { to: "/challenges", label: "Challenges", icon: Trophy },
   { to: "/play", label: "Play", icon: Gamepad2 },
-  { to: "/gallery", label: "Gallery", icon: Images },
-  { to: "/dikdok", label: "DikDok", icon: Music2 },
   { to: "/marketplace", label: "Market", icon: ShoppingBag },
+  { to: "/dikdok", label: "DikDok", icon: Music2 },
+  { to: "/gallery", label: "Gallery", icon: Images },
   { to: "/friends", label: "Friends", icon: Users },
   { to: "/leaderboard", label: "Ranks", icon: BarChart3 },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
 ] as const;
 
 

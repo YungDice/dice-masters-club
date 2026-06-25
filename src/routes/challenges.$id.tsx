@@ -134,7 +134,7 @@ function Detail() {
           </div>
         </div>
         <div className="mt-5 flex gap-2 flex-wrap">
-          <Button className="glow-red" onClick={openRecord} disabled={opening}><Camera className="size-4 mr-1" />Record proof</Button>
+          <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
         </div>
 
         {c.creator && <div className="mt-4 text-xs text-muted-foreground">Created by @{c.creator.username}</div>}
