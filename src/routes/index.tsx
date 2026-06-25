@@ -190,9 +190,14 @@ function Dashboard() {
               <div className="font-display text-4xl font-bold">{fmt(wallet?.balance ?? 0)}</div>
               <div className="mt-1 text-xs text-muted-foreground">Lifetime earned: {fmt(wallet?.lifetime_earned ?? 0)}</div>
             </div>
-            <Button onClick={onClaim} disabled={claiming} className="glow-red">
-              <Flame className="size-4 mr-1" /> Daily reward
-            </Button>
+            {dailyClaimed.data ? (
+              <div className="text-xs text-emerald-400 font-medium flex items-center gap-1"><Flame className="size-4" /> Claimed today</div>
+            ) : (
+              <Button onClick={onClaim} disabled={claiming} className="glow-red">
+                <Flame className="size-4 mr-1" /> Daily reward
+              </Button>
+            )}
+
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-xs mb-1"><span>Level {lvl}</span><span>{fmt(xp)} / {fmt(nextXp)} XP</span></div>
