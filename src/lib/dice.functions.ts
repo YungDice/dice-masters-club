@@ -563,9 +563,15 @@ export const toggleGalleryLike = createServerFn({ method: "POST" })
     }
     await supabaseAdmin.from("gallery_likes").insert({ item_id: data.itemId, user_id: context.userId });
     if (item.user_id !== context.userId) {
+      // Creator gets +10
       await supabaseAdmin.rpc("wallet_adjust", {
-        _user: item.user_id, _delta: 5, _type: "event",
-        _source: "gallery_like", _ref_kind: "gallery_item", _ref_id: data.itemId, _note: "Video liked",
+        _user: item.user_id, _delta: 10, _type: "event",
+        _source: "gallery_like", _ref_kind: "gallery_item", _ref_id: data.itemId, _note: "Your post was liked",
+      });
+      // Liker gets +5
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: 5, _type: "event",
+        _source: "gallery_like", _ref_kind: "gallery_item", _ref_id: data.itemId, _note: "You liked a post",
       });
     }
     return { liked: true };
