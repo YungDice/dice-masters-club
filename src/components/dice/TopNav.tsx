@@ -106,9 +106,7 @@ export function TopNav() {
         <div className="ml-auto flex items-center gap-2">
           <DiceBadge amount={wallet?.balance ?? 0} />
           <ChatPopover />
-          <Link to="/notifications" className="grid size-9 place-items-center rounded-md hover:bg-white/5">
-            <Bell className="size-4" />
-          </Link>
+          <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="grid size-9 place-items-center">
