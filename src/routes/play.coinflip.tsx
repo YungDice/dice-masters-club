@@ -9,7 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { createCoinFlip, joinCoinFlip, pickCoinFlipSide, cancelRoom } from "@/lib/dice.functions";
+import { createCoinFlip, joinCoinFlip, pickCoinFlipSide, cancelRoom, coinFlipBot } from "@/lib/dice.functions";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,7 +67,7 @@ function CFPage() {
       const list = data ?? [];
       const hostIds = list.map((r: any) => r.host_id);
       const { data: profs } = hostIds.length
-        ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", hostIds)
+        ? await supabase.from("profiles").select("id,username,display_name,avatar_url,tag").in("id", hostIds)
         : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       return list.map((r: any) => ({ ...r, host: m[r.host_id] ?? null }));
@@ -113,36 +115,98 @@ function CFPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <Card className="glass p-6">
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2"><Coins />Coin Flip</h1>
-        <p className="text-sm text-muted-foreground">Create a lobby and wait for an opponent. Once they join, the first player to lock in a side gets it — the other gets the opposite.</p>
-        <div className="mt-4">
-          <div className="flex justify-between text-sm"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
-          <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
-          <label className="flex items-center gap-2 mt-3 text-sm"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private (invite code)</label>
-        </div>
-        <Button className="mt-4 glow-red" onClick={host}>Create lobby</Button>
-      </Card>
-
-      <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold">Open lobbies</h2>
-        <div className="mt-3 space-y-2">
-          {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public lobbies. Create one!</p>}
-          {(rooms.data ?? []).map((r: any) => (
-            <div key={r.id} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
-              <div>
-                <div className="font-medium">{r.host?.display_name ?? "Player"}</div>
-                <div className="text-xs text-muted-foreground">@{r.host?.username}</div>
-              </div>
-              <div className="text-sm font-semibold">{fmt(r.stake)} DICE</div>
-              <Button size="sm" onClick={() => accept(r.id, r.stake)} disabled={r.host_id === user?.id}>
-                {r.host_id === user?.id ? "Yours" : "Join"}
-              </Button>
+      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Coins className="text-amber-400" />Coin Flip</h1>
+      <Tabs defaultValue="bot">
+        <TabsList>
+          <TabsTrigger value="bot">Solo vs Bot</TabsTrigger>
+          <TabsTrigger value="pvp">Multiplayer</TabsTrigger>
+        </TabsList>
+        <TabsContent value="bot"><BotPanel /></TabsContent>
+        <TabsContent value="pvp" className="space-y-4">
+          <CasinoFrame title="Create a lobby" subtitle="Heads or tails — winner takes the pot" icon={<Coins className="size-6 text-amber-400" />}>
+            <p className="text-sm text-amber-100/80">First to lock in a side gets it; the other gets the opposite.</p>
+            <div className="mt-4">
+              <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+              <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
+              <label className="flex items-center gap-2 mt-3 text-sm text-amber-100"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private (invite code)</label>
             </div>
-          ))}
-        </div>
-      </Card>
+            <Button className="mt-4 glow-red" onClick={host}>Create lobby</Button>
+          </CasinoFrame>
+
+          <Card className="glass p-5">
+            <h2 className="font-display text-lg font-semibold">Open lobbies</h2>
+            <div className="mt-3 space-y-2">
+              {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public lobbies. Create one!</p>}
+              {(rooms.data ?? []).map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
+                  <div>
+                    <div className="font-medium">{r.host?.display_name ?? "Player"}</div>
+                    <div className="text-xs text-muted-foreground">@{r.host?.username}{r.host?.tag && <span className="text-primary">#{r.host.tag}</span>}</div>
+                  </div>
+                  <div className="text-sm font-semibold">{fmt(r.stake)} DICE</div>
+                  <Button size="sm" onClick={() => accept(r.id, r.stake)} disabled={r.host_id === user?.id}>
+                    {r.host_id === user?.id ? "Yours" : "Join"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
+  );
+}
+
+function BotPanel() {
+  const { user } = useAuth();
+  const { data: wallet } = useWallet(user?.id);
+  const qc = useQueryClient();
+  const [stake, setStake] = useState(100);
+  const [side, setSide] = useState<"heads" | "tails">("heads");
+  const [flipping, setFlipping] = useState(false);
+  const [result, setResult] = useState<{ flip: "heads" | "tails"; won: boolean; delta: number } | null>(null);
+  const flipFn = useServerFn(coinFlipBot);
+
+  async function play() {
+    if (!wallet || wallet.balance < stake) return toast.error("Not enough DICE");
+    setFlipping(true); setResult(null);
+    try {
+      const r = await flipFn({ data: { stake, side } });
+      setTimeout(() => {
+        setResult(r);
+        setFlipping(false);
+        qc.invalidateQueries({ queryKey: ["wallet"] });
+        toast(`${r.flip.toUpperCase()} — ${r.won ? "You won!" : "You lost."}`);
+      }, 1400);
+    } catch (e: any) { toast.error(e.message); setFlipping(false); }
+  }
+
+  return (
+    <CasinoFrame title="Coin Flip vs Bot" subtitle="50/50 · pure luck" icon={<Coins className="size-6 text-amber-400" />}>
+      <div className="grid place-items-center py-4">
+        <Coin3D side={result?.flip ?? null} flipping={flipping} />
+      </div>
+      <div className="flex justify-center gap-3 mt-2">
+        {(["heads", "tails"] as const).map((s) => (
+          <button key={s} disabled={flipping}
+            onClick={() => setSide(s)}
+            className={`rounded-lg px-5 py-2 font-display text-lg uppercase tracking-wider transition ${side === s ? "bg-amber-400 text-black" : "bg-black/30 text-amber-100 hover:bg-black/50"}`}
+            style={{ border: "1px solid rgba(201,168,76,0.5)" }}>
+            {s}
+          </button>
+        ))}
+      </div>
+      <div className="mt-4 max-w-md mx-auto">
+        <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+        <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
+        <Button onClick={play} disabled={flipping} className="mt-4 w-full glow-red">{flipping ? "Flipping…" : `Flip — ${fmt(stake)} DICE`}</Button>
+        {result && !flipping && (
+          <div className={`mt-4 text-center font-display text-2xl ${result.won ? "text-emerald-400" : "text-destructive"}`}>
+            {result.flip.toUpperCase()} · {result.won ? `+${fmt(result.delta)}` : fmt(result.delta)} DICE
+          </div>
+        )}
+      </div>
+    </CasinoFrame>
   );
 }
 

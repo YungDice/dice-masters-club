@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { Die3D } from "@/components/dice/casino/Die3D";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/dice")({
   head: () => ({ meta: [{ title: "Dice — DICE" }] }),
@@ -67,15 +68,14 @@ function Solo() {
 
   return (
     <div className="space-y-4">
-      <Card className="glass p-8 text-center felt-bg">
-        <p className="text-sm text-muted-foreground">Higher roll wins. Tie refunds your stake.</p>
-        <div className="mt-8 flex items-center justify-center gap-10">
-          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
-          <div className="text-2xl text-muted-foreground">vs</div>
-          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
+      <CasinoFrame title="Solo vs House" subtitle="Higher roll wins · tie refunds" icon={<Dices className="size-6 text-amber-400" />}>
+        <div className="mt-2 flex items-center justify-center gap-10">
+          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
+          <div className="text-2xl text-amber-200/60">vs</div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
         </div>
-        {result && <div className={`mt-6 font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-muted-foreground" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
-      </Card>
+        {result && <div className={`mt-6 text-center font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-amber-100/70" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
+      </CasinoFrame>
       <Card className="glass p-5">
         <div className="flex justify-between text-sm"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
         <Slider min={10} max={Math.min(1000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
@@ -177,16 +177,16 @@ function PvP() {
       </Card>
 
       {lastResult && (
-        <Card className="glass p-6 text-center felt-bg">
+        <CasinoFrame title="Result" icon={<Dices className="size-6 text-amber-400" />}>
           <div className="flex items-center justify-center gap-10">
-            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
-            <div className="text-2xl text-muted-foreground">vs</div>
-            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
+            <div className="text-2xl text-amber-200/60">vs</div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
           </div>
-          <div className={`mt-4 font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-muted-foreground" : "text-destructive"}`}>
+          <div className={`mt-4 text-center font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-amber-100/70" : "text-destructive"}`}>
             {lastResult.winnerId === user?.id ? `+${fmt(lastResult.pot / 2)} DICE` : lastResult.winnerId === null ? "TIE — refunded" : `-${fmt(lastResult.pot / 2)} DICE`}
           </div>
-        </Card>
+        </CasinoFrame>
       )}
 
       <Card className="glass p-5">

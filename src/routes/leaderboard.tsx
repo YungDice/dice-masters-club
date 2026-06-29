@@ -17,7 +17,7 @@ function ProfileBoard({ orderBy, label, unit }: { orderBy: "xp" | "level"; label
   const q = useQuery({
     queryKey: ["lb", orderBy],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,xp,level").order(orderBy, { ascending: false }).limit(50);
+      const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,xp,level,tag").order(orderBy, { ascending: false }).limit(50);
       return data ?? [];
     },
   });
@@ -31,7 +31,10 @@ function ProfileBoard({ orderBy, label, unit }: { orderBy: "xp" | "level"; label
             <li key={p.id} className="flex items-center gap-3 rounded-md hover:bg-white/5 p-2">
               <span className={`w-7 text-right font-display font-bold ${i === 0 ? "text-gold" : i < 3 ? "text-primary" : "text-muted-foreground"}`}>{i === 0 ? <Crown className="inline size-4" /> : `#${i + 1}`}</span>
               <Avatar className="size-8"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name?.[0]}</AvatarFallback></Avatar>
-              <Link to="/u/$username" params={{ username: p.username }} className="flex-1 text-sm font-medium hover:underline truncate">{p.display_name}</Link>
+              <Link to="/u/$username" params={{ username: p.username }} className="flex-1 text-sm font-medium hover:underline truncate">
+                {p.display_name}
+                <span className="ml-1 text-xs text-muted-foreground font-mono">@{p.username}{(p as any).tag && <span className="text-primary">#{(p as any).tag}</span>}</span>
+              </Link>
               <span className="text-xs text-muted-foreground">Lvl {p.level}</span>
               <span className="text-sm font-bold w-28 text-right text-foreground">{fmt(points)} <span className="text-xs text-muted-foreground font-normal">{unit}</span></span>
             </li>
@@ -50,7 +53,7 @@ function DiceBoard() {
       const { data } = await supabase.from("dice_wallets").select("user_id,balance,lifetime_earned").order("balance", { ascending: false }).limit(50);
       const list = data ?? [];
       const ids = list.map((w) => w.user_id);
-      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level").in("id", ids) : { data: [] };
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       return list.map((w) => ({ ...w, profile: m[w.user_id] }));
     },
@@ -64,7 +67,10 @@ function DiceBoard() {
             <span className={`w-7 text-right font-display font-bold ${i === 0 ? "text-gold" : i < 3 ? "text-primary" : "text-muted-foreground"}`}>{i === 0 ? <Crown className="inline size-4" /> : `#${i + 1}`}</span>
             <Avatar className="size-8"><AvatarImage src={w.profile?.avatar_url ?? undefined} /><AvatarFallback>{w.profile?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
             {w.profile?.username
-              ? <Link to="/u/$username" params={{ username: w.profile.username }} className="flex-1 text-sm font-medium hover:underline truncate">{w.profile.display_name}</Link>
+              ? <Link to="/u/$username" params={{ username: w.profile.username }} className="flex-1 text-sm font-medium hover:underline truncate">
+                  {w.profile.display_name}
+                  <span className="ml-1 text-xs text-muted-foreground font-mono">@{w.profile.username}{w.profile.tag && <span className="text-primary">#{w.profile.tag}</span>}</span>
+                </Link>
               : <span className="flex-1 text-sm text-muted-foreground">Anonymous</span>}
             <span className="text-xs text-muted-foreground">Lifetime {fmt(w.lifetime_earned)}</span>
             <span className="text-sm font-bold w-28 text-right text-primary">{fmt(w.balance)} <span className="text-xs text-muted-foreground font-normal">DICE</span></span>

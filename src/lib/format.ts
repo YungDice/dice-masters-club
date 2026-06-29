@@ -20,3 +20,8 @@ export function levelFromXp(xp: number) {
   while (xpForLevel(lvl + 1) <= xp) lvl++;
   return lvl;
 }
+/** Render Discord-style handle: @username#TAG (tag optional) */
+export function handle(p: { username?: string | null; tag?: string | null } | null | undefined): string {
+  if (!p?.username) return "";
+  return p.tag ? `@${p.username}#${p.tag}` : `@${p.username}`;
+}

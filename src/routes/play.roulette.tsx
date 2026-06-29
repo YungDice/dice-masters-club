@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/roulette")({
   head: () => ({ meta: [
@@ -220,7 +221,8 @@ function RoulettePage() {
         </TabsList>
 
         <TabsContent value="solo" className="space-y-4">
-          <Card className="glass p-6 felt-bg">
+          <CasinoFrame title="American Roulette" subtitle="0 / 00 · place chips · spin" icon={<CircleDot className="size-6 text-amber-400" />}>
+
             <div className="grid lg:grid-cols-[300px,1fr] gap-6 items-center">
               <div className="flex flex-col items-center gap-3">
                 <Wheel angle={angle} />
@@ -293,7 +295,7 @@ function RoulettePage() {
                 </div>
               </div>
             </div>
-          </Card>
+          </CasinoFrame>
 
           <Card className="glass p-4">
             <div className="flex items-center gap-3 flex-wrap">

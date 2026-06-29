@@ -12,6 +12,7 @@ import { playSlots } from "@/lib/dice.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/slots")({
@@ -118,18 +119,19 @@ function Slots() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <Card className="glass p-8 text-center">
-        <h1 className="font-display text-3xl font-bold flex items-center justify-center gap-2"><Cherry className="text-red-400" />Slots</h1>
-        <div className="mt-6 inline-flex gap-3 p-4 rounded-xl bg-black/30 border border-white/10">
-          {strips.map((strip, i) => (
-            <Reel key={i} strip={strip} spinning={spinning} stopDelayMs={i * 350} />
-          ))}
+      <CasinoFrame title="Slots" subtitle="Pull the lever · match symbols" icon={<Cherry className="size-6 text-red-300" />}>
+        <div className="text-center">
+          <div className="inline-flex gap-3 p-4 rounded-xl" style={{ background: "rgba(0,0,0,0.55)", border: "1px solid rgba(201,168,76,0.45)" }}>
+            {strips.map((strip, i) => (
+              <Reel key={i} strip={strip} spinning={spinning} stopDelayMs={i * 350} />
+            ))}
+          </div>
+          {!spinning && payout !== null && payout > 0 && (
+            <div className="mt-6 font-display text-2xl text-emerald-400">🎉 +{fmt(payout)} DICE</div>
+          )}
+          {!spinning && payout === 0 && <div className="mt-6 font-display text-xl text-amber-100/70">No win — spin again</div>}
         </div>
-        {!spinning && payout !== null && payout > 0 && (
-          <div className="mt-6 font-display text-2xl text-emerald-400">🎉 +{fmt(payout)} DICE</div>
-        )}
-        {!spinning && payout === 0 && <div className="mt-6 font-display text-xl text-muted-foreground">No win — spin again</div>}
-      </Card>
+      </CasinoFrame>
 
       <Card className="glass p-5">
         <div className="text-xs text-muted-foreground mb-3">Paytable: 3× 7=25x · 3× BAR=15x · 3× 💎=10x · 3× 🔔=7x · 3× 🍒=5x · 3× 🍋=3x · two-match=1.5x</div>

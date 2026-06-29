@@ -8,7 +8,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { createSplitSteal, joinSplitSteal, choiceSplitSteal, cancelRoom } from "@/lib/dice.functions";
+import { createSplitSteal, joinSplitSteal, choiceSplitSteal, cancelRoom, splitStealBot } from "@/lib/dice.functions";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,75 +55,120 @@ function SS() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <Card className="glass p-6">
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2"><HandHelping />Split or Steal</h1>
-        <p className="text-sm text-muted-foreground">Both stake DICE. Each secretly chooses SPLIT or STEAL. Split/split → divide pot. Steal/split → stealer takes all. Steal/steal → both lose stake.</p>
-        <div className="mt-4 grid md:grid-cols-2 gap-4">
-          <div>
-            <div className="flex justify-between text-sm"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
-            <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
-            <label className="flex items-center gap-2 mt-3 text-sm"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private</label>
-            <Button className="mt-3 glow-red" onClick={host}>Create room</Button>
-            {active && (
-              <Button
-                variant="outline"
-                className="mt-2 ml-2"
-                onClick={async () => {
-                  try {
-                    await cancel({ data: { roomId: active } });
-                    toast.success("Lobby cancelled — refunded");
-                    setActive(null);
-                    qc.invalidateQueries();
-                  } catch (e: any) { toast.error(e.message); }
-                }}
-              >
-                Leave & refund
-              </Button>
-            )}
-          </div>
-          {active && (
-            <div className="rounded-lg border border-border/60 p-4 text-center felt-bg">
-              <div className="text-xs text-muted-foreground">In room. Pick a card:</div>
-              <div className="mt-4 flex gap-4 justify-center">
-                <button onClick={() => pick("split")}
-                  className="group w-32 h-44 rounded-xl flex flex-col items-center justify-center font-display text-xl text-white transition hover:scale-105"
-                  style={{
-                    background: "linear-gradient(160deg, #16a34a, #064e3b)",
-                    border: "2px solid #34d399",
-                    boxShadow: "0 0 24px -6px rgba(52,211,153,0.6), inset 0 -8px 16px rgba(0,0,0,0.35)",
-                  }}>
-                  <HandHelping className="size-8 mb-2" />
-                  SPLIT
-                  <span className="text-[10px] uppercase tracking-widest text-emerald-100/80 mt-1">share the pot</span>
-                </button>
-                <button onClick={() => pick("steal")}
-                  className="group w-32 h-44 rounded-xl flex flex-col items-center justify-center font-display text-xl text-white transition hover:scale-105"
-                  style={{
-                    background: "linear-gradient(160deg, #dc2626, #7f1d1d)",
-                    border: "2px solid #f87171",
-                    boxShadow: "0 0 24px -6px rgba(248,113,113,0.6), inset 0 -8px 16px rgba(0,0,0,0.35)",
-                  }}>
-                  <span className="text-3xl mb-2">⚔️</span>
-                  STEAL
-                  <span className="text-[10px] uppercase tracking-widest text-red-100/80 mt-1">take it all</span>
-                </button>
+      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><HandHelping className="text-amber-400" />Split or Steal</h1>
+      <Tabs defaultValue="bot">
+        <TabsList>
+          <TabsTrigger value="bot">Solo vs Bot</TabsTrigger>
+          <TabsTrigger value="pvp">Multiplayer</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="bot"><BotPanel /></TabsContent>
+
+        <TabsContent value="pvp" className="space-y-4">
+          <CasinoFrame title="Create a room" subtitle="Split or steal the pot" icon={<HandHelping className="size-6 text-amber-400" />}>
+            <p className="text-sm text-amber-100/80">Both stake DICE. Each secretly chooses SPLIT or STEAL. Split/split → divide pot. Steal/split → stealer takes all. Steal/steal → both lose stake.</p>
+            <div className="mt-4 grid md:grid-cols-2 gap-4">
+              <div>
+                <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+                <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
+                <label className="flex items-center gap-2 mt-3 text-sm text-amber-100"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private</label>
+                <Button className="mt-3 glow-red" onClick={host}>Create room</Button>
+                {active && (
+                  <Button variant="outline" className="mt-2 ml-2"
+                    onClick={async () => {
+                      try { await cancel({ data: { roomId: active } }); toast.success("Lobby cancelled — refunded"); setActive(null); qc.invalidateQueries(); }
+                      catch (e: any) { toast.error(e.message); }
+                    }}>Leave & refund</Button>
+                )}
               </div>
+              {active && (
+                <div className="rounded-lg p-4 text-center" style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(201,168,76,0.3)" }}>
+                  <div className="text-xs text-amber-100/70">In room. Pick a card:</div>
+                  <div className="mt-4 flex gap-4 justify-center">
+                    <ChoiceCard label="SPLIT" sub="share the pot" tone="green" onClick={() => pick("split")} />
+                    <ChoiceCard label="STEAL" sub="take it all" tone="red" onClick={() => pick("steal")} />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </Card>
-      <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold">Open rooms</h2>
-        <div className="mt-3 space-y-2">
-          {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public rooms.</p>}
-          {(rooms.data ?? []).map((r: any) => (
-            <div key={r.id} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
-              <div className="text-sm">Stake: {fmt(r.stake)} DICE</div>
-              <Button size="sm" onClick={() => accept(r.id)} disabled={r.host_id === user?.id || r.status !== "waiting"}>{r.host_id === user?.id ? "Yours" : r.status === "waiting" ? "Join" : "Active"}</Button>
+          </CasinoFrame>
+          <Card className="glass p-5">
+            <h2 className="font-display text-lg font-semibold">Open rooms</h2>
+            <div className="mt-3 space-y-2">
+              {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public rooms.</p>}
+              {(rooms.data ?? []).map((r: any) => (
+                <div key={r.id} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
+                  <div className="text-sm">Stake: {fmt(r.stake)} DICE</div>
+                  <Button size="sm" onClick={() => accept(r.id)} disabled={r.host_id === user?.id || r.status !== "waiting"}>{r.host_id === user?.id ? "Yours" : r.status === "waiting" ? "Join" : "Active"}</Button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
+  );
+}
+
+function ChoiceCard({ label, sub, tone, onClick, disabled }: { label: string; sub: string; tone: "green" | "red"; onClick?: () => void; disabled?: boolean }) {
+  const green = tone === "green";
+  return (
+    <button onClick={onClick} disabled={disabled}
+      className="group w-32 h-44 rounded-xl flex flex-col items-center justify-center font-display text-xl text-white transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+      style={{
+        background: green ? "linear-gradient(160deg, #16a34a, #064e3b)" : "linear-gradient(160deg, #dc2626, #7f1d1d)",
+        border: `2px solid ${green ? "#34d399" : "#f87171"}`,
+        boxShadow: `0 0 24px -6px ${green ? "rgba(52,211,153,0.6)" : "rgba(248,113,113,0.6)"}, inset 0 -8px 16px rgba(0,0,0,0.35)`,
+      }}>
+      {green ? <HandHelping className="size-8 mb-2" /> : <span className="text-3xl mb-2">⚔️</span>}
+      {label}
+      <span className="text-[10px] uppercase tracking-widest mt-1 opacity-80">{sub}</span>
+    </button>
+  );
+}
+
+function BotPanel() {
+  const { user } = useAuth();
+  const { data: wallet } = useWallet(user?.id);
+  const qc = useQueryClient();
+  const [stake, setStake] = useState(100);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ bot: string; outcome: string; payout: number; delta: number; choice: "split" | "steal" } | null>(null);
+  const playBot = useServerFn(splitStealBot);
+
+  async function play(choice: "split" | "steal") {
+    if (!wallet || wallet.balance < stake) return toast.error("Not enough DICE");
+    setBusy(true); setResult(null);
+    try {
+      const r = await playBot({ data: { stake, choice } });
+      setResult({ ...r, choice });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      toast(r.delta > 0 ? `+${fmt(r.delta)} DICE` : r.delta < 0 ? `${fmt(r.delta)} DICE` : "Even");
+    } catch (e: any) { toast.error(e.message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <CasinoFrame title="Split or Steal vs Bot" subtitle="Trust… or betray" icon={<HandHelping className="size-6 text-amber-400" />}>
+      <div className="text-center text-sm text-amber-100/80 mb-4">
+        Bot occasionally bluffs. Pick SPLIT to cooperate, STEAL to grab the pot.
+      </div>
+      <div className="flex justify-center gap-4">
+        <ChoiceCard label="SPLIT" sub="share the pot" tone="green" onClick={() => play("split")} disabled={busy} />
+        <ChoiceCard label="STEAL" sub="take it all" tone="red" onClick={() => play("steal")} disabled={busy} />
+      </div>
+      <div className="mt-5 max-w-md mx-auto">
+        <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+        <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
+      </div>
+      {result && (
+        <div className="mt-5 text-center">
+          <div className="text-sm text-amber-100/80">You chose <b className="text-white">{result.choice.toUpperCase()}</b> · Bot chose <b className="text-white">{result.bot.toUpperCase()}</b></div>
+          <div className={`mt-1 font-display text-2xl ${result.delta > 0 ? "text-emerald-400" : result.delta < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+            {result.delta > 0 ? `+${fmt(result.delta)}` : fmt(result.delta)} DICE
+          </div>
+        </div>
+      )}
+    </CasinoFrame>
   );
 }

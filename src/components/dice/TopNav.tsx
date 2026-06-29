@@ -20,7 +20,8 @@ import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { useAuth } from "@/hooks/use-auth";
-import { useWallet, useMyRoles } from "@/hooks/use-profile";
+import { useWallet, useMyRoles, useMyProfile } from "@/hooks/use-profile";
+import { handle } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -48,13 +49,15 @@ export function TopNav() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
   const { data: roles } = useMyRoles(user?.id);
+  const { data: profile } = useMyProfile(user?.id);
   const isStaff = roles?.some((r) => r === "owner" || r === "admin" || r === "moderator");
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
 
   const initials =
-    user?.user_metadata?.display_name?.[0]?.toUpperCase() ??
+    profile?.display_name?.[0]?.toUpperCase() ??
+    profile?.username?.[0]?.toUpperCase() ??
     user?.email?.[0]?.toUpperCase() ??
     "?";
 
@@ -108,15 +111,20 @@ export function TopNav() {
           <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="grid size-9 place-items-center">
+              <button className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-white/5 transition">
                 <Avatar className="size-8 ring-1 ring-border">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url ?? undefined} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
+                <span className="hidden sm:inline text-sm font-medium max-w-[140px] truncate">
+                  {profile?.display_name ?? profile?.username ?? "Account"}
+                </span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>{user?.email ?? "Account"}</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="truncate">
+                {profile ? handle(profile) : (user?.email ?? "Account")}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link to="/profile"><UserIcon className="mr-2 size-4" />Profile</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/settings">Settings</Link></DropdownMenuItem>
