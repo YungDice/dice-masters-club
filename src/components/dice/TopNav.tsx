@@ -172,11 +172,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       <TopNav />
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
-      <footer className="mx-auto max-w-7xl px-4 pb-8 pt-4 text-xs text-muted-foreground">
-        DICE is a virtual-currency platform. DICE has no real-world or monetary value
-        and cannot be purchased, exchanged, or cashed out. Play responsibly. 18+.
-        <Link to="/settings" className="ml-2 underline">Take a break</Link>
-      </footer>
     </div>
   );
 }
