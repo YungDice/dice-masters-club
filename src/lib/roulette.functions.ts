@@ -73,7 +73,10 @@ export const rouletteSpin = createServerFn({ method: "POST" })
       _source: "roulette", _ref_kind: "roulette", _ref_id: null as any, _note: "Roulette spin",
     });
     // Pick pocket index for animation alignment
-    const idx = Math.floor(Math.random() * WHEEL_AMERICAN.length);
+    // Cryptographically secure pocket selection
+    const { randomInt } = await import("node:crypto");
+    const idx = randomInt(0, WHEEL_AMERICAN.length);
+
     const pocket = WHEEL_AMERICAN[idx];
     let payout = 0;
     const perBet: { type: BetType; value?: number | "00"; amount: number; won: number }[] = [];
