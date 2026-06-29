@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { changeUsername, buyVip, claimTag, listTagForSale } from "@/lib/dice.functions";
+import { changeUsername, buyVip, claimTag, listTagForSale, buyLevelUp } from "@/lib/dice.functions";
 import { Crown, Sparkles, Hash, User, Coins, ShieldAlert, Camera } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { fmt } from "@/lib/format";
