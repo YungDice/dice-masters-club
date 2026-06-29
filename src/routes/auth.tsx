@@ -142,7 +142,7 @@ function SignUpForm() {
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Welcome to DICE! You earned a 500 DICE welcome bonus."); navigate({ to: "/" }); }
+    else { toast.success("Welcome to DICE! You earned a 2500 DICE welcome bonus."); navigate({ to: "/" }); }
   }
 
   return (
