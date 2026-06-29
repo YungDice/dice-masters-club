@@ -392,44 +392,22 @@ export const buyListing = createServerFn({ method: "POST" })
   .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: listing } = await supabaseAdmin.from("marketplace_listings")
-      .select("*").eq("id", data.listingId).eq("status", "active").single();
-    if (!listing) throw new Error("Not available");
-    if (listing.seller_id === context.userId) throw new Error("Can't buy own");
-    if ((listing as any).sale_type === "auction") throw new Error("This is an auction — place a bid");
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: -listing.price, _type: "marketplace_purchase",
-      _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: listing.title,
+    const { data: res, error } = await supabaseAdmin.rpc("buy_listing_tx", {
+      _buyer: context.userId, _listing_id: data.listingId,
     });
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: listing.seller_id, _delta: listing.price, _type: "marketplace_sale",
-      _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: listing.title,
-    });
-    await supabaseAdmin.from("marketplace_purchases").insert({
-      listing_id: listing.id, buyer_id: context.userId, seller_id: listing.seller_id, price: listing.price,
-    });
-    // Tag transfer: move tag from listing escrow to buyer profile
-    const tagValue = (listing as any).tag_value as string | null;
-    if (listing.category === "tag" && tagValue) {
-      // Buyer must not already have a tag; clear seller's tag (should already be null since escrowed)
-      const { data: buyerProf } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
-      if (buyerProf?.tag) {
-        // Refund and abort
-        await supabaseAdmin.rpc("wallet_adjust", { _user: context.userId, _delta: listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Already have a tag" });
-        await supabaseAdmin.rpc("wallet_adjust", { _user: listing.seller_id, _delta: -listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Buyer had tag" });
-        throw new Error("You already own a tag — sell or release it first");
-      }
-      await supabaseAdmin.from("profiles").update({ tag: tagValue }).eq("id", context.userId);
+    if (error) throw error;
+    const out = res as { ok: boolean; reason?: string; listing_id?: string };
+    if (!out.ok) throw new Error(out.reason ?? "Purchase failed");
+    // Best-effort sale notification (non-critical)
+    const { data: l } = await supabaseAdmin.from("marketplace_listings")
+      .select("seller_id,title,price").eq("id", data.listingId).maybeSingle();
+    if (l) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: l.seller_id, kind: "marketplace_sale",
+        title: "You made a sale!", body: `${l.title} sold for ${l.price} DICE`,
+        link: `/marketplace/${data.listingId}`,
+      });
     }
-    await supabaseAdmin.from("marketplace_listings").update({
-      sales_count: (listing.sales_count ?? 0) + 1,
-      status: "sold", winner_id: context.userId,
-    }).eq("id", listing.id);
-    await supabaseAdmin.from("notifications").insert({
-      user_id: listing.seller_id, kind: "marketplace_sale",
-      title: "You made a sale!", body: `${listing.title} sold for ${listing.price} DICE`,
-      link: `/marketplace/${listing.id}`,
-    });
     return { ok: true };
   });
 
