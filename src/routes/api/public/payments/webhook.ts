@@ -1,24 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
 
-async function creditDice(userId: string, diceAmount: number, refId: string) {
+async function creditDice(userId: string, diceAmount: number, stripeId: string) {
   if (!userId || !Number.isFinite(diceAmount) || diceAmount <= 0) return;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
+  const noteTag = `stripe:${stripeId}`;
   // Idempotency: skip if we already credited this Stripe transaction
   const { data: existing } = await supabaseAdmin
     .from("dice_transactions")
-    .select("id").eq("ref_kind", "stripe").eq("ref_id", refId).maybeSingle();
+    .select("id").eq("source", "stripe").eq("note", noteTag).maybeSingle();
   if (existing) return;
 
   await supabaseAdmin.rpc("wallet_adjust", {
     _user: userId,
     _delta: diceAmount,
-    _type: "purchase" as any,
+    _type: "event" as any,
     _source: "stripe",
     _ref_kind: "stripe",
-    _ref_id: refId,
-    _note: `Bought ${diceAmount} DICE`,
+    _ref_id: null as any,
+    _note: noteTag,
   });
 }
 
