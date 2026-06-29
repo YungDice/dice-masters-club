@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   Users,
   BarChart3,
-  Bell,
   User as UserIcon,
   Shield,
   LogOut,
