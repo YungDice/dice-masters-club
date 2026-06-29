@@ -19,6 +19,8 @@ export const Route = createFileRoute("/marketplace/new")({
 
 function CreateListing() {
   const { user } = useAuth();
+  const { data: roles } = useMyRoles(user?.id);
+  const isStaff = roles?.some((r) => r === "owner" || r === "admin");
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
