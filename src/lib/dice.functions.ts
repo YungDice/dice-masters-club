@@ -459,7 +459,7 @@ export const claimTag = createServerFn({ method: "POST" })
       .select("id").eq("category", "tag").ilike("tag_value", TAG).eq("status", "active").maybeSingle();
     if (listed) throw new Error("That tag is listed for sale — buy it on the marketplace.");
     await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: -COST, _type: "fee",
+      _user: context.userId, _delta: -COST, _type: "fee" as any,
       _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: `Claim tag #${TAG}`,
     });
     const { error } = await supabaseAdmin.from("profiles").update({ tag: TAG }).eq("id", context.userId);
@@ -544,7 +544,7 @@ export const placeBid = createServerFn({ method: "POST" })
         _source: "auction_outbid", _ref_kind: "listing", _ref_id: l.id, _note: `Outbid on ${l.title}`,
       });
       await supabaseAdmin.from("notifications").insert({
-        user_id: prev, kind: "auction_outbid", title: "You were outbid",
+        user_id: prev, kind: "auction_outbid" as any, title: "You were outbid",
         body: `Someone outbid you on ${l.title}`, link: `/marketplace/${l.id}`,
       });
     }
@@ -576,7 +576,7 @@ export const settleAuction = createServerFn({ method: "POST" })
       if (l.category === "tag" && (l as any).tag_value) {
         await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
       }
-      await supabaseAdmin.from("marketplace_listings").update({ status: "expired" }).eq("id", l.id);
+      await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
       return { ok: true, settled: "no_bids" };
     }
     // Pay seller
@@ -601,7 +601,7 @@ export const settleAuction = createServerFn({ method: "POST" })
           _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: "Winner had tag",
         });
         await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
-        await supabaseAdmin.from("marketplace_listings").update({ status: "expired" }).eq("id", l.id);
+        await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
         return { ok: false, reason: "winner_had_tag" };
       }
       await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", winner);
@@ -611,7 +611,7 @@ export const settleAuction = createServerFn({ method: "POST" })
     }).eq("id", l.id);
     await supabaseAdmin.from("notifications").insert([
       { user_id: l.seller_id, kind: "marketplace_sale", title: "Auction sold!", body: `${l.title} sold for ${amount} DICE`, link: `/marketplace/${l.id}` },
-      { user_id: winner, kind: "auction_won", title: "You won the auction!", body: `${l.title} for ${amount} DICE`, link: `/marketplace/${l.id}` },
+      { user_id: winner, kind: "auction_won" as any, title: "You won the auction!", body: `${l.title} for ${amount} DICE`, link: `/marketplace/${l.id}` },
     ]);
     return { ok: true, settled: "sold", winner, amount };
   });
