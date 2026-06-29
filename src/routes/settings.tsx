@@ -81,18 +81,6 @@ function Settings() {
   }
 
 
-  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]; if (!f || !user) return;
-    const path = `${user.id}/avatar-${Date.now()}.${f.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
-    if (error) return toast.error(error.message);
-    const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (data) {
-      await supabase.from("profiles").update({ avatar_url: data.signedUrl }).eq("id", user.id);
-      toast.success("Avatar updated"); refetch();
-    }
-  }
-
   async function deleteAccount() {
     if (!user) return;
     if (!confirm("Delete account? This permanently removes your profile, wallet, listings, and proofs. This cannot be undone.")) return;
@@ -113,13 +101,9 @@ function Settings() {
             <AvatarImage src={profile?.avatar_url ?? undefined} />
             <AvatarFallback className="text-xl">{profile?.display_name?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <Label htmlFor="avatar-file" className="cursor-pointer inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-white/5">
-              <Upload className="size-4" /> Upload new photo
-            </Label>
-            <Input id="avatar-file" className="hidden" type="file" accept="image/*" onChange={uploadAvatar} />
-            <p className="text-xs text-muted-foreground mt-2">JPG or PNG up to a few MB. Updates instantly.</p>
-          </div>
+          <p className="text-xs text-muted-foreground flex-1">
+            Profile pictures can only be purchased on the <a href="/marketplace" className="text-primary underline">Marketplace</a>. Buy one from a curated avatar listing and set it as your profile picture from the listing page.
+          </p>
         </div>
       </Card>
 
