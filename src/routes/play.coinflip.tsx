@@ -67,7 +67,7 @@ function CFPage() {
       const list = data ?? [];
       const hostIds = list.map((r: any) => r.host_id);
       const { data: profs } = hostIds.length
-        ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", hostIds)
+        ? await supabase.from("profiles").select("id,username,display_name,avatar_url,tag").in("id", hostIds)
         : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       return list.map((r: any) => ({ ...r, host: m[r.host_id] ?? null }));
