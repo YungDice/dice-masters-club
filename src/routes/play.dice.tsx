@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Dices } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
@@ -16,14 +15,23 @@ import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import { Die3D } from "@/components/dice/casino/Die3D";
 
 export const Route = createFileRoute("/play/dice")({
   head: () => ({ meta: [{ title: "Dice — DICE" }] }),
   component: () => <AppShell><DicePage /></AppShell>,
 });
 
-function Die({ v }: { v: number }) {
-  return <div className="size-16 rounded-lg glass grid place-items-center font-display text-3xl font-bold glow-red">{v || "?"}</div>;
+function DiePair({ total, rolling }: { total: number; rolling: boolean }) {
+  // Split total (2-12) into two faces; if 0 show placeholder pair (1,1)
+  const a = total ? Math.max(1, Math.min(6, Math.ceil(total / 2))) : 1;
+  const b = total ? total - a : 1;
+  return (
+    <div className="flex gap-4">
+      <Die3D value={a} rolling={rolling} />
+      <Die3D value={Math.max(1, Math.min(6, b)) || 1} rolling={rolling} />
+    </div>
+  );
 }
 
 function DicePage() {
