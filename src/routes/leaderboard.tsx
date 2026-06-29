@@ -53,7 +53,7 @@ function DiceBoard() {
       const { data } = await supabase.from("dice_wallets").select("user_id,balance,lifetime_earned").order("balance", { ascending: false }).limit(50);
       const list = data ?? [];
       const ids = list.map((w) => w.user_id);
-      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level").in("id", ids) : { data: [] };
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       return list.map((w) => ({ ...w, profile: m[w.user_id] }));
     },
