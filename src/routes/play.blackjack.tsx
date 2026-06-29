@@ -28,20 +28,38 @@ function PlayingCard({ r, s, hidden, index }: { r: string; s: string; hidden?: b
   const red = s === "♥" || s === "♦";
   return (
     <motion.div
-      initial={{ y: -120, opacity: 0, rotateY: 180 }}
-      animate={{ y: 0, opacity: 1, rotateY: hidden ? 180 : 0 }}
-      transition={{ delay: index * 0.08, type: "spring", stiffness: 160, damping: 18 }}
-      className="relative w-14 h-20 [perspective:800px]"
+      initial={{ y: -160, x: 40, opacity: 0, rotateY: 180, rotateZ: -8 }}
+      animate={{ y: 0, x: 0, opacity: 1, rotateY: hidden ? 180 : 0, rotateZ: 0 }}
+      transition={{ delay: index * 0.12, type: "spring", stiffness: 180, damping: 20 }}
+      className="relative w-20 h-28 [perspective:1000px]"
+      style={{ filter: "drop-shadow(0 8px 14px rgba(0,0,0,0.55))" }}
     >
-      <div className="absolute inset-0 rounded-lg shadow-xl" style={{ transformStyle: "preserve-3d" as any }}>
-        <div className="absolute inset-0 rounded-lg bg-white grid place-items-center [backface-visibility:hidden]">
-          <div className={`flex flex-col items-center font-display font-bold ${red ? "text-red-600" : "text-black"}`}>
-            <span className="text-xl leading-none">{r}</span>
-            <span className="text-xl leading-none">{s}</span>
+      <div className="absolute inset-0 rounded-xl" style={{ transformStyle: "preserve-3d" as any }}>
+        {/* Face */}
+        <div className="absolute inset-0 rounded-xl [backface-visibility:hidden] overflow-hidden"
+          style={{
+            background: "linear-gradient(160deg, #ffffff 0%, #f3f4f6 100%)",
+            border: "1px solid rgba(0,0,0,0.15)",
+            boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.6)",
+          }}>
+          <div className={`absolute top-1.5 left-2 text-left leading-none font-display font-bold ${red ? "text-red-600" : "text-neutral-900"}`}>
+            <div className="text-base">{r}</div>
+            <div className="text-base">{s}</div>
+          </div>
+          <div className={`absolute inset-0 grid place-items-center text-4xl ${red ? "text-red-600" : "text-neutral-900"}`}>{s}</div>
+          <div className={`absolute bottom-1.5 right-2 text-right leading-none font-display font-bold rotate-180 ${red ? "text-red-600" : "text-neutral-900"}`}>
+            <div className="text-base">{r}</div>
+            <div className="text-base">{s}</div>
           </div>
         </div>
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-primary/80 to-primary/40 border border-primary/60 [transform:rotateY(180deg)] [backface-visibility:hidden] grid place-items-center">
-          <Spade className="size-6 text-white/80" />
+        {/* Back */}
+        <div className="absolute inset-0 rounded-xl [transform:rotateY(180deg)] [backface-visibility:hidden] grid place-items-center overflow-hidden"
+          style={{
+            background: "repeating-linear-gradient(45deg, #7f1d1d 0 8px, #991b1b 8px 16px)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            boxShadow: "inset 0 0 0 3px #fbbf24, inset 0 0 0 4px #7f1d1d",
+          }}>
+          <Spade className="size-8 text-amber-300/90" />
         </div>
       </div>
     </motion.div>
@@ -95,11 +113,28 @@ function Solo() {
 
   return (
     <div className="space-y-4 mt-3">
-      <Card className="glass p-8 felt-bg relative overflow-hidden">
-        <div className="space-y-8">
+      <Card className="p-10 felt-bg relative overflow-hidden border-0"
+        style={{
+          borderRadius: 24,
+          boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 0 6px #3a1f0a, 0 0 0 8px #c9a84c, 0 24px 60px -10px rgba(0,0,0,0.7)",
+        }}>
+        {/* Gold arc trim */}
+        <div aria-hidden className="absolute inset-x-10 top-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.6), transparent)" }} />
+        <div aria-hidden className="absolute inset-x-10 bottom-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.6), transparent)" }} />
+        {/* Stake badge */}
+        {hand && (
+          <div className="absolute top-4 left-4 text-[10px] tracking-widest uppercase text-amber-300/80 font-display">
+            Stake · {fmt(hand.bet)} DICE
+          </div>
+        )}
+        <div className="absolute top-4 right-4 text-[10px] tracking-widest uppercase text-amber-300/60 font-display">Blackjack pays 3:2</div>
+
+        <div className="space-y-10 relative">
           <div>
-            <div className="text-xs uppercase text-muted-foreground mb-2 text-center">Dealer {hand ? `(${hand.dealerScore}${playing ? "+?" : ""})` : ""}</div>
-            <div className="flex justify-center gap-2 min-h-20">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-amber-200/80 mb-3 text-center font-display">
+              Dealer {hand ? `· ${hand.dealerScore}${playing ? " + ?" : ""}` : ""}
+            </div>
+            <div className="flex justify-center gap-3 min-h-28">
               <AnimatePresence>
                 {(hand?.dealer ?? []).map((c: CardT, i: number) => (
                   <PlayingCard key={`d-${i}-${c.r}${c.s}`} r={c.r} s={c.s} hidden={c.r === "?"} index={i} />
@@ -107,9 +142,20 @@ function Solo() {
               </AnimatePresence>
             </div>
           </div>
+
+          {/* Center divider with logo */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-x-12 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+            <div className="relative px-4 py-1 rounded-full bg-black/40 border border-amber-400/30 text-[10px] tracking-[0.4em] uppercase text-amber-200/80 font-display">
+              Dice · 21
+            </div>
+          </div>
+
           <div>
-            <div className="text-xs uppercase text-muted-foreground mb-2 text-center">You {hand ? `(${hand.playerScore})` : ""}</div>
-            <div className="flex justify-center gap-2 min-h-20">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-amber-200/80 mb-3 text-center font-display">
+              You {hand ? `· ${hand.playerScore}` : ""}
+            </div>
+            <div className="flex justify-center gap-3 min-h-28">
               <AnimatePresence>
                 {(hand?.player ?? []).map((c: CardT, i: number) => (
                   <PlayingCard key={`p-${i}-${c.r}${c.s}`} r={c.r} s={c.s} index={i} />
@@ -118,11 +164,14 @@ function Solo() {
             </div>
           </div>
         </div>
+
         {finished && (
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-            className={`mt-6 text-center font-display text-3xl ${
+          <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 240, damping: 16 }}
+            className={`mt-8 text-center font-display text-4xl tracking-wider ${
               hand.outcome === "win" || hand.outcome === "blackjack" ? "text-emerald-400"
-                : hand.outcome === "push" ? "text-muted-foreground" : "text-destructive"}`}>
+                : hand.outcome === "push" ? "text-muted-foreground" : "text-destructive"}`}
+            style={{ textShadow: "0 0 24px currentColor" }}>
             {(hand.outcome ?? "").toUpperCase()} {hand.delta !== 0 && (hand.delta > 0 ? `+${fmt(hand.delta)}` : fmt(hand.delta))} DICE
           </motion.div>
         )}
