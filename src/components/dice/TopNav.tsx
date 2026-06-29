@@ -49,13 +49,15 @@ export function TopNav() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
   const { data: roles } = useMyRoles(user?.id);
+  const { data: profile } = useMyProfile(user?.id);
   const isStaff = roles?.some((r) => r === "owner" || r === "admin" || r === "moderator");
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
 
   const initials =
-    user?.user_metadata?.display_name?.[0]?.toUpperCase() ??
+    profile?.display_name?.[0]?.toUpperCase() ??
+    profile?.username?.[0]?.toUpperCase() ??
     user?.email?.[0]?.toUpperCase() ??
     "?";
 
