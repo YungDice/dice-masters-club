@@ -1,6 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown } from "lucide-react";
+import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-profile";
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
+import { COUNTRIES } from "@/lib/countries";
 
 import { fmt, timeAgo } from "@/lib/format";
 
