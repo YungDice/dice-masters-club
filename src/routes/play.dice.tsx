@@ -179,9 +179,9 @@ function PvP() {
       {lastResult && (
         <Card className="glass p-6 text-center felt-bg">
           <div className="flex items-center justify-center gap-10">
-            <div><div className="text-xs uppercase text-muted-foreground mb-2">Host</div><Die v={lastResult.hostRoll} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
             <div className="text-2xl text-muted-foreground">vs</div>
-            <div><div className="text-xs uppercase text-muted-foreground mb-2">Challenger</div><Die v={lastResult.joinRoll} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
           </div>
           <div className={`mt-4 font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-muted-foreground" : "text-destructive"}`}>
             {lastResult.winnerId === user?.id ? `+${fmt(lastResult.pot / 2)} DICE` : lastResult.winnerId === null ? "TIE — refunded" : `-${fmt(lastResult.pot / 2)} DICE`}
