@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { reviewProof, reviewChallenge, adminAdjustDice, grantRole, claimFirstAdmin } from "@/lib/dice.functions";
+import { reviewProof, reviewChallenge, adminAdjustDice, grantRole } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
@@ -22,24 +22,19 @@ export const Route = createFileRoute("/admin")({
 function Admin() {
   const { user } = useAuth();
   const { data: roles } = useMyRoles(user?.id);
-  const isStaff = roles?.some((r) => r === "admin" || r === "moderator");
-  const isAdmin = roles?.includes("admin");
-  const claim = useServerFn(claimFirstAdmin);
+  const isStaff = roles?.some((r) => r === "admin" || r === "moderator" || r === "owner");
+  const isAdmin = roles?.some((r) => r === "admin" || r === "owner");
 
   if (!isStaff) {
     return (
       <Card className="glass p-8 text-center max-w-xl mx-auto">
         <Shield className="size-10 mx-auto text-muted-foreground" />
         <h1 className="mt-3 font-display text-2xl font-bold">Admin panel</h1>
-        <p className="text-sm text-muted-foreground mt-2">You don't have staff access yet. The first user to claim admin gets it for setup.</p>
-        <Button className="mt-4 glow-red" onClick={async () => {
-          const r = await claim();
-          if (r.ok) { toast.success("You're now admin. Refresh."); location.reload(); }
-          else toast.error("Admin already exists. Ask an admin to grant you a role.");
-        }}>Claim first admin</Button>
+        <p className="text-sm text-muted-foreground mt-2">You don't have staff access. Ask an owner to grant you a role.</p>
       </Card>
     );
   }
+
 
   return (
     <div className="space-y-4">

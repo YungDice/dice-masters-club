@@ -378,6 +378,7 @@ export type Database = {
           created_at: string
           id: string
           note: string | null
+          operation_id: string | null
           ref_id: string | null
           ref_kind: string | null
           source: string | null
@@ -391,6 +392,7 @@ export type Database = {
           created_at?: string
           id?: string
           note?: string | null
+          operation_id?: string | null
           ref_id?: string | null
           ref_kind?: string | null
           source?: string | null
@@ -404,6 +406,7 @@ export type Database = {
           created_at?: string
           id?: string
           note?: string | null
+          operation_id?: string | null
           ref_id?: string | null
           ref_kind?: string | null
           source?: string | null
@@ -596,6 +599,32 @@ export type Database = {
             foreignKeyName: "game_players_room_id_fkey"
             columns: ["room_id"]
             isOneToOne: false
+            referencedRelation: "game_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_private_state: {
+        Row: {
+          room_id: string
+          state: Json
+          updated_at: string
+        }
+        Insert: {
+          room_id: string
+          state?: Json
+          updated_at?: string
+        }
+        Update: {
+          room_id?: string
+          state?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_private_state_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: true
             referencedRelation: "game_rooms"
             referencedColumns: ["id"]
           },
@@ -924,6 +953,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_private: {
+        Row: {
+          created_at: string
+          dob: string
+          is_18_plus: boolean
+          terms_accepted_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dob: string
+          is_18_plus?: boolean
+          terms_accepted_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dob?: string
+          is_18_plus?: boolean
+          terms_accepted_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1122,6 +1178,7 @@ export type Database = {
     Functions: {
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
+      claim_daily_tx: { Args: { _uid: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -1132,10 +1189,32 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
+      review_proof_tx: {
+        Args: {
+          _approve: boolean
+          _notes: string
+          _proof_id: string
+          _reviewer: string
+        }
+        Returns: Json
+      }
       wallet_adjust: {
         Args: {
           _delta: number
           _note: string
+          _ref_id: string
+          _ref_kind: string
+          _source: string
+          _type: Database["public"]["Enums"]["tx_type"]
+          _user: string
+        }
+        Returns: number
+      }
+      wallet_adjust_idem: {
+        Args: {
+          _delta: number
+          _note: string
+          _op_id: string
           _ref_id: string
           _ref_kind: string
           _source: string
@@ -1183,6 +1262,7 @@ export type Database = {
         | "sold"
         | "removed"
         | "rejected"
+        | "expired"
       notification_kind:
         | "friend_request"
         | "friend_accept"
@@ -1197,6 +1277,8 @@ export type Database = {
         | "badge_unlock"
         | "leaderboard"
         | "admin_announcement"
+        | "auction_outbid"
+        | "auction_won"
       proof_status: "pending" | "approved" | "rejected"
       proof_type:
         | "text"
@@ -1226,6 +1308,7 @@ export type Database = {
         | "escrow_lock"
         | "escrow_release"
         | "refund"
+        | "fee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1393,6 +1476,7 @@ export const Constants = {
         "sold",
         "removed",
         "rejected",
+        "expired",
       ],
       notification_kind: [
         "friend_request",
@@ -1408,6 +1492,8 @@ export const Constants = {
         "badge_unlock",
         "leaderboard",
         "admin_announcement",
+        "auction_outbid",
+        "auction_won",
       ],
       proof_status: ["pending", "approved", "rejected"],
       proof_type: [
@@ -1439,6 +1525,7 @@ export const Constants = {
         "escrow_lock",
         "escrow_release",
         "refund",
+        "fee",
       ],
     },
   },
