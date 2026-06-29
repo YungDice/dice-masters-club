@@ -177,16 +177,16 @@ function PvP() {
       </Card>
 
       {lastResult && (
-        <Card className="glass p-6 text-center felt-bg">
+        <CasinoFrame title="Result" icon={<Dices className="size-6 text-amber-400" />}>
           <div className="flex items-center justify-center gap-10">
-            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
-            <div className="text-2xl text-muted-foreground">vs</div>
-            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
+            <div className="text-2xl text-amber-200/60">vs</div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
           </div>
-          <div className={`mt-4 font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-muted-foreground" : "text-destructive"}`}>
+          <div className={`mt-4 text-center font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-amber-100/70" : "text-destructive"}`}>
             {lastResult.winnerId === user?.id ? `+${fmt(lastResult.pot / 2)} DICE` : lastResult.winnerId === null ? "TIE — refunded" : `-${fmt(lastResult.pot / 2)} DICE`}
           </div>
-        </Card>
+        </CasinoFrame>
       )}
 
       <Card className="glass p-5">
