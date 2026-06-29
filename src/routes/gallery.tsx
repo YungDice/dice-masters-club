@@ -91,9 +91,12 @@ function GalleryPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Images className="text-primary" /> Gallery</h1>
-      </div>
+      <PageHeader
+        icon={Images}
+        title="Gallery"
+        subtitle="Post photos and videos. They feed into DikDok too."
+        accent="violet"
+      />
 
       <Card className="glass p-5">
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
