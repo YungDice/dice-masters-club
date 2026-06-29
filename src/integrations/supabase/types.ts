@@ -726,6 +726,7 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string
+          status: string
         }
         Insert: {
           amount: number
@@ -733,6 +734,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id: string
+          status?: string
         }
         Update: {
           amount?: number
@@ -740,6 +742,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -1362,6 +1365,9 @@ export type Database = {
         | "escrow_release"
         | "refund"
         | "fee"
+        | "auction_won"
+        | "auction_outbid"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1579,6 +1585,9 @@ export const Constants = {
         "escrow_release",
         "refund",
         "fee",
+        "auction_won",
+        "auction_outbid",
+        "expired",
       ],
     },
   },
