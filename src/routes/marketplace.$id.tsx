@@ -173,6 +173,9 @@ function Detail() {
                 </div>
               </>
             )}
+            {l.category === "avatar" && l.purchasedByMe && (
+              <Button onClick={setAsAvatar} variant="secondary" className="w-full">Set as profile picture</Button>
+            )}
             <div className="text-xs text-muted-foreground">Sold by @{l.seller?.username}{l.seller?.tag ? `#${l.seller.tag}` : ""}</div>
           </div>
         </div>
