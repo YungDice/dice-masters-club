@@ -23,6 +23,8 @@ function CreateListing() {
   const [form, setForm] = useState({
     title: "", description: "", category: "art", price: 100,
     tags: "", license_notes: "", ownership: false,
+    sale_type: "fixed" as "fixed" | "auction",
+    duration_hours: 24,
   });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<File | null>(null);
