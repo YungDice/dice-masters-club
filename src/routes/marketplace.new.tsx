@@ -78,7 +78,7 @@ function CreateListing() {
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Category</Label>
             <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
-              {["art","photo","gif","sticker","emote","banner","avatar","template","cosmetic","other"].map((c) => <option key={c}>{c}</option>)}
+              {["art","photo","gif","sticker","emote","banner","template","cosmetic","other", ...(isStaff ? ["avatar"] : [])].map((c) => <option key={c}>{c}</option>)}
             </select></div>
           <div><Label>{form.sale_type === "auction" ? "Starting bid (DICE)" : "Price (DICE)"}</Label><Input type="number" min={1} max={1000000} value={form.price} onChange={(e) => setForm({...form, price: +e.target.value})} /></div>
         </div>
