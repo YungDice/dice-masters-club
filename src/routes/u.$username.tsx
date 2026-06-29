@@ -87,7 +87,20 @@ function UProfile() {
               <div className="flex items-center gap-1"><Calendar className="size-4 text-muted-foreground" />Joined {timeAgo(p.created_at)}</div>
             </div>
           </div>
-          {!isMe && <div className="flex gap-2"><Button onClick={addFriend}>Add friend</Button><Button variant="outline">Message</Button></div>}
+          {!isMe && (
+            <div className="flex gap-2">
+              {rel === "friends" ? (
+                <Button variant="outline" disabled>✓ Friends</Button>
+              ) : rel === "sent" ? (
+                <Button variant="outline" disabled>Request sent</Button>
+              ) : rel === "incoming" ? (
+                <Button variant="outline" disabled>Respond in Friends tab</Button>
+              ) : rel === "blocked" ? null : (
+                <Button onClick={addFriend}>Add friend</Button>
+              )}
+              <Button variant="outline">Message</Button>
+            </div>
+          )}
           {isMe && <Link to="/settings"><Button variant="outline">Edit profile</Button></Link>}
         </div>
       </Card>
