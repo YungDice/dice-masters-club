@@ -731,6 +731,7 @@ export const sendFriendRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.addresseeId === context.userId) throw new Error("Can't friend yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "friend_req", 3600, 30, "friend requests");
     const { data: existing } = await supabaseAdmin.from("friendships").select("id,status")
       .or(`and(requester_id.eq.${context.userId},addressee_id.eq.${data.addresseeId}),and(requester_id.eq.${data.addresseeId},addressee_id.eq.${context.userId})`)
       .maybeSingle();
