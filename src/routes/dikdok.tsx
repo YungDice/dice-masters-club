@@ -157,7 +157,8 @@ function DikDok() {
         </div>
         <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a post: you +5, creator +10 DICE</p>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause</p>
+      </div>
     </div>
   );
 }
