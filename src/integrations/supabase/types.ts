@@ -1067,6 +1067,7 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      is_vip: { Args: { _uid: string }; Returns: boolean }
       wallet_adjust: {
         Args: {
           _delta: number
