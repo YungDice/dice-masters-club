@@ -20,8 +20,14 @@ export function levelFromXp(xp: number) {
   while (xpForLevel(lvl + 1) <= xp) lvl++;
   return lvl;
 }
-/** Render Discord-style handle: @username#TAG (tag optional) */
+/** Render @username (tag now lives next to display name, not username) */
 export function handle(p: { username?: string | null; tag?: string | null } | null | undefined): string {
   if (!p?.username) return "";
-  return p.tag ? `@${p.username}#${p.tag}` : `@${p.username}`;
+  return `@${p.username}`;
+}
+/** Render Display Name with #TAG suffix */
+export function nameWithTag(p: { display_name?: string | null; username?: string | null; tag?: string | null } | null | undefined): string {
+  if (!p) return "";
+  const base = p.display_name ?? p.username ?? "";
+  return p.tag ? `${base}#${p.tag}` : base;
 }

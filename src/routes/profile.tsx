@@ -71,10 +71,10 @@ function MyProfile() {
             </Avatar>
             <div className="flex-1">
               <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-                {p.display_name}
+                <span>{p.display_name}{tag && <span className="text-primary font-mono">#{tag}</span>}</span>
                 {vipActive && <Crown className="size-5 text-amber-400" />}
               </h1>
-              <div className="text-muted-foreground">@{p.username}{tag && <span className="text-primary font-mono">#{tag}</span>} · Lvl {p.level}</div>
+              <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
               {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-1"><Star className="size-4 text-primary" />{fmt(p.xp)} XP</div>

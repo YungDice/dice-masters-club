@@ -370,6 +370,54 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_leaderboard_rewards: {
+        Row: {
+          created_at: string
+          dice_awarded: number
+          rank: number
+          reward_date: string
+          user_id: string
+          vip_hours: number
+          xp_gained: number
+        }
+        Insert: {
+          created_at?: string
+          dice_awarded?: number
+          rank: number
+          reward_date: string
+          user_id: string
+          vip_hours?: number
+          xp_gained?: number
+        }
+        Update: {
+          created_at?: string
+          dice_awarded?: number
+          rank?: number
+          reward_date?: string
+          user_id?: string
+          vip_hours?: number
+          xp_gained?: number
+        }
+        Relationships: []
+      }
+      daily_xp_snapshots: {
+        Row: {
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
       dice_transactions: {
         Row: {
           amount: number
@@ -1200,6 +1248,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
       buy_listing_tx: {
         Args: { _buyer: string; _listing_id: string }
