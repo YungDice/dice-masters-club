@@ -9,6 +9,17 @@ const cryptoRandInt = (n: number) => randomInt(0, n);
 const cryptoInviteCode = () =>
   randomBytes(6).toString("base64").replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase().padEnd(6, "X");
 
+// Rate-limit helper — throws when caller exceeds budget for (key, window).
+async function rateLimit(
+  admin: any, userId: string, key: string, windowSeconds: number, maxHits: number, label = "rate_limited",
+) {
+  const { data } = await admin.rpc("rate_limit_hit", {
+    _user: userId, _key: key, _window_seconds: windowSeconds, _max_hits: maxHits,
+  });
+  if (data === false) throw new Error(`Slow down (${label}) — try again later`);
+}
+
+
 
 // ---------- Daily reward (atomic, idempotent per (user, UTC day)) ----------
 export const claimDaily = createServerFn({ method: "POST" })
