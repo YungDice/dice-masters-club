@@ -20,7 +20,8 @@ import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { useAuth } from "@/hooks/use-auth";
-import { useWallet, useMyRoles } from "@/hooks/use-profile";
+import { useWallet, useMyRoles, useMyProfile } from "@/hooks/use-profile";
+import { handle } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
