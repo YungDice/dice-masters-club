@@ -77,7 +77,20 @@ function CreateListing() {
             <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
               {["art","photo","gif","sticker","emote","banner","avatar","template","cosmetic","other"].map((c) => <option key={c}>{c}</option>)}
             </select></div>
-          <div><Label>Price (DICE)</Label><Input type="number" min={1} max={50000} value={form.price} onChange={(e) => setForm({...form, price: +e.target.value})} /></div>
+          <div><Label>{form.sale_type === "auction" ? "Starting bid (DICE)" : "Price (DICE)"}</Label><Input type="number" min={1} max={1000000} value={form.price} onChange={(e) => setForm({...form, price: +e.target.value})} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Sale type</Label>
+            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.sale_type} onChange={(e) => setForm({...form, sale_type: e.target.value as any})}>
+              <option value="fixed">Fixed price</option>
+              <option value="auction">Auction (highest bid wins)</option>
+            </select>
+          </div>
+          {form.sale_type === "auction" && (
+            <div><Label>Duration: {form.duration_hours}h (1–48)</Label>
+              <input type="range" min={1} max={48} value={form.duration_hours} onChange={(e) => setForm({...form, duration_hours: +e.target.value})} className="w-full mt-3" />
+            </div>
+          )}
         </div>
         <div><Label>Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({...form, tags: e.target.value})} /></div>
         <div><Label>License / usage notes</Label><Textarea value={form.license_notes} onChange={(e) => setForm({...form, license_notes: e.target.value})} maxLength={500} /></div>
