@@ -29,15 +29,17 @@ function Mkt() {
 
   const listings = useQuery({
     queryKey: ["listings", sort],
+    staleTime: 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("marketplace_listings")
         .select("*")
         .eq("status", "active")
+        .neq("status", "sold")
         .order(sort === "newest" ? "created_at" : "price", { ascending: sort !== "newest" })
         .limit(40);
       if (error) throw error;
-      const rows = data ?? [];
+      const rows = (data ?? []).filter((r: any) => r.status === "active");
       const ids = Array.from(new Set(rows.map((r: any) => r.seller_id)));
       const { data: profs } = ids.length
         ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids)
