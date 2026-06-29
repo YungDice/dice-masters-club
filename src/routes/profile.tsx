@@ -63,9 +63,9 @@ function MyProfile() {
           {banner && vipActive && <img src={banner} alt="banner" className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
         </div>
-        <div className="p-6">
-          <div className="flex flex-wrap items-center gap-5">
-            <Avatar className="size-24 ring-2 ring-primary/40">
+        <div className="p-6 -mt-12 relative">
+          <div className="flex flex-wrap items-end gap-5">
+            <Avatar className="size-24 ring-4 ring-background shadow-xl">
               <AvatarImage src={p.avatar_url ?? undefined} />
               <AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback>
             </Avatar>
