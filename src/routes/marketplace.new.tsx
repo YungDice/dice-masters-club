@@ -65,7 +65,7 @@ function CreateListing() {
     if (!form.title.trim()) return toast.error("Add a title");
     if (!preview) return toast.error("Add a preview image so buyers can see your item");
     if (!form.ownership) return toast.error("Confirm you own the rights to this content");
-    if (form.category === "avatar" && !isStaff) return toast.error("Only staff can create profile-picture listings");
+    
     setBusy(true);
     try {
       const previewSigned = await uploadOne(preview);
