@@ -17,7 +17,7 @@ function ProfileBoard({ orderBy, label, unit }: { orderBy: "xp" | "level"; label
   const q = useQuery({
     queryKey: ["lb", orderBy],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,xp,level").order(orderBy, { ascending: false }).limit(50);
+      const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,xp,level,tag").order(orderBy, { ascending: false }).limit(50);
       return data ?? [];
     },
   });
