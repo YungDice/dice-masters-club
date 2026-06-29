@@ -28,10 +28,11 @@ function ProfileBoard({ orderBy, label, unit }: { orderBy: "xp" | "level"; label
       <ol className="space-y-1">
         {(q.data ?? []).map((p, i) => {
           const points = orderBy === "xp" ? p.xp : p.level;
+          const podium = i < 3;
           return (
-            <li key={p.id} className="flex items-center gap-3 rounded-md hover:bg-white/5 p-2">
-              <span className={`w-7 text-right font-display font-bold ${i === 0 ? "text-gold" : i < 3 ? "text-primary" : "text-muted-foreground"}`}>{i === 0 ? <Crown className="inline size-4" /> : `#${i + 1}`}</span>
-              <Avatar className="size-8"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name?.[0]}</AvatarFallback></Avatar>
+            <li key={p.id} className={`flex items-center gap-3 rounded-md p-2 transition ${podium ? "bg-gradient-to-r from-amber-400/10 via-transparent to-transparent" : "hover:bg-white/5"}`}>
+              <span className={`w-7 text-right font-display font-bold ${i === 0 ? "text-amber-300" : i === 1 ? "text-slate-300" : i === 2 ? "text-orange-400" : "text-muted-foreground"}`}>{i === 0 ? <Crown className="inline size-4" /> : `#${i + 1}`}</span>
+              <Avatar className={`size-8 ${podium ? "ring-2 ring-amber-300/40" : ""}`}><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name?.[0]}</AvatarFallback></Avatar>
               <Link to="/u/$username" params={{ username: p.username }} className="flex-1 text-sm font-medium hover:underline truncate">
                 {p.display_name}
                 <span className="ml-1 text-xs text-muted-foreground font-mono">@{p.username}{(p as any).tag && <span className="text-primary">#{(p as any).tag}</span>}</span>
