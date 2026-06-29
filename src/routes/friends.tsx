@@ -51,11 +51,25 @@ function Friends() {
     },
   });
   const search = useQuery({
-    queryKey: ["search-users", q],
+    queryKey: ["search-users", q, user?.id],
     enabled: q.length >= 2,
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("*").or(`username.ilike.%${q}%,display_name.ilike.%${q}%`).neq("id", user?.id ?? "").limit(15);
-      return data ?? [];
+      const profs = data ?? [];
+      const ids = profs.map((p: any) => p.id);
+      if (ids.length === 0 || !user) return profs.map((p: any) => ({ ...p, _rel: "none" }));
+      const { data: rels } = await supabase
+        .from("friendships")
+        .select("*")
+        .or(`and(requester_id.eq.${user.id},addressee_id.in.(${ids.join(",")})),and(addressee_id.eq.${user.id},requester_id.in.(${ids.join(",")}))`);
+      const relMap = new Map<string, string>();
+      for (const r of rels ?? []) {
+        const other = r.requester_id === user.id ? r.addressee_id : r.requester_id;
+        if (r.status === "accepted") relMap.set(other, "friends");
+        else if (r.status === "pending") relMap.set(other, r.requester_id === user.id ? "sent" : "incoming");
+        else if (r.status === "blocked") relMap.set(other, "blocked");
+      }
+      return profs.map((p: any) => ({ ...p, _rel: relMap.get(p.id) ?? "none" }));
     },
   });
 
