@@ -248,7 +248,7 @@ function RoulettePage() {
                   </div>
                   {/* number rows */}
                   {ROWS.map((row, ri) => (
-                    <>
+                    <Fragment key={ri}>
                       {row.map((n) => (
                         <button key={n} disabled={spinning} onClick={() => addBet("straight", n)}
                           className={`${cellBg(n)} text-white font-bold grid place-items-center rounded h-10 hover:brightness-125 relative`}>
@@ -262,7 +262,7 @@ function RoulettePage() {
                         2:1
                         {bets[ri === 0 ? "col3" : ri === 1 ? "col2" : "col1"] && <span className="absolute -top-1 -right-1"><StackedChips amount={bets[ri === 0 ? "col3" : ri === 1 ? "col2" : "col1"]} /></span>}
                       </button>
-                    </>
+                    </Fragment>
                   ))}
                 </div>
                 {/* dozens */}
