@@ -964,3 +964,59 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+// ---------- Bot: Coin Flip vs Bot ----------
+export const coinFlipBot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { stake: number; side: "heads" | "tails" }) =>
+    z.object({ stake: z.number().int().min(10).max(5000), side: z.enum(["heads", "tails"]) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const stake = data.stake;
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -stake, _type: "game_stake",
+      _source: "coinflip_bot", _ref_kind: "coinflip", _ref_id: null as any, _note: "vs Bot",
+    });
+    const flip = Math.random() < 0.5 ? "heads" : "tails";
+    const won = flip === data.side;
+    if (won) {
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: stake * 2, _type: "game_payout",
+        _source: "coinflip_bot", _ref_kind: "coinflip", _ref_id: null as any, _note: "Win vs Bot",
+      });
+    }
+    return { flip, won, delta: won ? stake : -stake };
+  });
+
+// ---------- Bot: Split or Steal vs Bot ----------
+export const splitStealBot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { stake: number; choice: "split" | "steal" }) =>
+    z.object({ stake: z.number().int().min(10).max(5000), choice: z.enum(["split", "steal"]) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const stake = data.stake;
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -stake, _type: "game_stake",
+      _source: "split_steal_bot", _ref_kind: "split_steal", _ref_id: null as any, _note: "vs Bot",
+    });
+    // Bot is slightly cooperative: 55% split, 45% steal
+    const bot: "split" | "steal" = Math.random() < 0.55 ? "split" : "steal";
+    const pot = stake * 2;
+    let payout = 0;
+    let outcome: "split_split" | "you_steal" | "bot_steal" | "both_steal" = "both_steal";
+    if (data.choice === "split" && bot === "split") { payout = Math.floor(pot / 2); outcome = "split_split"; }
+    else if (data.choice === "steal" && bot === "split") { payout = pot; outcome = "you_steal"; }
+    else if (data.choice === "split" && bot === "steal") { payout = 0; outcome = "bot_steal"; }
+    else { payout = 0; outcome = "both_steal"; }
+    if (payout > 0) {
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: payout, _type: "game_payout",
+        _source: "split_steal_bot", _ref_kind: "split_steal", _ref_id: null as any, _note: outcome,
+      });
+    }
+    return { bot, outcome, payout, delta: payout - stake };
+  });
+
