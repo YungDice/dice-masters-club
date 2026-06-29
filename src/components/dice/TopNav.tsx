@@ -111,15 +111,20 @@ export function TopNav() {
           <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="grid size-9 place-items-center">
+              <button className="flex items-center gap-2 rounded-full pl-1 pr-3 py-1 hover:bg-white/5 transition">
                 <Avatar className="size-8 ring-1 ring-border">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarImage src={profile?.avatar_url ?? undefined} />
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
+                <span className="hidden sm:inline text-sm font-medium max-w-[140px] truncate">
+                  {profile?.display_name ?? profile?.username ?? "Account"}
+                </span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>{user?.email ?? "Account"}</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="truncate">
+                {profile ? handle(profile) : (user?.email ?? "Account")}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild><Link to="/profile"><UserIcon className="mr-2 size-4" />Profile</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/settings">Settings</Link></DropdownMenuItem>
