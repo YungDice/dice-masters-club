@@ -57,7 +57,7 @@ function Landing() {
             DICE has no real-world value — it's pure play.
           </p>
           <div className="mt-8 flex justify-center gap-3">
-            <Link to="/auth"><Button size="lg" className="glow-red">Get started — 500 DICE bonus</Button></Link>
+            <Link to="/auth"><Button size="lg" className="glow-red">Get started — 2500 DICE bonus</Button></Link>
             <Link to="/auth"><Button variant="outline" size="lg">Sign in</Button></Link>
           </div>
         </motion.div>
