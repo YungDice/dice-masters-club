@@ -28,9 +28,9 @@ type Row = {
 };
 
 const DAILY_REWARDS = [
-  { dice: 1500, vip: "1 Day VIP", podiumH: "h-44", grad: "from-amber-300 via-amber-500 to-amber-700", ring: "ring-amber-300", icon: "text-amber-300" },
-  { dice: 750,  vip: "12h VIP",   podiumH: "h-32", grad: "from-slate-200 via-slate-400 to-slate-600", ring: "ring-slate-300", icon: "text-slate-200" },
-  { dice: 500,  vip: null,        podiumH: "h-24", grad: "from-orange-400 via-orange-600 to-orange-800", ring: "ring-orange-400", icon: "text-orange-400" },
+  { dice: 1500, vip: "1 Day VIP", podiumH: "h-48", grad: "from-amber-200 via-amber-400 to-amber-700", ring: "ring-amber-300/80", glow: "shadow-[0_0_50px_-5px_rgba(252,211,77,0.55)]" },
+  { dice: 750,  vip: "12h VIP",   podiumH: "h-36", grad: "from-slate-100 via-slate-300 to-slate-500", ring: "ring-slate-200/70", glow: "shadow-[0_0_40px_-5px_rgba(203,213,225,0.4)]" },
+  { dice: 500,  vip: null,        podiumH: "h-28", grad: "from-orange-300 via-orange-500 to-orange-800", ring: "ring-orange-400/70", glow: "shadow-[0_0_40px_-5px_rgba(251,146,60,0.45)]" },
 ];
 
 function NameTag({ p }: { p: Row }) {
