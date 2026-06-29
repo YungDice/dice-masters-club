@@ -13,12 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { changeUsername, buyVip, buyLevelUp, claimTag, listTagForSale } from "@/lib/dice.functions";
 import { useWallet } from "@/hooks/use-profile";
-import { Crown, Sparkles, Hash, Upload } from "lucide-react";
+import { Crown, Sparkles, Hash } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { BuyCoinsCard } from "@/components/dice/BuyCoins";
 import { PaymentTestModeBanner } from "@/components/dice/PaymentTestModeBanner";
+import { COUNTRIES } from "@/lib/countries";
 
 
 export const Route = createFileRoute("/settings")({
@@ -80,18 +81,6 @@ function Settings() {
   }
 
 
-  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]; if (!f || !user) return;
-    const path = `${user.id}/avatar-${Date.now()}.${f.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, f, { upsert: true });
-    if (error) return toast.error(error.message);
-    const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (data) {
-      await supabase.from("profiles").update({ avatar_url: data.signedUrl }).eq("id", user.id);
-      toast.success("Avatar updated"); refetch();
-    }
-  }
-
   async function deleteAccount() {
     if (!user) return;
     if (!confirm("Delete account? This permanently removes your profile, wallet, listings, and proofs. This cannot be undone.")) return;
@@ -112,20 +101,21 @@ function Settings() {
             <AvatarImage src={profile?.avatar_url ?? undefined} />
             <AvatarFallback className="text-xl">{profile?.display_name?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <Label htmlFor="avatar-file" className="cursor-pointer inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-white/5">
-              <Upload className="size-4" /> Upload new photo
-            </Label>
-            <Input id="avatar-file" className="hidden" type="file" accept="image/*" onChange={uploadAvatar} />
-            <p className="text-xs text-muted-foreground mt-2">JPG or PNG up to a few MB. Updates instantly.</p>
-          </div>
+          <p className="text-xs text-muted-foreground flex-1">
+            Profile pictures can only be purchased on the <a href="/marketplace" className="text-primary underline">Marketplace</a>. Buy one from a curated avatar listing and set it as your profile picture from the listing page.
+          </p>
         </div>
       </Card>
 
       <Card className="glass p-6 space-y-4">
         <div><Label>Display name</Label><Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></div>
         <div><Label>Bio</Label><Textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={500} /></div>
-        <div><Label>Country</Label><Input value={country} onChange={(e) => setCountry(e.target.value)} /></div>
+        <div><Label>Country</Label>
+          <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={country} onChange={(e) => setCountry(e.target.value)}>
+            <option value="">— Select country —</option>
+            {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}
+          </select>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div><Label>Profile privacy</Label><select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={privacy} onChange={(e) => setPrivacy(e.target.value)}>{["public","friends","private"].map((p) => <option key={p}>{p}</option>)}</select></div>
           <div><Label>Activity feed privacy</Label><select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={activityPrivacy} onChange={(e) => setActivityPrivacy(e.target.value)}>{["public","friends","private"].map((p) => <option key={p}>{p}</option>)}</select></div>

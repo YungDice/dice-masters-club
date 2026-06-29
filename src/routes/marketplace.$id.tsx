@@ -50,7 +50,12 @@ function Detail() {
       if (!data) return null;
       const { data: prof } = await supabase.from("profiles").select("id,username,display_name,avatar_url,tag").eq("id", data.seller_id).maybeSingle();
       const { data: bids } = await supabase.from("marketplace_bids").select("*").eq("listing_id", id).order("created_at", { ascending: false }).limit(10);
-      return { ...data, seller: prof, bids: bids ?? [] };
+      let purchased = false;
+      if (user?.id) {
+        const { data: p } = await supabase.from("marketplace_purchases").select("id").eq("listing_id", id).eq("buyer_id", user.id).maybeSingle();
+        purchased = !!p;
+      }
+      return { ...data, seller: prof, bids: bids ?? [], purchasedByMe: purchased };
     },
     refetchInterval: 5000,
   });
@@ -95,6 +100,15 @@ function Detail() {
   }
   async function fav() { if (!user) return; await supabase.from("marketplace_favorites").upsert({ user_id: user.id, listing_id: id }); toast.success("Saved"); }
   async function report() { if (!user) return; await supabase.from("reports").insert({ reporter_id: user.id, target_kind: "listing", target_id: id, reason: "review" }); toast.success("Reported"); }
+  async function setAsAvatar() {
+    if (!user) return;
+    const url = l.file_url ?? l.preview_url;
+    if (!url) return toast.error("No image on this listing");
+    const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Profile picture updated!");
+    qc.invalidateQueries({ queryKey: ["profile"] });
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
@@ -158,6 +172,9 @@ function Detail() {
                   <Button variant="outline" onClick={report}><Flag className="size-4" /></Button>
                 </div>
               </>
+            )}
+            {l.category === "avatar" && l.purchasedByMe && (
+              <Button onClick={setAsAvatar} variant="secondary" className="w-full">Set as profile picture</Button>
             )}
             <div className="text-xs text-muted-foreground">Sold by @{l.seller?.username}{l.seller?.tag ? `#${l.seller.tag}` : ""}</div>
           </div>
