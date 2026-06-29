@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DiceLogo } from "./Logo";
 import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
+import { NotificationsPopover } from "./NotificationsPopover";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet, useMyRoles } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
