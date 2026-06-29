@@ -388,11 +388,4 @@ function Dashboard() {
     </div>
   );
 }
-            ))}
-          </ul>
-          <Link to="/marketplace" className="mt-3 inline-flex text-xs text-muted-foreground hover:text-foreground">Browse marketplace <ArrowRight className="inline size-3" /></Link>
-        </Card>
-      </div>
-    </div>
-  );
-}
+
