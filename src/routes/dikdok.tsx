@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/dice/TopNav";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dice/PageHeader";
 import { toggleGalleryLike } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
