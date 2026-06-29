@@ -44,6 +44,7 @@ function CreateListing() {
     e.preventDefault();
     if (!user) return;
     if (!form.ownership) return toast.error("Confirm you own the rights.");
+    if (form.category === "avatar" && !isStaff) return toast.error("Only admins can create profile-picture listings.");
     setBusy(true);
     try {
       let previewUrl: string | null = null, fileUrl: string | null = null;
