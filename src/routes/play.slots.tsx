@@ -12,6 +12,7 @@ import { playSlots } from "@/lib/dice.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/slots")({
