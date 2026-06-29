@@ -50,7 +50,12 @@ function Detail() {
       if (!data) return null;
       const { data: prof } = await supabase.from("profiles").select("id,username,display_name,avatar_url,tag").eq("id", data.seller_id).maybeSingle();
       const { data: bids } = await supabase.from("marketplace_bids").select("*").eq("listing_id", id).order("created_at", { ascending: false }).limit(10);
-      return { ...data, seller: prof, bids: bids ?? [] };
+      let purchased = false;
+      if (user?.id) {
+        const { data: p } = await supabase.from("marketplace_purchases").select("id").eq("listing_id", id).eq("buyer_id", user.id).maybeSingle();
+        purchased = !!p;
+      }
+      return { ...data, seller: prof, bids: bids ?? [], purchasedByMe: purchased };
     },
     refetchInterval: 5000,
   });
