@@ -15,6 +15,7 @@ import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import { Coin3D } from "@/components/dice/casino/Coin3D";
 
 export const Route = createFileRoute("/play/coinflip")({
   head: () => ({ meta: [{ title: "Coin Flip — DICE" }] }),
@@ -238,15 +239,15 @@ function RoomView({ roomId, onLeave }: { roomId: string; onLeave: () => void }) 
         )}
 
         {r.status === "active" && youPick && !state.flip && (
-          <p className="mt-6 text-muted-foreground">You picked <b>{youPick}</b>. Flipping…</p>
+          <div className="mt-6 space-y-3">
+            <Coin3D side={null} flipping />
+            <p className="text-muted-foreground">You picked <b>{youPick}</b>. Flipping…</p>
+          </div>
         )}
 
         {r.status === "finished" && state.flip && (
           <div className="mt-6 space-y-3">
-            <motion.div initial={{ rotateX: 0 }} animate={{ rotateX: 720 }} transition={{ duration: 1 }}
-              className="mx-auto size-32 rounded-full bg-gold/20 border-4 border-gold grid place-items-center font-display text-4xl font-bold text-gold glow-red">
-              {state.flip === "heads" ? "H" : "T"}
-            </motion.div>
+            <Coin3D side={state.flip} flipping={false} />
             <div className="text-sm text-muted-foreground">Coin landed <b className="text-foreground">{state.flip.toUpperCase()}</b></div>
             <div className="text-sm">You picked <b>{youPick}</b> · Opponent picked <b>{theirPick}</b></div>
             <div className={`font-display text-3xl ${r.winner_id === user?.id ? "text-emerald-400" : "text-destructive"}`}>
