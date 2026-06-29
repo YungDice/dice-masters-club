@@ -55,7 +55,7 @@ function MyProfile() {
 
   return (
     <div className="space-y-4">
-      <PaymentTestModeBanner />
+      
       <Card className="glass p-6">
         <div className="flex flex-wrap items-center gap-5">
           <Avatar className="size-24 ring-2 ring-primary/40">
