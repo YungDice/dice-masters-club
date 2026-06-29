@@ -100,6 +100,15 @@ function Detail() {
   }
   async function fav() { if (!user) return; await supabase.from("marketplace_favorites").upsert({ user_id: user.id, listing_id: id }); toast.success("Saved"); }
   async function report() { if (!user) return; await supabase.from("reports").insert({ reporter_id: user.id, target_kind: "listing", target_id: id, reason: "review" }); toast.success("Reported"); }
+  async function setAsAvatar() {
+    if (!user) return;
+    const url = l.file_url ?? l.preview_url;
+    if (!url) return toast.error("No image on this listing");
+    const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Profile picture updated!");
+    qc.invalidateQueries({ queryKey: ["profile"] });
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
