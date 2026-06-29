@@ -13,12 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { changeUsername, buyVip, buyLevelUp, claimTag, listTagForSale } from "@/lib/dice.functions";
 import { useWallet } from "@/hooks/use-profile";
-import { Crown, Sparkles, Hash, Upload } from "lucide-react";
+import { Crown, Sparkles, Hash } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { BuyCoinsCard } from "@/components/dice/BuyCoins";
 import { PaymentTestModeBanner } from "@/components/dice/PaymentTestModeBanner";
+import { COUNTRIES } from "@/lib/countries";
 
 
 export const Route = createFileRoute("/settings")({
