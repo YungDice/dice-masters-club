@@ -70,9 +70,9 @@ function Solo() {
       <Card className="glass p-8 text-center felt-bg">
         <p className="text-sm text-muted-foreground">Higher roll wins. Tie refunds your stake.</p>
         <div className="mt-8 flex items-center justify-center gap-10">
-          <div><div className="text-xs uppercase text-muted-foreground mb-2">You</div><motion.div animate={rolling ? { rotate: [0, 360] } : {}} transition={{ duration: 0.6 }}><Die v={result?.me ?? 0} /></motion.div></div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
           <div className="text-2xl text-muted-foreground">vs</div>
-          <div><div className="text-xs uppercase text-muted-foreground mb-2">House</div><motion.div animate={rolling ? { rotate: [0, -360] } : {}} transition={{ duration: 0.6 }}><Die v={result?.house ?? 0} /></motion.div></div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
         </div>
         {result && <div className={`mt-6 font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-muted-foreground" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
       </Card>
