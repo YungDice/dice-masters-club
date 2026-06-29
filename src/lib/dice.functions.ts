@@ -394,7 +394,7 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
     return { hostRoll, joinRoll, winnerId, pot };
   });
 
-// ---------- Marketplace buy ----------
+// ---------- Marketplace buy (fixed sale only) ----------
 export const buyListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
@@ -404,6 +404,7 @@ export const buyListing = createServerFn({ method: "POST" })
       .select("*").eq("id", data.listingId).eq("status", "active").single();
     if (!listing) throw new Error("Not available");
     if (listing.seller_id === context.userId) throw new Error("Can't buy own");
+    if ((listing as any).sale_type === "auction") throw new Error("This is an auction — place a bid");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -listing.price, _type: "marketplace_purchase",
       _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: listing.title,
@@ -415,8 +416,22 @@ export const buyListing = createServerFn({ method: "POST" })
     await supabaseAdmin.from("marketplace_purchases").insert({
       listing_id: listing.id, buyer_id: context.userId, seller_id: listing.seller_id, price: listing.price,
     });
+    // Tag transfer: move tag from listing escrow to buyer profile
+    const tagValue = (listing as any).tag_value as string | null;
+    if (listing.category === "tag" && tagValue) {
+      // Buyer must not already have a tag; clear seller's tag (should already be null since escrowed)
+      const { data: buyerProf } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
+      if (buyerProf?.tag) {
+        // Refund and abort
+        await supabaseAdmin.rpc("wallet_adjust", { _user: context.userId, _delta: listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Already have a tag" });
+        await supabaseAdmin.rpc("wallet_adjust", { _user: listing.seller_id, _delta: -listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Buyer had tag" });
+        throw new Error("You already own a tag — sell or release it first");
+      }
+      await supabaseAdmin.from("profiles").update({ tag: tagValue }).eq("id", context.userId);
+    }
     await supabaseAdmin.from("marketplace_listings").update({
       sales_count: (listing.sales_count ?? 0) + 1,
+      status: "sold", winner_id: context.userId,
     }).eq("id", listing.id);
     await supabaseAdmin.from("notifications").insert({
       user_id: listing.seller_id, kind: "marketplace_sale",
@@ -425,6 +440,182 @@ export const buyListing = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+// ---------- User tag: claim a fresh tag (5000 DICE) ----------
+export const claimTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { tag: string }) =>
+    z.object({ tag: z.string().regex(/^[A-Za-z0-9]{2,6}$/) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const TAG = data.tag.toUpperCase();
+    const COST = 5000;
+    const { data: me } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
+    if (me?.tag) throw new Error("You already own a tag. Sell it on the marketplace first.");
+    // Uniqueness check: profile OR an active marketplace listing escrowing the tag
+    const { data: clash } = await supabaseAdmin.from("profiles").select("id").ilike("tag", TAG).maybeSingle();
+    if (clash) throw new Error("That tag is already taken. Try to buy it on the marketplace.");
+    const { data: listed } = await supabaseAdmin.from("marketplace_listings")
+      .select("id").eq("category", "tag").ilike("tag_value", TAG).eq("status", "active").maybeSingle();
+    if (listed) throw new Error("That tag is listed for sale — buy it on the marketplace.");
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -COST, _type: "fee" as any,
+      _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: `Claim tag #${TAG}`,
+    });
+    const { error } = await supabaseAdmin.from("profiles").update({ tag: TAG }).eq("id", context.userId);
+    if (error) {
+      // Refund on race
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: COST, _type: "refund",
+        _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: "Tag race refund",
+      });
+      throw new Error("Tag taken just now — refunded");
+    }
+    return { ok: true, tag: TAG };
+  });
+
+// ---------- List my tag for sale (fixed or auction) ----------
+export const listTagForSale = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { price: number; sale_type: "fixed" | "auction"; duration_hours?: number }) =>
+    z.object({
+      price: z.number().int().min(100).max(1_000_000),
+      sale_type: z.enum(["fixed", "auction"]),
+      duration_hours: z.number().int().min(1).max(48).optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: me } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
+    if (!me?.tag) throw new Error("You don't own a tag");
+    const ends = data.sale_type === "auction"
+      ? new Date(Date.now() + (data.duration_hours ?? 24) * 3600_000).toISOString()
+      : null;
+    // Escrow: remove tag from profile while listed
+    await supabaseAdmin.from("profiles").update({ tag: null }).eq("id", context.userId);
+    const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
+      seller_id: context.userId,
+      title: `Tag #${me.tag}`,
+      description: `Discord-style user tag #${me.tag}. The winner will own this 2-6 character tag.`,
+      category: "tag",
+      price: data.price,
+      tag_value: me.tag,
+      sale_type: data.sale_type,
+      auction_ends_at: ends,
+      min_bid: data.sale_type === "auction" ? data.price : null,
+      ownership_confirmed: true,
+      status: "active",
+    }).select().single();
+    if (error) {
+      await supabaseAdmin.from("profiles").update({ tag: me.tag }).eq("id", context.userId);
+      throw error;
+    }
+    return { ok: true, id: listing!.id };
+  });
+
+// ---------- Auctions: place bid ----------
+export const placeBid = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { listingId: string; amount: number }) =>
+    z.object({ listingId: z.string().uuid(), amount: z.number().int().min(1) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: l } = await supabaseAdmin.from("marketplace_listings")
+      .select("*").eq("id", data.listingId).single();
+    if (!l) throw new Error("Listing not found");
+    if ((l as any).sale_type !== "auction") throw new Error("Not an auction");
+    if (l.status !== "active") throw new Error("Auction closed");
+    if (l.seller_id === context.userId) throw new Error("Can't bid on own listing");
+    const ends = new Date((l as any).auction_ends_at).getTime();
+    if (Date.now() >= ends) throw new Error("Auction ended");
+    const cur = Number((l as any).current_bid ?? 0);
+    const min = Number((l as any).min_bid ?? l.price);
+    const required = cur > 0 ? cur + Math.max(10, Math.ceil(cur * 0.05)) : min;
+    if (data.amount < required) throw new Error(`Bid must be at least ${required} DICE`);
+    // Escrow new bid
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: context.userId, _delta: -data.amount, _type: "game_stake",
+      _source: "auction_bid", _ref_kind: "listing", _ref_id: l.id, _note: `Bid on ${l.title}`,
+    });
+    // Refund previous bidder
+    const prev = (l as any).current_bidder_id as string | null;
+    if (prev && cur > 0) {
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: prev, _delta: cur, _type: "refund",
+        _source: "auction_outbid", _ref_kind: "listing", _ref_id: l.id, _note: `Outbid on ${l.title}`,
+      });
+      await supabaseAdmin.from("notifications").insert({
+        user_id: prev, kind: "auction_outbid" as any, title: "You were outbid",
+        body: `Someone outbid you on ${l.title}`, link: `/marketplace/${l.id}`,
+      });
+    }
+    await supabaseAdmin.from("marketplace_listings").update({
+      current_bid: data.amount, current_bidder_id: context.userId,
+    }).eq("id", l.id);
+    await supabaseAdmin.from("marketplace_bids").insert({
+      listing_id: l.id, bidder_id: context.userId, amount: data.amount,
+    });
+    return { ok: true, amount: data.amount };
+  });
+
+// ---------- Auctions: settle (lazy) ----------
+export const settleAuction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: l } = await supabaseAdmin.from("marketplace_listings")
+      .select("*").eq("id", data.listingId).single();
+    if (!l) throw new Error("Not found");
+    if ((l as any).sale_type !== "auction" || l.status !== "active") return { ok: false, reason: "not_active" };
+    const ends = new Date((l as any).auction_ends_at).getTime();
+    if (Date.now() < ends) return { ok: false, reason: "not_ended" };
+    const winner = (l as any).current_bidder_id as string | null;
+    const amount = Number((l as any).current_bid ?? 0);
+    if (!winner || amount <= 0) {
+      // No bids — return tag to seller
+      if (l.category === "tag" && (l as any).tag_value) {
+        await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
+      }
+      await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
+      return { ok: true, settled: "no_bids" };
+    }
+    // Pay seller
+    await supabaseAdmin.rpc("wallet_adjust", {
+      _user: l.seller_id, _delta: amount, _type: "marketplace_sale",
+      _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: `Auction win: ${l.title}`,
+    });
+    await supabaseAdmin.from("marketplace_purchases").insert({
+      listing_id: l.id, buyer_id: winner, seller_id: l.seller_id, price: amount,
+    });
+    // Transfer tag
+    if (l.category === "tag" && (l as any).tag_value) {
+      const { data: bp } = await supabaseAdmin.from("profiles").select("tag").eq("id", winner).single();
+      if (bp?.tag) {
+        // Winner already has a tag — refund and return tag to seller
+        await supabaseAdmin.rpc("wallet_adjust", {
+          _user: winner, _delta: amount, _type: "refund",
+          _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: "Winner had tag",
+        });
+        await supabaseAdmin.rpc("wallet_adjust", {
+          _user: l.seller_id, _delta: -amount, _type: "refund",
+          _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: "Winner had tag",
+        });
+        await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
+        await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
+        return { ok: false, reason: "winner_had_tag" };
+      }
+      await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", winner);
+    }
+    await supabaseAdmin.from("marketplace_listings").update({
+      status: "sold", winner_id: winner, sales_count: (l.sales_count ?? 0) + 1,
+    }).eq("id", l.id);
+    await supabaseAdmin.from("notifications").insert([
+      { user_id: l.seller_id, kind: "marketplace_sale", title: "Auction sold!", body: `${l.title} sold for ${amount} DICE`, link: `/marketplace/${l.id}` },
+      { user_id: winner, kind: "auction_won" as any, title: "You won the auction!", body: `${l.title} for ${amount} DICE`, link: `/marketplace/${l.id}` },
+    ]);
+    return { ok: true, settled: "sold", winner, amount };
+  });
+
 
 // ---------- Challenge proof review (staff) ----------
 export const reviewProof = createServerFn({ method: "POST" })
