@@ -128,6 +128,9 @@ function Settings() {
         )}
       </Card>
 
+      <TagCard profile={profile} wallet={wallet} refetch={refetch} qc={qc} />
+
+
       {(() => {
         const vipUntil = (profile as any)?.vip_until ? new Date((profile as any).vip_until) : null;
         const vipActive = vipUntil && vipUntil > new Date();
