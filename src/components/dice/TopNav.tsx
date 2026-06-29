@@ -150,7 +150,10 @@ export function TopNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
               <DropdownMenuLabel className="truncate">
-                <div className="font-semibold truncate">{profile?.display_name ?? "Account"}</div>
+                <div className="font-semibold truncate">
+                  {profile?.display_name ?? "Account"}
+                  {profile?.tag && <span className="text-primary font-mono">#{profile.tag}</span>}
+                </div>
                 <div className="text-xs text-muted-foreground font-mono truncate">
                   {profile ? handle(profile) : (user?.email ?? "")}
                 </div>
