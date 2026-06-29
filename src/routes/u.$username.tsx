@@ -84,8 +84,8 @@ function UProfile() {
           <div className="flex flex-wrap items-center gap-5">
             <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback></Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-bold">{p.display_name}</h1>
-              <div className="text-muted-foreground">@{p.username}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>} · Lvl {p.level}</div>
+              <h1 className="font-display text-3xl font-bold">{p.display_name}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</h1>
+              <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
               {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-1"><Star className="size-4 text-primary" />{fmt(p.xp)} XP</div>
