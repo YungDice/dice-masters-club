@@ -66,14 +66,24 @@ function Mkt() {
       {filtered.length === 0
         ? <EmptyState icon={ShoppingBag} title="No listings yet" description="Be the first to list a digital item." />
         : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{filtered.map((l: any) => (
-            <Card key={l.id} className="glass overflow-hidden">
+            <Card key={l.id} className="glass overflow-hidden relative">
+              {l.sale_type === "auction" && <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/80 text-white text-xs"><Gavel className="size-3" />Auction</div>}
               <Link to="/marketplace/$id" params={{ id: l.id }}>
-                <div className="aspect-square bg-black/30 grid place-items-center overflow-hidden">{l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <ShoppingBag className="size-12 text-muted-foreground" />}</div>
+                <div className="aspect-square bg-black/30 grid place-items-center overflow-hidden">
+                  {l.category === "tag"
+                    ? <div className="text-4xl font-mono font-bold text-primary flex items-center"><Hash className="size-7" />{l.tag_value}</div>
+                    : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
+                </div>
               </Link>
               <div className="p-3 space-y-2">
                 <div className="text-xs text-muted-foreground">{l.category}</div>
                 <div className="font-semibold line-clamp-1">{l.title}</div>
-                <div className="flex items-center justify-between"><DiceBadge size="sm" amount={l.price} /><Button size="sm" disabled={l.seller_id === user?.id} onClick={() => purchase(l.id)}>{l.seller_id === user?.id ? "Yours" : "Buy"}</Button></div>
+                <div className="flex items-center justify-between">
+                  <DiceBadge size="sm" amount={l.sale_type === "auction" ? (l.current_bid ?? l.min_bid ?? l.price) : l.price} />
+                  {l.sale_type === "auction"
+                    ? <Link to="/marketplace/$id" params={{ id: l.id }}><Button size="sm" variant="outline"><Gavel className="size-3 mr-1" />Bid</Button></Link>
+                    : <Button size="sm" disabled={l.seller_id === user?.id} onClick={() => purchase(l.id)}>{l.seller_id === user?.id ? "Yours" : "Buy"}</Button>}
+                </div>
               </div>
             </Card>
           ))}</div>}
