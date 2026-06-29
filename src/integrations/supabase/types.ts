@@ -726,6 +726,7 @@ export type Database = {
           created_at: string
           id: string
           listing_id: string
+          status: string
         }
         Insert: {
           amount: number
@@ -733,6 +734,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id: string
+          status?: string
         }
         Update: {
           amount?: number
@@ -740,6 +742,7 @@ export type Database = {
           created_at?: string
           id?: string
           listing_id?: string
+          status?: string
         }
         Relationships: [
           {
@@ -1058,6 +1061,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          key: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          user_id: string
+          window_start: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string
@@ -1177,9 +1201,15 @@ export type Database = {
     }
     Functions: {
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
+      buy_listing_tx: {
+        Args: { _buyer: string; _listing_id: string }
+        Returns: Json
+      }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
+      expire_auctions: { Args: never; Returns: number }
+      expire_vip_status: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1189,6 +1219,31 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
+      place_bid_tx: {
+        Args: { _amount: number; _bidder: string; _listing_id: string }
+        Returns: Json
+      }
+      pvp_payout_tx: {
+        Args: {
+          _loser: string
+          _loser_amount: number
+          _note: string
+          _room_id: string
+          _source: string
+          _winner: string
+          _winner_amount: number
+        }
+        Returns: Json
+      }
+      rate_limit_hit: {
+        Args: {
+          _key: string
+          _max_hits: number
+          _user: string
+          _window_seconds: number
+        }
+        Returns: boolean
+      }
       review_proof_tx: {
         Args: {
           _approve: boolean
@@ -1198,6 +1253,7 @@ export type Database = {
         }
         Returns: Json
       }
+      settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       wallet_adjust: {
         Args: {
           _delta: number
@@ -1309,6 +1365,9 @@ export type Database = {
         | "escrow_release"
         | "refund"
         | "fee"
+        | "auction_won"
+        | "auction_outbid"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1526,6 +1585,9 @@ export const Constants = {
         "escrow_release",
         "refund",
         "fee",
+        "auction_won",
+        "auction_outbid",
+        "expired",
       ],
     },
   },

@@ -9,6 +9,17 @@ const cryptoRandInt = (n: number) => randomInt(0, n);
 const cryptoInviteCode = () =>
   randomBytes(6).toString("base64").replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase().padEnd(6, "X");
 
+// Rate-limit helper — throws when caller exceeds budget for (key, window).
+async function rateLimit(
+  admin: any, userId: string, key: string, windowSeconds: number, maxHits: number, label = "rate_limited",
+) {
+  const { data } = await admin.rpc("rate_limit_hit", {
+    _user: userId, _key: key, _window_seconds: windowSeconds, _max_hits: maxHits,
+  });
+  if (data === false) throw new Error(`Slow down (${label}) — try again later`);
+}
+
+
 
 // ---------- Daily reward (atomic, idempotent per (user, UTC day)) ----------
 export const claimDaily = createServerFn({ method: "POST" })
@@ -392,44 +403,22 @@ export const buyListing = createServerFn({ method: "POST" })
   .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: listing } = await supabaseAdmin.from("marketplace_listings")
-      .select("*").eq("id", data.listingId).eq("status", "active").single();
-    if (!listing) throw new Error("Not available");
-    if (listing.seller_id === context.userId) throw new Error("Can't buy own");
-    if ((listing as any).sale_type === "auction") throw new Error("This is an auction — place a bid");
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: -listing.price, _type: "marketplace_purchase",
-      _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: listing.title,
+    const { data: res, error } = await supabaseAdmin.rpc("buy_listing_tx", {
+      _buyer: context.userId, _listing_id: data.listingId,
     });
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: listing.seller_id, _delta: listing.price, _type: "marketplace_sale",
-      _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: listing.title,
-    });
-    await supabaseAdmin.from("marketplace_purchases").insert({
-      listing_id: listing.id, buyer_id: context.userId, seller_id: listing.seller_id, price: listing.price,
-    });
-    // Tag transfer: move tag from listing escrow to buyer profile
-    const tagValue = (listing as any).tag_value as string | null;
-    if (listing.category === "tag" && tagValue) {
-      // Buyer must not already have a tag; clear seller's tag (should already be null since escrowed)
-      const { data: buyerProf } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
-      if (buyerProf?.tag) {
-        // Refund and abort
-        await supabaseAdmin.rpc("wallet_adjust", { _user: context.userId, _delta: listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Already have a tag" });
-        await supabaseAdmin.rpc("wallet_adjust", { _user: listing.seller_id, _delta: -listing.price, _type: "refund", _source: "marketplace", _ref_kind: "listing", _ref_id: listing.id, _note: "Buyer had tag" });
-        throw new Error("You already own a tag — sell or release it first");
-      }
-      await supabaseAdmin.from("profiles").update({ tag: tagValue }).eq("id", context.userId);
+    if (error) throw error;
+    const out = res as { ok: boolean; reason?: string; listing_id?: string };
+    if (!out.ok) throw new Error(out.reason ?? "Purchase failed");
+    // Best-effort sale notification (non-critical)
+    const { data: l } = await supabaseAdmin.from("marketplace_listings")
+      .select("seller_id,title,price").eq("id", data.listingId).maybeSingle();
+    if (l) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: l.seller_id, kind: "marketplace_sale",
+        title: "You made a sale!", body: `${l.title} sold for ${l.price} DICE`,
+        link: `/marketplace/${data.listingId}`,
+      });
     }
-    await supabaseAdmin.from("marketplace_listings").update({
-      sales_count: (listing.sales_count ?? 0) + 1,
-      status: "sold", winner_id: context.userId,
-    }).eq("id", listing.id);
-    await supabaseAdmin.from("notifications").insert({
-      user_id: listing.seller_id, kind: "marketplace_sale",
-      title: "You made a sale!", body: `${listing.title} sold for ${listing.price} DICE`,
-      link: `/marketplace/${listing.id}`,
-    });
     return { ok: true };
   });
 
@@ -487,7 +476,7 @@ export const listTagForSale = createServerFn({ method: "POST" })
     const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
       seller_id: context.userId,
       title: `Tag #${me.tag}`,
-      description: `Discord-style user tag #${me.tag}. The winner will own this 2-6 character tag.`,
+      description: `Discord-style user tag #${me.tag}.`,
       category: "tag",
       price: data.price,
       tag_value: me.tag,
@@ -498,114 +487,41 @@ export const listTagForSale = createServerFn({ method: "POST" })
       status: "active",
     }).select().single();
     if (error) {
+      // Restore tag on failure
       await supabaseAdmin.from("profiles").update({ tag: me.tag }).eq("id", context.userId);
       throw error;
     }
     return { ok: true, id: listing!.id };
   });
-
-// ---------- Auctions: place bid ----------
+// ---------- Auctions: place bid (atomic) ----------
 export const placeBid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { listingId: string; amount: number }) =>
     z.object({ listingId: z.string().uuid(), amount: z.number().int().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: l } = await supabaseAdmin.from("marketplace_listings")
-      .select("*").eq("id", data.listingId).single();
-    if (!l) throw new Error("Listing not found");
-    if ((l as any).sale_type !== "auction") throw new Error("Not an auction");
-    if (l.status !== "active") throw new Error("Auction closed");
-    if (l.seller_id === context.userId) throw new Error("Can't bid on own listing");
-    const ends = new Date((l as any).auction_ends_at).getTime();
-    if (Date.now() >= ends) throw new Error("Auction ended");
-    const cur = Number((l as any).current_bid ?? 0);
-    const min = Number((l as any).min_bid ?? l.price);
-    const required = cur > 0 ? cur + Math.max(10, Math.ceil(cur * 0.05)) : min;
-    if (data.amount < required) throw new Error(`Bid must be at least ${required} DICE`);
-    // Escrow new bid
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: -data.amount, _type: "game_stake",
-      _source: "auction_bid", _ref_kind: "listing", _ref_id: l.id, _note: `Bid on ${l.title}`,
+    const ok = await supabaseAdmin.rpc("rate_limit_hit", {
+      _user: context.userId, _key: "bid", _window_seconds: 60, _max_hits: 20,
     });
-    // Refund previous bidder
-    const prev = (l as any).current_bidder_id as string | null;
-    if (prev && cur > 0) {
-      await supabaseAdmin.rpc("wallet_adjust", {
-        _user: prev, _delta: cur, _type: "refund",
-        _source: "auction_outbid", _ref_kind: "listing", _ref_id: l.id, _note: `Outbid on ${l.title}`,
-      });
-      await supabaseAdmin.from("notifications").insert({
-        user_id: prev, kind: "auction_outbid" as any, title: "You were outbid",
-        body: `Someone outbid you on ${l.title}`, link: `/marketplace/${l.id}`,
-      });
-    }
-    await supabaseAdmin.from("marketplace_listings").update({
-      current_bid: data.amount, current_bidder_id: context.userId,
-    }).eq("id", l.id);
-    await supabaseAdmin.from("marketplace_bids").insert({
-      listing_id: l.id, bidder_id: context.userId, amount: data.amount,
+    if (ok.data === false) throw new Error("Slow down — too many bids");
+    const { data: res, error } = await supabaseAdmin.rpc("place_bid_tx", {
+      _bidder: context.userId, _listing_id: data.listingId, _amount: data.amount,
     });
-    return { ok: true, amount: data.amount };
+    if (error) throw error;
+    const out = res as { ok: boolean; reason?: string; amount?: number };
+    if (!out.ok) throw new Error(out.reason ?? "Bid failed");
+    return { ok: true, amount: out.amount ?? data.amount };
   });
 
-// ---------- Auctions: settle (lazy) ----------
+// ---------- Auctions: settle (lazy + cron) ----------
 export const settleAuction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: l } = await supabaseAdmin.from("marketplace_listings")
-      .select("*").eq("id", data.listingId).single();
-    if (!l) throw new Error("Not found");
-    if ((l as any).sale_type !== "auction" || l.status !== "active") return { ok: false, reason: "not_active" };
-    const ends = new Date((l as any).auction_ends_at).getTime();
-    if (Date.now() < ends) return { ok: false, reason: "not_ended" };
-    const winner = (l as any).current_bidder_id as string | null;
-    const amount = Number((l as any).current_bid ?? 0);
-    if (!winner || amount <= 0) {
-      // No bids — return tag to seller
-      if (l.category === "tag" && (l as any).tag_value) {
-        await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
-      }
-      await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
-      return { ok: true, settled: "no_bids" };
-    }
-    // Pay seller
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: l.seller_id, _delta: amount, _type: "marketplace_sale",
-      _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: `Auction win: ${l.title}`,
-    });
-    await supabaseAdmin.from("marketplace_purchases").insert({
-      listing_id: l.id, buyer_id: winner, seller_id: l.seller_id, price: amount,
-    });
-    // Transfer tag
-    if (l.category === "tag" && (l as any).tag_value) {
-      const { data: bp } = await supabaseAdmin.from("profiles").select("tag").eq("id", winner).single();
-      if (bp?.tag) {
-        // Winner already has a tag — refund and return tag to seller
-        await supabaseAdmin.rpc("wallet_adjust", {
-          _user: winner, _delta: amount, _type: "refund",
-          _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: "Winner had tag",
-        });
-        await supabaseAdmin.rpc("wallet_adjust", {
-          _user: l.seller_id, _delta: -amount, _type: "refund",
-          _source: "auction", _ref_kind: "listing", _ref_id: l.id, _note: "Winner had tag",
-        });
-        await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", l.seller_id);
-        await supabaseAdmin.from("marketplace_listings").update({ status: "expired" as any }).eq("id", l.id);
-        return { ok: false, reason: "winner_had_tag" };
-      }
-      await supabaseAdmin.from("profiles").update({ tag: (l as any).tag_value }).eq("id", winner);
-    }
-    await supabaseAdmin.from("marketplace_listings").update({
-      status: "sold", winner_id: winner, sales_count: (l.sales_count ?? 0) + 1,
-    }).eq("id", l.id);
-    await supabaseAdmin.from("notifications").insert([
-      { user_id: l.seller_id, kind: "marketplace_sale", title: "Auction sold!", body: `${l.title} sold for ${amount} DICE`, link: `/marketplace/${l.id}` },
-      { user_id: winner, kind: "auction_won" as any, title: "You won the auction!", body: `${l.title} for ${amount} DICE`, link: `/marketplace/${l.id}` },
-    ]);
-    return { ok: true, settled: "sold", winner, amount };
+    const { data: res, error } = await supabaseAdmin.rpc("settle_auction_tx", { _listing_id: data.listingId });
+    if (error) throw error;
+    return res as { ok: boolean; sold?: boolean; reason?: string; buyer_id?: string; amount?: number };
   });
 
 
@@ -715,6 +631,7 @@ export const toggleGalleryLike = createServerFn({ method: "POST" })
   .inputValidator((d: { itemId: string }) => z.object({ itemId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "gallery_like", 60, 60, "likes");
     const { data: item } = await supabaseAdmin.from("gallery_items").select("id,user_id").eq("id", data.itemId).maybeSingle();
     if (!item) throw new Error("Not found");
     const { data: existing } = await supabaseAdmin.from("gallery_likes").select("id").eq("item_id", data.itemId).eq("user_id", context.userId).maybeSingle();
@@ -814,6 +731,7 @@ export const sendFriendRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.addresseeId === context.userId) throw new Error("Can't friend yourself");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "friend_req", 3600, 30, "friend requests");
     const { data: existing } = await supabaseAdmin.from("friendships").select("id,status")
       .or(`and(requester_id.eq.${context.userId},addressee_id.eq.${data.addresseeId}),and(requester_id.eq.${data.addresseeId},addressee_id.eq.${context.userId})`)
       .maybeSingle();
@@ -919,6 +837,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "chat_msg", 60, 30, "chat");
     const { data: prof } = await supabaseAdmin.from("profiles").select("vip_until").eq("id", context.userId).single();
     const isVip = !!prof?.vip_until && new Date(prof.vip_until) > new Date();
     const maxLen = isVip ? 4000 : 500;
@@ -990,3 +909,80 @@ export const splitStealBot = createServerFn({ method: "POST" })
     return { bot, outcome, payout, delta: payout - stake };
   });
 
+
+// ---------- Submit challenge proof (server-validated) ----------
+// Validates the challenge is active, before its deadline, rate-limits uploads,
+// re-signs media on demand and never stores a long-lived signed URL.
+export const submitProof = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { challengeId: string; mediaPath: string; mediaKind: string; caption?: string }) =>
+    z.object({
+      challengeId: z.string().uuid(),
+      mediaPath: z.string().min(1).max(300),
+      mediaKind: z.string().max(80),
+      caption: z.string().max(500).optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "proof_submit", 3600, 5, "proof uploads");
+
+    // Challenge gate: must exist, be active and not past deadline.
+    const { data: chal } = await supabaseAdmin
+      .from("challenges")
+      .select("id,status,deadline")
+      .eq("id", data.challengeId)
+      .maybeSingle();
+    if (!chal) throw new Error("Challenge not found");
+    if (chal.status !== "active") throw new Error("Challenge is not accepting submissions");
+    if (chal.deadline && new Date(chal.deadline) < new Date()) {
+      throw new Error("Challenge deadline has passed");
+    }
+
+    // Path must live under the caller's user folder (matches storage RLS).
+    if (!data.mediaPath.startsWith(`${context.userId}/`)) {
+      throw new Error("Invalid media path");
+    }
+
+    // Verify the object actually exists and check its size (<= 25MB).
+    const { data: obj, error: dlErr } = await supabaseAdmin.storage
+      .from("proof-media")
+      .createSignedUrl(data.mediaPath, 60);
+    if (dlErr || !obj?.signedUrl) throw new Error("Upload not found");
+
+    const head = await fetch(obj.signedUrl, { method: "HEAD" });
+    const size = Number(head.headers.get("content-length") ?? 0);
+    if (!size || size > 25 * 1024 * 1024) {
+      // Best-effort cleanup, then reject.
+      await supabaseAdmin.storage.from("proof-media").remove([data.mediaPath]);
+      throw new Error("Media too large (max 25MB)");
+    }
+
+    // Re-issue a short-lived signed URL just so the moderator can view it.
+    const { data: signed } = await supabaseAdmin.storage
+      .from("proof-media")
+      .createSignedUrl(data.mediaPath, 60 * 60 * 24); // 24h
+
+    const { data: proof, error } = await supabaseAdmin
+      .from("challenge_proofs")
+      .insert({
+        challenge_id: data.challengeId,
+        user_id: context.userId,
+        media_url: signed?.signedUrl ?? null,
+        media_kind: data.mediaKind,
+        caption: data.caption ?? null,
+        status: "pending",
+      } as any)
+      .select("id")
+      .single();
+    if (error) {
+      await supabaseAdmin.storage.from("proof-media").remove([data.mediaPath]);
+      throw error;
+    }
+    await supabaseAdmin
+      .from("challenge_participants")
+      .upsert(
+        { challenge_id: data.challengeId, user_id: context.userId } as any,
+        { onConflict: "challenge_id,user_id" },
+      );
+    return { ok: true, id: proof.id };
+  });

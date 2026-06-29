@@ -62,6 +62,10 @@ function Submit() {
 
   async function submit() {
     if (!user || !preview) return;
+    if (preview.blob.size > 25 * 1024 * 1024) {
+      toast.error("File too large (max 25MB)");
+      return;
+    }
     setUploading(true);
     try {
       const ext = preview.kind.startsWith("image") ? "jpg" : "webm";
@@ -69,12 +73,8 @@ function Submit() {
       const { error } = await supabase.storage.from("proof-media").upload(path, preview.blob, { contentType: preview.kind, upsert: false });
       if (error) throw error;
       setProgress(100);
-      const { data: signed } = await supabase.storage.from("proof-media").createSignedUrl(path, 60 * 60 * 24 * 7);
-      await supabase.from("challenge_proofs").insert({
-        challenge_id: id, user_id: user.id,
-        media_url: signed?.signedUrl ?? null, media_kind: preview.kind, caption,
-      });
-      await supabase.from("challenge_participants").upsert({ challenge_id: id, user_id: user.id } as any, { onConflict: "challenge_id,user_id" });
+      const { submitProof } = await import("@/lib/dice.functions");
+      await submitProof({ data: { challengeId: id, mediaPath: path, mediaKind: preview.kind, caption } });
       toast.success("Proof submitted! A moderator will review it.");
       nav({ to: "/challenges/$id", params: { id } });
     } catch (e: any) { toast.error(e.message); }
