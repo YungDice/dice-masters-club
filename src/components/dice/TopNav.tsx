@@ -48,7 +48,7 @@ export function TopNav() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
   const { data: roles } = useMyRoles(user?.id);
-  const isStaff = roles?.some((r) => r === "admin" || r === "moderator");
+  const isStaff = roles?.some((r) => r === "owner" || r === "admin" || r === "moderator");
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
