@@ -72,12 +72,15 @@ function MyProfile() {
             <div className="mt-3 flex flex-wrap gap-4 text-sm">
               <div className="flex items-center gap-1"><Star className="size-4 text-primary" />{fmt(p.xp)} XP</div>
               <div className="flex items-center gap-1"><Flame className="size-4 text-primary" />{p.streak_days}d streak</div>
+              {p.country && (() => {
+                const c = COUNTRIES.find((x) => x.code === p.country);
+                return c ? <div className="flex items-center gap-1"><MapPin className="size-4 text-muted-foreground" /><span>{c.flag} {c.name}</span></div> : null;
+              })()}
               <div className="flex items-center gap-1"><Calendar className="size-4 text-muted-foreground" />Joined {timeAgo(p.created_at)}</div>
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <Button variant="outline" onClick={() => nav({ to: "/u/$username", params: { username: p.username } })}>Public view</Button>
-            <Link to="/settings"><Button variant="ghost">Edit</Button></Link>
+            <Link to="/settings"><Button variant="ghost">Edit profile</Button></Link>
           </div>
         </div>
       </Card>
