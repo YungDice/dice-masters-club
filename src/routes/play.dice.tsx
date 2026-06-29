@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { Die3D } from "@/components/dice/casino/Die3D";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/dice")({
   head: () => ({ meta: [{ title: "Dice — DICE" }] }),
