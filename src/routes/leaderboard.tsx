@@ -62,53 +62,76 @@ function Countdown() {
 }
 
 function Podium({ top, unit }: { top: Row[]; unit: string }) {
-  // Visual order: 2nd, 1st, 3rd
   const order = [top[1], top[0], top[2]];
   const ranks = [2, 1, 3];
   return (
-    <div className="relative">
-      <div className="absolute inset-x-0 -top-8 h-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent pointer-events-none" />
-      <div className="grid grid-cols-3 gap-3 md:gap-6 items-end relative">
-        {order.map((p, idx) => {
-          const rank = ranks[idx];
-          const r = DAILY_REWARDS[rank - 1];
-          if (!p) return <div key={idx} />;
-          return (
-            <motion.div
-              key={p.id}
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 * idx, type: "spring", stiffness: 90 }}
-              className="flex flex-col items-center"
-            >
-              <div className="relative mb-3">
-                {rank === 1 && <Crown className="absolute -top-7 left-1/2 -translate-x-1/2 size-7 text-amber-300 drop-shadow-[0_0_8px_rgba(252,211,77,0.7)]" />}
-                <Avatar className={`size-20 md:size-24 ring-4 ${r.ring} shadow-[0_0_30px_-5px] shadow-amber-500/30`}>
-                  <AvatarImage src={p.avatar_url ?? undefined} />
-                  <AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback>
-                </Avatar>
-              </div>
-              <Link to="/u/$username" params={{ username: p.username }} className="text-center max-w-full px-1">
-                <div className="font-display font-bold truncate text-sm md:text-base">
-                  {p.display_name}
-                  {p.tag && <span className="text-primary font-mono">#{p.tag}</span>}
+    <div className="relative rounded-2xl overflow-hidden border-2 border-amber-400/30 mb-6"
+      style={{
+        background: "radial-gradient(ellipse at top, #0b4d3a 0%, #073023 55%, #04201a 100%)",
+        boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 10px 40px -10px rgba(0,0,0,0.7)",
+      }}
+    >
+      {/* gold hairline */}
+      <div className="pointer-events-none absolute inset-1 rounded-xl border border-amber-300/20" />
+      {/* felt dots */}
+      <div className="pointer-events-none absolute inset-0 opacity-25 mix-blend-overlay"
+        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)", backgroundSize: "6px 6px" }} />
+      {/* red spotlights */}
+      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[80%] h-40 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-400/30 via-primary/10 to-transparent blur-2xl" />
+
+      <div className="relative px-3 md:px-8 pt-10 pb-6">
+        <div className="grid grid-cols-3 gap-3 md:gap-6 items-end">
+          {order.map((p, idx) => {
+            const rank = ranks[idx];
+            const r = DAILY_REWARDS[rank - 1];
+            if (!p) return <div key={idx} />;
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.1 * idx, type: "spring", stiffness: 90 }}
+                className="flex flex-col items-center"
+              >
+                <div className="relative mb-3">
+                  {rank === 1 && (
+                    <motion.div
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+                      className="absolute -top-9 left-1/2 -translate-x-1/2"
+                    >
+                      <Crown className="size-8 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.9)]" />
+                    </motion.div>
+                  )}
+                  <Avatar className={`size-20 md:size-28 ring-4 ${r.ring} ${r.glow}`}>
+                    <AvatarImage src={p.avatar_url ?? undefined} />
+                    <AvatarFallback className="text-2xl bg-card">{p.display_name[0]}</AvatarFallback>
+                  </Avatar>
                 </div>
-                <div className="text-xs text-muted-foreground font-mono truncate">@{p.username}</div>
-              </Link>
-              <div className={`mt-3 w-full ${r.podiumH} rounded-t-xl bg-gradient-to-b ${r.grad} relative overflow-hidden border border-white/10`}>
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),transparent_40%)]" />
-                <div className="absolute inset-x-0 top-2 text-center font-display font-black text-3xl md:text-5xl text-black/70">{rank}</div>
-                <div className="absolute inset-x-0 bottom-2 text-center text-[10px] md:text-xs text-black/80 font-semibold px-1">
-                  <div>{fmt(p.points)} {unit}</div>
+                <Link to="/u/$username" params={{ username: p.username }} className="text-center max-w-full px-1 hover:underline">
+                  <div className="font-display font-bold truncate text-sm md:text-base text-amber-50">
+                    {p.display_name}
+                    {p.tag && <span className="text-primary font-mono">#{p.tag}</span>}
+                  </div>
+                  <div className="text-[11px] text-amber-200/50 font-mono truncate">@{p.username}</div>
+                </Link>
+                <div className={`mt-3 w-full ${r.podiumH} rounded-t-xl bg-gradient-to-b ${r.grad} relative overflow-hidden border border-amber-300/30`}
+                  style={{ boxShadow: "inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -8px 20px rgba(0,0,0,0.35)" }}
+                >
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.25),transparent_45%)]" />
+                  <div className="absolute inset-x-0 top-3 text-center font-display font-black text-4xl md:text-6xl text-black/70 drop-shadow">{rank}</div>
+                  <div className="absolute inset-x-0 bottom-2 text-center text-[11px] md:text-xs text-black/85 font-bold px-1">
+                    {fmt(p.points)} {unit}
+                  </div>
                 </div>
-              </div>
-              <div className="mt-2 text-center text-xs">
-                <div className="flex items-center justify-center gap-1 text-primary font-bold"><Gem className="size-3" />+{fmt(r.dice)}</div>
-                {r.vip && <div className="text-amber-300 text-[10px] font-medium">+{r.vip}</div>}
-              </div>
-            </motion.div>
-          );
-        })}
+                <div className="mt-2 text-center text-xs">
+                  <div className="flex items-center justify-center gap-1 text-amber-300 font-bold"><Gem className="size-3" />+{fmt(r.dice)}</div>
+                  {r.vip && <div className="text-amber-200/80 text-[10px] font-medium">+{r.vip}</div>}
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
