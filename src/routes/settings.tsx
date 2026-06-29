@@ -239,9 +239,34 @@ function VipLevelCards({ profile, wallet, refetch, qc }: any) {
 
       <Card className="glass p-6 space-y-3">
         <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Sparkles className="text-primary" /> Leveling</h2>
-        <p className="text-sm text-muted-foreground">You are <b>Level {lvl}</b>. Levels are earned by playing — every minute you spend on DICE adds <b>+25 XP</b>, and each new level rewards you with <b>+500 DICE</b> automatically.</p>
+        <p className="text-sm text-muted-foreground">
+          You are <b>Level {lvl}</b>. Stay on DICE to earn <b>+25 XP/min</b> automatically — each level grants <b>+500 DICE</b>.
+          Impatient? You can also buy the next level instantly for <b>{fmt(lvl * 500)} DICE</b>.
+        </p>
+        <BuyLevelButton lvl={lvl} wallet={wallet} refetch={refetch} qc={qc} />
       </Card>
     </>
+  );
+}
+
+function BuyLevelButton({ lvl, wallet, refetch, qc }: any) {
+  const [busy, setBusy] = useState(false);
+  const buy = useServerFn(buyLevelUp);
+  const cost = lvl * 500;
+  const canAfford = (wallet?.balance ?? 0) >= cost;
+  async function doBuy() {
+    setBusy(true);
+    try {
+      const r: any = await buy({ data: undefined as any });
+      toast.success(`Level up! You are now Lvl ${r.level}${r.bonus ? ` · ${r.bonus}` : ""}`);
+      refetch(); qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+  return (
+    <Button onClick={doBuy} disabled={busy || !canAfford} variant="outline" className="border-primary/40">
+      {busy ? "Leveling up..." : canAfford ? `Buy Lvl ${lvl + 1} — ${fmt(cost)} DICE` : `Need ${fmt(cost)} DICE for next level`}
+    </Button>
   );
 }
 
