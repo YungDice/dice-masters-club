@@ -936,6 +936,7 @@ export type Database = {
           id: string
           is_18_plus: boolean
           last_login_at: string | null
+          last_xp_tick_at: string | null
           level: number
           privacy_activity: string
           privacy_profile: string
@@ -960,6 +961,7 @@ export type Database = {
           id: string
           is_18_plus?: boolean
           last_login_at?: string | null
+          last_xp_tick_at?: string | null
           level?: number
           privacy_activity?: string
           privacy_profile?: string
@@ -984,6 +986,7 @@ export type Database = {
           id?: string
           is_18_plus?: boolean
           last_login_at?: string | null
+          last_xp_tick_at?: string | null
           level?: number
           privacy_activity?: string
           privacy_profile?: string
@@ -1117,6 +1120,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_idle_xp: { Args: { _uid: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
       has_role: {
