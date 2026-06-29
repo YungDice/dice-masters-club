@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/dice/TopNav";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dice/PageHeader";
 import { toggleGalleryLike } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
@@ -106,7 +107,14 @@ function DikDok() {
   const liked = !!likesQ.data?.mine[cur.id];
 
   return (
-    <div className={`${isWide ? "max-w-4xl" : "max-w-md"} mx-auto transition-all`}>
+    <div className="space-y-4">
+      <PageHeader
+        icon={Music2}
+        title="DikDok"
+        subtitle="Swipe through the community feed · ❤️ a post: you +5, creator +10 DICE"
+        accent="primary"
+      />
+      <div className={`${isWide ? "max-w-4xl" : "max-w-md"} mx-auto transition-all`}>
       <div className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}>
         {isVideo && (
           <video
@@ -149,7 +157,8 @@ function DikDok() {
         </div>
         <div className="absolute left-2 top-2 text-xs rounded bg-black/40 px-2 py-0.5 text-white">{idx + 1} / {feed.length}</div>
       </div>
-      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause · ❤️ a post: you +5, creator +10 DICE</p>
+      <p className="text-center text-xs text-muted-foreground mt-3">Tap video to play/pause</p>
+      </div>
     </div>
   );
 }

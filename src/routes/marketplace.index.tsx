@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
+import { PageHeader } from "@/components/dice/PageHeader";
+import { motion } from "framer-motion";
 import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
@@ -57,28 +59,36 @@ function Mkt() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="font-display text-3xl font-bold">Marketplace</h1><p className="text-sm text-muted-foreground">Digital items only. No real-world goods, no copyrighted content without rights.</p></div>
-        <Link to="/marketplace/new"><Button className="glow-red"><Plus className="size-4 mr-1" />List item</Button></Link>
-      </div>
+      <PageHeader
+        icon={ShoppingBag}
+        title="Marketplace"
+        subtitle="Digital items only — trade for DICE. No real-world goods."
+        accent="violet"
+        actions={
+          <Link to="/marketplace/new">
+            <Button className="glow-red"><Plus className="size-4 mr-1" />List item</Button>
+          </Link>
+        }
+      />
       <Card className="glass p-3 flex gap-2 items-center flex-wrap">
         <div className="flex-1 relative min-w-60"><Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder="Search..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="newest">Newest</option><option value="price">Price ↑</option></select>
       </Card>
       {filtered.length === 0
         ? <EmptyState icon={ShoppingBag} title="No listings yet" description="Be the first to list a digital item." />
-        : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{filtered.map((l: any) => (
-            <Card key={l.id} className="glass overflow-hidden relative">
+        : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{filtered.map((l: any, i: number) => (
+            <motion.div key={l.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
+            <Card className="glass overflow-hidden relative group hover:border-primary/50 hover:-translate-y-0.5 transition-all">
               {l.sale_type === "auction" && <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/80 text-white text-xs"><Gavel className="size-3" />Auction</div>}
               <Link to="/marketplace/$id" params={{ id: l.id }}>
-                <div className="aspect-square bg-black/30 grid place-items-center overflow-hidden">
+                <div className="aspect-square bg-gradient-to-br from-black/60 to-black/20 grid place-items-center overflow-hidden">
                   {l.category === "tag"
                     ? <div className="text-4xl font-mono font-bold text-primary flex items-center"><Hash className="size-7" />{l.tag_value}</div>
-                    : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
+                    : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
                 </div>
               </Link>
               <div className="p-3 space-y-2">
-                <div className="text-xs text-muted-foreground">{l.category}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{l.category}</div>
                 <div className="font-semibold line-clamp-1">{l.title}</div>
                 <div className="flex items-center justify-between">
                   <DiceBadge size="sm" amount={l.sale_type === "auction" ? (l.current_bid ?? l.min_bid ?? l.price) : l.price} />
@@ -88,6 +98,7 @@ function Mkt() {
                 </div>
               </div>
             </Card>
+            </motion.div>
           ))}</div>}
     </div>
   );
