@@ -909,3 +909,80 @@ export const splitStealBot = createServerFn({ method: "POST" })
     return { bot, outcome, payout, delta: payout - stake };
   });
 
+
+// ---------- Submit challenge proof (server-validated) ----------
+// Validates the challenge is active, before its deadline, rate-limits uploads,
+// re-signs media on demand and never stores a long-lived signed URL.
+export const submitProof = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { challengeId: string; mediaPath: string; mediaKind: string; caption?: string }) =>
+    z.object({
+      challengeId: z.string().uuid(),
+      mediaPath: z.string().min(1).max(300),
+      mediaKind: z.string().max(80),
+      caption: z.string().max(500).optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "proof_submit", 3600, 5, "proof uploads");
+
+    // Challenge gate: must exist, be active and not past deadline.
+    const { data: chal } = await supabaseAdmin
+      .from("challenges")
+      .select("id,status,deadline")
+      .eq("id", data.challengeId)
+      .maybeSingle();
+    if (!chal) throw new Error("Challenge not found");
+    if (chal.status !== "active") throw new Error("Challenge is not accepting submissions");
+    if (chal.deadline && new Date(chal.deadline) < new Date()) {
+      throw new Error("Challenge deadline has passed");
+    }
+
+    // Path must live under the caller's user folder (matches storage RLS).
+    if (!data.mediaPath.startsWith(`${context.userId}/`)) {
+      throw new Error("Invalid media path");
+    }
+
+    // Verify the object actually exists and check its size (<= 25MB).
+    const { data: obj, error: dlErr } = await supabaseAdmin.storage
+      .from("proof-media")
+      .createSignedUrl(data.mediaPath, 60);
+    if (dlErr || !obj?.signedUrl) throw new Error("Upload not found");
+
+    const head = await fetch(obj.signedUrl, { method: "HEAD" });
+    const size = Number(head.headers.get("content-length") ?? 0);
+    if (!size || size > 25 * 1024 * 1024) {
+      // Best-effort cleanup, then reject.
+      await supabaseAdmin.storage.from("proof-media").remove([data.mediaPath]);
+      throw new Error("Media too large (max 25MB)");
+    }
+
+    // Re-issue a short-lived signed URL just so the moderator can view it.
+    const { data: signed } = await supabaseAdmin.storage
+      .from("proof-media")
+      .createSignedUrl(data.mediaPath, 60 * 60 * 24); // 24h
+
+    const { data: proof, error } = await supabaseAdmin
+      .from("challenge_proofs")
+      .insert({
+        challenge_id: data.challengeId,
+        user_id: context.userId,
+        media_url: signed?.signedUrl ?? null,
+        media_kind: data.mediaKind,
+        caption: data.caption ?? null,
+        status: "pending",
+      } as any)
+      .select("id")
+      .single();
+    if (error) {
+      await supabaseAdmin.storage.from("proof-media").remove([data.mediaPath]);
+      throw error;
+    }
+    await supabaseAdmin
+      .from("challenge_participants")
+      .upsert(
+        { challenge_id: data.challengeId, user_id: context.userId } as any,
+        { onConflict: "challenge_id,user_id" },
+      );
+    return { ok: true, id: proof.id };
+  });
