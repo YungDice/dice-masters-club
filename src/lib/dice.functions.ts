@@ -631,6 +631,7 @@ export const toggleGalleryLike = createServerFn({ method: "POST" })
   .inputValidator((d: { itemId: string }) => z.object({ itemId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "gallery_like", 60, 60, "likes");
     const { data: item } = await supabaseAdmin.from("gallery_items").select("id,user_id").eq("id", data.itemId).maybeSingle();
     if (!item) throw new Error("Not found");
     const { data: existing } = await supabaseAdmin.from("gallery_likes").select("id").eq("item_id", data.itemId).eq("user_id", context.userId).maybeSingle();
