@@ -139,7 +139,7 @@ function CreateListing() {
             <div>
               <Label>Category</Label>
               <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-1">
-                {[...CATEGORIES, ...(isStaff ? [{ value: "avatar", label: "👤 Avatar" }] : [])].map((c) => (
+                {[...CATEGORIES, { value: "avatar", label: "👤 Avatar" }].map((c) => (
                   <button type="button" key={c.value} onClick={() => setForm({ ...form, category: c.value })}
                     className={`px-2 py-2 text-xs rounded-md border transition ${form.category === c.value ? "border-primary bg-primary/15 text-primary" : "border-border/60 hover:border-border"}`}>
                     {c.label}
