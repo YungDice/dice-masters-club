@@ -21,7 +21,6 @@ export const Route = createFileRoute("/profile")({
 
 function MyProfile() {
   const { user } = useAuth();
-  const nav = useNavigate();
   const { data: p } = useMyProfile(user?.id);
 
   const sold = useQuery({
