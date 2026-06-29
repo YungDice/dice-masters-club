@@ -359,3 +359,66 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
     </Card>
   );
 }
+
+function BannerCard({ user, profile, refetch, qc }: any) {
+  const vipUntil = profile?.vip_until ? new Date(profile.vip_until) : null;
+  const vipActive = !!(vipUntil && vipUntil > new Date());
+  const bannerUrl: string | null = profile?.banner_url ?? null;
+
+  async function upload(file: File) {
+    if (!user) return;
+    if (!vipActive) return toast.error("VIP only — unlock VIP first");
+    if (file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/banner-${Date.now()}.${ext}`;
+    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (up.error) return toast.error(up.error.message);
+    const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (signed.error || !signed.data) return toast.error("Could not load image");
+    const { error } = await supabase.from("profiles").update({ banner_url: signed.data.signedUrl }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Banner updated");
+    refetch();
+    qc.invalidateQueries({ queryKey: ["profile", user.id] });
+  }
+  async function clear() {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({ banner_url: null }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Banner cleared");
+    refetch();
+  }
+
+  return (
+    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-amber-400/40" : ""}`}>
+      <div className="flex items-center gap-2">
+        <Crown className="size-4 text-amber-400" />
+        <h2 className="font-display text-lg font-semibold">Profile banner</h2>
+        {!vipActive && <span className="text-xs text-amber-400/80 ml-auto">VIP only</span>}
+      </div>
+      {bannerUrl ? (
+        <div className="rounded-md overflow-hidden border border-border/60">
+          <img src={bannerUrl} className="w-full h-32 md:h-40 object-cover" />
+        </div>
+      ) : (
+        <div className="rounded-md border border-dashed border-border/60 h-24 grid place-items-center text-xs text-muted-foreground">
+          No banner yet
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <Input
+          type="file"
+          accept="image/*"
+          disabled={!vipActive}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
+        />
+        {bannerUrl && <Button variant="outline" size="sm" onClick={clear}>Remove</Button>}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {vipActive
+          ? "Wide image recommended (1500×400). Up to 8MB."
+          : "Unlock VIP (5,000 DICE) in the Coins & VIP tab to upload a banner."}
+      </p>
+    </Card>
+  );
+}
