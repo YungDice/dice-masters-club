@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Dices, Coins, Spade, Cherry, HandHelping, Layers } from "lucide-react";
+import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
 
 const games = [
+  { to: "/play/roulette", title: "Roulette", icon: CircleDot, desc: "American 0/00 wheel. Place chips, spin, settle." },
   { to: "/play/dice", title: "Dice", icon: Dices, desc: "Roll two dice. Solo vs house or live PvP." },
   { to: "/play/coinflip", title: "Coin Flip", icon: Coins, desc: "Heads or tails. Equal-stake PvP escrow." },
   { to: "/play/blackjack", title: "Blackjack", icon: Spade, desc: "Single-player vs dealer." },
   { to: "/play/slots", title: "Slots", icon: Cherry, desc: "Spin the reels. Daily free spin." },
   { to: "/play/split-steal", title: "Split or Steal", icon: HandHelping, desc: "Trust game. Both stake. Both choose." },
-  { to: "/play/poker", title: "Poker rooms", icon: Layers, desc: "Live Texas Hold'em rooms. Coming soon — basic lobby." },
+  { to: "/play/poker", title: "Video Poker", icon: Layers, desc: "Jacks or Better. Hold the cards you want, draw the rest." },
 ];
 
 export const Route = createFileRoute("/play/")({
