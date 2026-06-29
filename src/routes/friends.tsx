@@ -92,10 +92,20 @@ function Friends() {
         <div className="relative"><Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder="Search by username..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {q.length >= 2 && (
           <div className="mt-2 space-y-1">
-            {(search.data ?? []).map((p) => (
+            {(search.data ?? []).map((p: any) => (
               <div key={p.id} className="flex items-center justify-between rounded-md hover:bg-white/5 p-2">
                 <Link to="/u/$username" params={{ username: p.username }} className="flex items-center gap-2 flex-1"><Avatar className="size-7"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name[0]}</AvatarFallback></Avatar><span className="text-sm">{p.display_name} <span className="text-muted-foreground text-xs">@{p.username}</span></span></Link>
-                <Button size="sm" onClick={() => sendReq(p.id)}><UserPlus className="size-4 mr-1" />Add</Button>
+                {p._rel === "friends" ? (
+                  <span className="text-xs text-emerald-400 px-2">✓ Friends</span>
+                ) : p._rel === "sent" ? (
+                  <span className="text-xs text-muted-foreground px-2">Requested</span>
+                ) : p._rel === "incoming" ? (
+                  <span className="text-xs text-amber-400 px-2">Wants to be friends</span>
+                ) : p._rel === "blocked" ? (
+                  <span className="text-xs text-destructive px-2">Blocked</span>
+                ) : (
+                  <Button size="sm" onClick={() => sendReq(p.id)}><UserPlus className="size-4 mr-1" />Add</Button>
+                )}
               </div>
             ))}
           </div>
