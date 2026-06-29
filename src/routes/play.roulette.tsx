@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/roulette")({
   head: () => ({ meta: [
