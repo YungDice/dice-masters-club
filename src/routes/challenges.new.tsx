@@ -45,7 +45,7 @@ function Create() {
         dice_reward: Number(form.dice_reward), xp_reward: Number(form.xp_reward),
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       } });
-      toast.success(fee > 0 ? `Submitted! ${fee} DICE charged.` : "Submitted!");
+      toast.success(fee > 0 ? `Published! ${fee} DICE charged.` : "Published!");
       nav({ to: "/challenges" });
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setBusy(false); }
@@ -54,8 +54,8 @@ function Create() {
     <Card className="glass p-6 max-w-2xl mx-auto">
       <h1 className="font-display text-2xl font-bold">Create a challenge</h1>
       <p className="text-sm text-muted-foreground mt-1">
-        All challenges are moderated. Don't post anything unsafe — no alcohol, no self-harm,
-        no harassment, nothing explicit. Keep it fun.
+        Challenges go live instantly. Keep it safe — no alcohol, no self-harm,
+        no harassment, nothing explicit. Unsafe posts will be removed and may cost you DICE.
       </p>
       <div className={`mt-3 rounded-md border px-3 py-2 text-sm ${fee > 0 ? "border-primary/40 bg-primary/10" : "border-emerald-500/40 bg-emerald-500/10"}`}>
         {fee > 0
@@ -88,7 +88,7 @@ function Create() {
           <div><Label>XP reward (max 200)</Label><Input type="number" min={0} max={200} value={form.xp_reward} onChange={(e) => setForm({...form, xp_reward: +e.target.value})} /></div>
         </div>
         <div><Label>Tags (comma-separated)</Label><Input value={form.tags} onChange={(e) => setForm({...form, tags: e.target.value})} placeholder="fitness, fun" /></div>
-        <Button disabled={busy} className="w-full glow-red">{busy ? "Submitting..." : fee > 0 ? `Submit (−${fee} DICE)` : "Submit for review"}</Button>
+        <Button disabled={busy} className="w-full glow-red">{busy ? "Publishing..." : fee > 0 ? `Publish (−${fee} DICE)` : "Publish"}</Button>
       </form>
     </Card>
   );
