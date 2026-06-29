@@ -1,33 +1,25 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomInt, randomBytes } from "node:crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-// ---------- Daily reward ----------
+// Cryptographically secure helpers (must be used for any game outcome or invite code)
+const cryptoRandFloat = () => randomInt(0, 2 ** 30) / 2 ** 30;
+const cryptoRandInt = (n: number) => randomInt(0, n);
+const cryptoInviteCode = () =>
+  randomBytes(6).toString("base64").replace(/[^A-Za-z0-9]/g, "").slice(0, 6).toUpperCase().padEnd(6, "X");
+
+
+// ---------- Daily reward (atomic, idempotent per (user, UTC day)) ----------
 export const claimDaily = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: txs } = await supabaseAdmin
-      .from("dice_transactions")
-      .select("id, created_at")
-      .eq("user_id", context.userId)
-      .eq("source", "daily")
-      .gte("created_at", today + "T00:00:00Z")
-      .limit(1);
-    if (txs && txs.length) return { ok: false, reason: "already_claimed" };
-    const reward = 100;
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId,
-      _delta: reward,
-      _type: "daily_reward",
-      _source: "daily",
-      _ref_kind: null as any,
-      _ref_id: null as any,
-      _note: "Daily login reward",
-    });
-    return { ok: true, reward };
+    const { data, error } = await supabaseAdmin.rpc("claim_daily_tx", { _uid: context.userId });
+    if (error) throw new Error(error.message);
+    return (data as any) ?? { ok: false };
   });
+
 
 // ---------- Solo dice roll vs house ----------
 export const playDiceSolo = createServerFn({ method: "POST" })
@@ -42,8 +34,8 @@ export const playDiceSolo = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -stake, _type: "game_stake",
       _source: "dice_solo", _ref_kind: "dice", _ref_id: null as any, _note: "Stake",
     });
-    const me = Math.ceil(Math.random() * 6) + Math.ceil(Math.random() * 6);
-    const house = Math.ceil(Math.random() * 6) + Math.ceil(Math.random() * 6);
+    const me = (cryptoRandInt(6) + 1) + (cryptoRandInt(6) + 1);
+    const house = (cryptoRandInt(6) + 1) + (cryptoRandInt(6) + 1);
     let delta = -stake;
     let outcome: "win" | "loss" | "tie" = "loss";
     if (me > house) {
@@ -79,9 +71,9 @@ export const playSlots = createServerFn({ method: "POST" })
       _source: "slots", _ref_kind: "slots", _ref_id: null as any, _note: "Spin",
     });
     const reels = [
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-      SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+      SYMBOLS[cryptoRandInt(SYMBOLS.length)],
+      SYMBOLS[cryptoRandInt(SYMBOLS.length)],
+      SYMBOLS[cryptoRandInt(SYMBOLS.length)],
     ];
     let payout = 0;
     if (reels[0] === reels[1] && reels[1] === reels[2]) payout = data.bet * PAY[reels[0]];
@@ -110,7 +102,7 @@ export const createCoinFlip = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -data.stake, _type: "escrow_lock",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: null as any, _note: "Escrow",
     });
-    const code = data.isPrivate ? Math.random().toString(36).slice(2, 8).toUpperCase() : null;
+    const code = data.isPrivate ? cryptoInviteCode() : null;
     const { data: room, error } = await supabaseAdmin.from("game_rooms").insert({
       kind: "coinflip", host_id: context.userId, stake: data.stake,
       max_players: 2, is_private: data.isPrivate, invite_code: code,
@@ -168,7 +160,7 @@ export const pickCoinFlipSide = createServerFn({ method: "POST" })
       joiner_pick: isHost ? (state.joiner_pick ?? other) : data.side,
     };
     // Resolve
-    const flip = Math.random() < 0.5 ? "heads" : "tails";
+    const flip = cryptoRandFloat() < 0.5 ? "heads" : "tails";
     const hostWon = next.host_pick === flip;
     const pot = room.stake * 2;
     const winnerId = hostWon ? room.host_id : state.joiner_id;
@@ -212,7 +204,7 @@ function newDeck(): Card[] {
   const d: Card[] = [];
   for (const s of SUITS) for (const [r, v] of RANKS) d.push({ r, s, v });
   for (let i = d.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = cryptoRandInt(i + 1);
     [d[i], d[j]] = [d[j], d[i]];
   }
   return d;
@@ -265,7 +257,7 @@ export const createSplitSteal = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -data.stake, _type: "escrow_lock",
       _source: "split_steal", _ref_kind: "split_steal", _ref_id: null as any, _note: "Escrow",
     });
-    const code = data.isPrivate ? Math.random().toString(36).slice(2, 8).toUpperCase() : null;
+    const code = data.isPrivate ? cryptoInviteCode() : null;
     const { data: room } = await supabaseAdmin.from("game_rooms").insert({
       kind: "split_steal", host_id: context.userId, stake: data.stake,
       max_players: 2, is_private: data.isPrivate, invite_code: code, status: "waiting",
@@ -340,7 +332,7 @@ export const createDiceRoom = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -data.stake, _type: "escrow_lock",
       _source: "dice_pvp", _ref_kind: "dice", _ref_id: null as any, _note: "Escrow",
     });
-    const code = data.isPrivate ? Math.random().toString(36).slice(2, 8).toUpperCase() : null;
+    const code = data.isPrivate ? cryptoInviteCode() : null;
     const { data: room } = await supabaseAdmin.from("game_rooms").insert({
       kind: "dice", host_id: context.userId, stake: data.stake,
       max_players: 2, is_private: data.isPrivate, invite_code: code, status: "waiting",
@@ -366,8 +358,8 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
-    const hostRoll = Math.ceil(Math.random() * 6) + Math.ceil(Math.random() * 6);
-    const joinRoll = Math.ceil(Math.random() * 6) + Math.ceil(Math.random() * 6);
+    const hostRoll = (cryptoRandInt(6) + 1) + (cryptoRandInt(6) + 1);
+    const joinRoll = (cryptoRandInt(6) + 1) + (cryptoRandInt(6) + 1);
     const pot = room.stake * 2;
     let winnerId: string | null = null;
     if (hostRoll > joinRoll) winnerId = room.host_id;
@@ -459,7 +451,7 @@ export const claimTag = createServerFn({ method: "POST" })
       .select("id").eq("category", "tag").ilike("tag_value", TAG).eq("status", "active").maybeSingle();
     if (listed) throw new Error("That tag is listed for sale — buy it on the marketplace.");
     await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: -COST, _type: "fee" as any,
+      _user: context.userId, _delta: -COST, _type: "fee",
       _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: `Claim tag #${TAG}`,
     });
     const { error } = await supabaseAdmin.from("profiles").update({ tag: TAG }).eq("id", context.userId);
@@ -624,44 +616,29 @@ export const reviewProof = createServerFn({ method: "POST" })
     z.object({ proofId: z.string().uuid(), approve: z.boolean(), notes: z.string().optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: isStaff } = await supabaseAdmin.rpc("is_staff", { _user_id: context.userId });
-    if (!isStaff) throw new Error("Forbidden");
-    const { data: proof } = await supabaseAdmin.from("challenge_proofs").select("*").eq("id", data.proofId).single();
-    if (!proof) throw new Error("Not found");
-    await supabaseAdmin.from("challenge_proofs").update({
-      status: data.approve ? "approved" : "rejected",
-      reviewer_id: context.userId, reviewer_notes: data.notes ?? null,
-      reviewed_at: new Date().toISOString(),
-    }).eq("id", data.proofId);
-    if (data.approve) {
-      const { data: chal } = await supabaseAdmin.from("challenges").select("*").eq("id", proof.challenge_id).single();
-      if (chal && chal.dice_reward > 0) {
-        await supabaseAdmin.rpc("wallet_adjust", {
-          _user: proof.user_id, _delta: chal.dice_reward, _type: "challenge_reward",
-          _source: "challenge", _ref_kind: "challenge", _ref_id: chal.id, _note: chal.title,
-        });
-      }
-      if (chal && chal.xp_reward > 0) {
-        const { data: p } = await supabaseAdmin.from("profiles").select("xp,level").eq("id", proof.user_id).single();
-        const newXp = (p?.xp ?? 0) + chal.xp_reward;
-        const newLevel = Math.max(1, Math.floor(Math.sqrt(newXp / 100)));
-        await supabaseAdmin.from("profiles").update({ xp: newXp, level: newLevel }).eq("id", proof.user_id);
-      }
-      await supabaseAdmin.from("challenge_participants").upsert({
-        challenge_id: proof.challenge_id, user_id: proof.user_id, completed: true,
-      } as any, { onConflict: "challenge_id,user_id" });
-    }
+    // Atomic review: rejects double-review, awards exactly once, also applies level-up bonus
+    const { data: res, error } = await supabaseAdmin.rpc("review_proof_tx", {
+      _proof_id: data.proofId,
+      _reviewer: context.userId,
+      _approve: data.approve,
+      _notes: data.notes ?? "",
+    });
+    if (error) throw new Error(error.message);
+    const out = (res as any) ?? {};
+    if (!out.ok) return out;
+    // Notification + audit log are non-economic, safe to do after the tx
     await supabaseAdmin.from("notifications").insert({
-      user_id: proof.user_id, kind: "proof_result",
+      user_id: out.user_id, kind: "proof_result",
       title: data.approve ? "Proof approved 🎉" : "Proof rejected",
-      body: data.notes ?? null, link: `/challenges/${proof.challenge_id}`,
+      body: data.notes ?? null, link: `/challenges/${out.challenge_id}`,
     });
     await supabaseAdmin.from("moderation_actions").insert({
       moderator_id: context.userId, action: data.approve ? "approve_proof" : "reject_proof",
       target_kind: "proof", target_id: data.proofId, reason: data.notes ?? null,
     });
-    return { ok: true };
+    return out;
   });
+
 
 // ---------- Admin: review challenge ----------
 export const reviewChallenge = createServerFn({ method: "POST" })
@@ -728,16 +705,9 @@ export const grantRole = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ---------- Bootstrap first admin (any signed-in user becomes admin if none exists) ----------
-export const claimFirstAdmin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin");
-    if ((count ?? 0) > 0) return { ok: false, reason: "exists" };
-    await supabaseAdmin.from("user_roles").upsert({ user_id: context.userId, role: "admin" } as any, { onConflict: "user_id,role" });
-    return { ok: true };
-  });
+// claimFirstAdmin removed: bootstrap owner/admin via secure deployment/migration only.
+
+
 
 // ---------- Gallery: like + reward creator ----------
 export const toggleGalleryLike = createServerFn({ method: "POST" })
@@ -978,7 +948,7 @@ export const coinFlipBot = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -stake, _type: "game_stake",
       _source: "coinflip_bot", _ref_kind: "coinflip", _ref_id: null as any, _note: "vs Bot",
     });
-    const flip = Math.random() < 0.5 ? "heads" : "tails";
+    const flip = cryptoRandFloat() < 0.5 ? "heads" : "tails";
     const won = flip === data.side;
     if (won) {
       await supabaseAdmin.rpc("wallet_adjust", {
@@ -1003,7 +973,7 @@ export const splitStealBot = createServerFn({ method: "POST" })
       _source: "split_steal_bot", _ref_kind: "split_steal", _ref_id: null as any, _note: "vs Bot",
     });
     // Bot is slightly cooperative: 55% split, 45% steal
-    const bot: "split" | "steal" = Math.random() < 0.55 ? "split" : "steal";
+    const bot: "split" | "steal" = cryptoRandFloat() < 0.55 ? "split" : "steal";
     const pot = stake * 2;
     let payout = 0;
     let outcome: "split_split" | "you_steal" | "bot_steal" | "both_steal" = "both_steal";
