@@ -141,6 +141,9 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
         </div>
       </Card>
 
+      <BannerCard user={user} profile={profile} refetch={refetch} qc={qc} />
+
+
       <Card className="glass p-6 space-y-4">
         <h2 className="font-display text-lg font-semibold">About you</h2>
         <div>
