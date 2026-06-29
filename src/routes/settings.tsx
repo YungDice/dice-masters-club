@@ -101,9 +101,29 @@ function Settings() {
             <AvatarImage src={profile?.avatar_url ?? undefined} />
             <AvatarFallback className="text-xl">{profile?.display_name?.[0] ?? "?"}</AvatarFallback>
           </Avatar>
-          <p className="text-xs text-muted-foreground flex-1">
-            Profile pictures can only be purchased on the <a href="/marketplace" className="text-primary underline">Marketplace</a>. Buy one from a curated avatar listing and set it as your profile picture from the listing page.
-          </p>
+          <div className="flex-1 space-y-2">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !user) return;
+                if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
+                const ext = file.name.split(".").pop() || "jpg";
+                const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+                const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+                if (up.error) return toast.error(up.error.message);
+                const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+                if (signed.error || !signed.data) return toast.error("Could not load image");
+                const { error } = await supabase.from("profiles").update({ avatar_url: signed.data.signedUrl }).eq("id", user.id);
+                if (error) return toast.error(error.message);
+                toast.success("Profile picture updated");
+                refetch();
+                qc.invalidateQueries({ queryKey: ["profile", user.id] });
+              }}
+            />
+            <p className="text-xs text-muted-foreground">JPG/PNG/GIF, up to 5MB.</p>
+          </div>
         </div>
       </Card>
 
