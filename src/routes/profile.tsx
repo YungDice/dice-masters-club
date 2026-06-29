@@ -57,12 +57,12 @@ function MyProfile() {
   return (
     <div className="space-y-4">
 
-      <Card className="glass overflow-hidden">
-        {banner && vipActive && (
-          <div className="h-32 md:h-48 w-full bg-black/40">
-            <img src={banner} alt="banner" className="w-full h-full object-cover" />
-          </div>
-        )}
+      <Card className="glass overflow-hidden border-white/10">
+        <div className={`w-full ${banner && vipActive ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
+             style={banner && vipActive ? undefined : { background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.35), transparent 70%), linear-gradient(135deg, #0b0a14 0%, #1a1023 100%)" }}>
+          {banner && vipActive && <img src={banner} alt="banner" className="w-full h-full object-cover" />}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
+        </div>
         <div className="p-6">
           <div className="flex flex-wrap items-center gap-5">
             <Avatar className="size-24 ring-2 ring-primary/40">
