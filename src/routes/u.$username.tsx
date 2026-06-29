@@ -74,34 +74,41 @@ function UProfile() {
 
   return (
     <div className="space-y-4">
-      <Card className="glass p-6">
-        <div className="flex flex-wrap items-center gap-5">
-          <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback></Avatar>
-          <div className="flex-1">
-            <h1 className="font-display text-3xl font-bold">{p.display_name}</h1>
-            <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
-            {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
-            <div className="mt-3 flex flex-wrap gap-4 text-sm">
-              <div className="flex items-center gap-1"><Star className="size-4 text-primary" />{fmt(p.xp)} XP</div>
-              <div className="flex items-center gap-1"><Flame className="size-4 text-primary" />{p.streak_days}d streak</div>
-              <div className="flex items-center gap-1"><Calendar className="size-4 text-muted-foreground" />Joined {timeAgo(p.created_at)}</div>
-            </div>
+      <Card className="glass overflow-hidden">
+        {p.banner_url && (
+          <div className="h-32 md:h-48 w-full bg-black/40">
+            <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />
           </div>
-          {!isMe && (
-            <div className="flex gap-2">
-              {rel === "friends" ? (
-                <Button variant="outline" disabled>✓ Friends</Button>
-              ) : rel === "sent" ? (
-                <Button variant="outline" disabled>Request sent</Button>
-              ) : rel === "incoming" ? (
-                <Button variant="outline" disabled>Respond in Friends tab</Button>
-              ) : rel === "blocked" ? null : (
-                <Button onClick={addFriend}>Add friend</Button>
-              )}
-              <Button variant="outline">Message</Button>
+        )}
+        <div className="p-6">
+          <div className="flex flex-wrap items-center gap-5">
+            <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback></Avatar>
+            <div className="flex-1">
+              <h1 className="font-display text-3xl font-bold">{p.display_name}</h1>
+              <div className="text-muted-foreground">@{p.username}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>} · Lvl {p.level}</div>
+              {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
+              <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-1"><Star className="size-4 text-primary" />{fmt(p.xp)} XP</div>
+                <div className="flex items-center gap-1"><Flame className="size-4 text-primary" />{p.streak_days}d streak</div>
+                <div className="flex items-center gap-1"><Calendar className="size-4 text-muted-foreground" />Joined {timeAgo(p.created_at)}</div>
+              </div>
             </div>
-          )}
-          {isMe && <Link to="/settings"><Button variant="outline">Edit profile</Button></Link>}
+            {!isMe && (
+              <div className="flex gap-2">
+                {rel === "friends" ? (
+                  <Button variant="outline" disabled>✓ Friends</Button>
+                ) : rel === "sent" ? (
+                  <Button variant="outline" disabled>Request sent</Button>
+                ) : rel === "incoming" ? (
+                  <Button variant="outline" disabled>Respond in Friends tab</Button>
+                ) : rel === "blocked" ? null : (
+                  <Button onClick={addFriend}>Add friend</Button>
+                )}
+                <Button variant="outline">Message</Button>
+              </div>
+            )}
+            {isMe && <Link to="/settings"><Button variant="outline">Edit profile</Button></Link>}
+          </div>
         </div>
       </Card>
 
