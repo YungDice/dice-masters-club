@@ -295,7 +295,7 @@ function RoulettePage() {
                 </div>
               </div>
             </div>
-          </Card>
+          </CasinoFrame>
 
           <Card className="glass p-4">
             <div className="flex items-center gap-3 flex-wrap">
