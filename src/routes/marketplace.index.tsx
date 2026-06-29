@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
+import { PageHeader } from "@/components/dice/PageHeader";
+import { motion } from "framer-motion";
 import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
