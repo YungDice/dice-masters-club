@@ -43,14 +43,33 @@ function UProfile() {
     },
   });
 
+  const friendship = useQuery({
+    queryKey: ["friendship", user?.id, prof.data?.id],
+    enabled: !!user?.id && !!prof.data?.id && user.id !== prof.data.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("friendships")
+        .select("*")
+        .or(`and(requester_id.eq.${user!.id},addressee_id.eq.${prof.data!.id}),and(requester_id.eq.${prof.data!.id},addressee_id.eq.${user!.id})`)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   if (!prof.data) return <div className="text-center text-muted-foreground py-20">Loading…</div>;
   const p = prof.data;
   const isMe = user?.id === p.id;
+  const f: any = friendship.data;
+  const rel = !f ? "none"
+    : f.status === "accepted" ? "friends"
+    : f.status === "pending" ? (f.requester_id === user?.id ? "sent" : "incoming")
+    : f.status === "blocked" ? "blocked"
+    : "none";
 
   async function addFriend() {
     if (!user) return;
     const { error } = await supabase.from("friendships").insert({ requester_id: user.id, addressee_id: p.id });
-    if (error) toast.error(error.message); else toast.success("Friend request sent");
+    if (error) toast.error(error.message); else { toast.success("Friend request sent"); friendship.refetch(); }
   }
 
   return (
@@ -68,7 +87,20 @@ function UProfile() {
               <div className="flex items-center gap-1"><Calendar className="size-4 text-muted-foreground" />Joined {timeAgo(p.created_at)}</div>
             </div>
           </div>
-          {!isMe && <div className="flex gap-2"><Button onClick={addFriend}>Add friend</Button><Button variant="outline">Message</Button></div>}
+          {!isMe && (
+            <div className="flex gap-2">
+              {rel === "friends" ? (
+                <Button variant="outline" disabled>✓ Friends</Button>
+              ) : rel === "sent" ? (
+                <Button variant="outline" disabled>Request sent</Button>
+              ) : rel === "incoming" ? (
+                <Button variant="outline" disabled>Respond in Friends tab</Button>
+              ) : rel === "blocked" ? null : (
+                <Button onClick={addFriend}>Add friend</Button>
+              )}
+              <Button variant="outline">Message</Button>
+            </div>
+          )}
           {isMe && <Link to="/settings"><Button variant="outline">Edit profile</Button></Link>}
         </div>
       </Card>

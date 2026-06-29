@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   Users,
   BarChart3,
-  Bell,
   User as UserIcon,
   Shield,
   LogOut,
@@ -19,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DiceLogo } from "./Logo";
 import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
+import { NotificationsPopover } from "./NotificationsPopover";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet, useMyRoles } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
@@ -105,9 +105,7 @@ export function TopNav() {
         <div className="ml-auto flex items-center gap-2">
           <DiceBadge amount={wallet?.balance ?? 0} />
           <ChatPopover />
-          <Link to="/notifications" className="grid size-9 place-items-center rounded-md hover:bg-white/5">
-            <Bell className="size-4" />
-          </Link>
+          <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="grid size-9 place-items-center">
