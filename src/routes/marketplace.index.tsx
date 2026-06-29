@@ -35,11 +35,11 @@ function Mkt() {
         .from("marketplace_listings")
         .select("*")
         .eq("status", "active")
-        .neq("status", "sold")
+        .is("winner_id", null)
         .order(sort === "newest" ? "created_at" : "price", { ascending: sort !== "newest" })
         .limit(40);
       if (error) throw error;
-      const rows = (data ?? []).filter((r: any) => r.status === "active");
+      const rows = (data ?? []).filter((r: any) => r.status === "active" && !r.winner_id);
       const ids = Array.from(new Set(rows.map((r: any) => r.seller_id)));
       const { data: profs } = ids.length
         ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids)
