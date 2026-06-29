@@ -187,49 +187,73 @@ function Dashboard() {
   const pct = Math.min(100, Math.max(0, ((xp - prevXp) / Math.max(1, nextXp - prevXp)) * 100));
 
   return (
-    <div className="space-y-6">
-      {/* Top stat row */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="glass p-5 md:col-span-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">DICE balance</div>
-              <div className="font-display text-4xl font-bold">{fmt(wallet?.balance ?? 0)}</div>
-              <div className="mt-1 text-xs text-muted-foreground">Lifetime earned: {fmt(wallet?.lifetime_earned ?? 0)}</div>
+    <div className="space-y-5">
+      {/* Hero: greeting + level progress + daily reward */}
+      <div
+        className="relative overflow-hidden rounded-2xl p-5 md:p-6"
+        style={{
+          background: "radial-gradient(ellipse at top right, rgba(201,168,76,0.18), transparent 60%), linear-gradient(135deg, #0b0f17 0%, #0a1410 100%)",
+          border: "1px solid rgba(201,168,76,0.25)",
+        }}
+      >
+        <div className="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay"
+          style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0)", backgroundSize: "8px 8px" }} />
+        <div className="relative grid gap-5 md:grid-cols-[1fr_auto] items-center">
+          <div className="min-w-0">
+            <div className="text-xs uppercase tracking-widest text-amber-200/60">Welcome back</div>
+            <h1 className="font-display text-2xl md:text-3xl font-bold truncate">
+              {profile?.display_name ?? "Player"}
+            </h1>
+            <div className="mt-4 flex flex-wrap items-center gap-4">
+              <div className="flex items-baseline gap-2">
+                <span className="text-xs text-muted-foreground">Balance</span>
+                <span className="font-display text-2xl font-bold text-amber-100">{fmt(wallet?.balance ?? 0)}</span>
+                <span className="text-xs text-amber-200/60">DICE</span>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <Flame className="size-4 text-primary" />
+                <span className="font-medium">{profile?.streak_days ?? 0}</span>
+                <span className="text-muted-foreground">day streak</span>
+              </div>
             </div>
+            <div className="mt-4">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-amber-200/80">Level {lvl}</span>
+                <span className="text-muted-foreground">{fmt(xp)} / {fmt(nextXp)} XP</span>
+              </div>
+              <Progress value={pct} />
+              <div className="text-[10px] text-muted-foreground mt-1">+25 XP every minute on DICE · +500 DICE per level</div>
+            </div>
+          </div>
+          <div className="flex md:flex-col gap-2 md:items-end">
             {dailyClaimed.data ? (
-              <div className="text-xs text-emerald-400 font-medium flex items-center gap-1"><Flame className="size-4" /> Claimed today</div>
+              <div className="text-xs text-emerald-400 font-medium inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-3 py-1.5 ring-1 ring-emerald-400/30">
+                <Flame className="size-4" /> Daily claimed
+              </div>
             ) : (
               <Button onClick={onClaim} disabled={claiming} className="glow-red">
-                <Flame className="size-4 mr-1" /> Daily reward
+                <Flame className="size-4 mr-1" /> Claim daily reward
               </Button>
             )}
-
+            <Link to="/play" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+              Go to game lobby <ArrowRight className="size-3" />
+            </Link>
           </div>
-          <div className="mt-4">
-            <div className="flex justify-between text-xs mb-1"><span>Level {lvl}</span><span>{fmt(xp)} / {fmt(nextXp)} XP</span></div>
-            <Progress value={pct} />
-          </div>
-        </Card>
-        <Card className="glass p-5">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Streak</div>
-          <div className="font-display text-3xl font-bold flex items-center gap-2"><Flame className="size-6 text-primary" />{profile?.streak_days ?? 0} days</div>
-          <div className="mt-2 text-xs text-muted-foreground">Keep logging in daily to grow your bonus.</div>
-        </Card>
+        </div>
       </div>
 
-      {/* Daily + Featured */}
+      {/* Bento row 1: Daily challenge (wide) + Notifications */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="glass p-5 lg:col-span-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Today's challenge</h2>
             <Link to="/challenges" className="text-xs text-muted-foreground hover:text-foreground">View all <ArrowRight className="inline size-3" /></Link>
           </div>
           {daily.data ? (
-            <Link to="/challenges/$id" params={{ id: daily.data.id }} className="mt-3 block rounded-lg border border-border/60 p-4 hover:border-primary/40 transition">
+            <Link to="/challenges/$id" params={{ id: daily.data.id }} className="block rounded-lg border border-border/60 p-4 hover:border-amber-400/40 transition">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-lg font-semibold">{daily.data.title}</div>
+                <div className="min-w-0">
+                  <div className="text-lg font-semibold truncate">{daily.data.title}</div>
                   <div className="text-sm text-muted-foreground line-clamp-2">{daily.data.description}</div>
                 </div>
                 <DiceBadge amount={daily.data.dice_reward} />
@@ -240,112 +264,130 @@ function Dashboard() {
           )}
         </Card>
         <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Bell className="size-4 text-primary" /> Notifications</h2>
-          <ul className="mt-3 space-y-2 text-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Bell className="size-4 text-primary" /> Recent</h2>
+            <Link to="/notifications" className="text-xs text-muted-foreground hover:text-foreground">All <ArrowRight className="inline size-3" /></Link>
+          </div>
+          <ul className="space-y-2 text-sm">
             {(notif.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No new notifications.</li>}
-            {(notif.data ?? []).map((n) => (
+            {(notif.data ?? []).slice(0, 4).map((n) => (
               <li key={n.id} className="rounded-md border border-border/60 p-2">
-                <div className="font-medium text-sm">{n.title}</div>
-                {n.body && <div className="text-xs text-muted-foreground">{n.body}</div>}
+                <div className="font-medium text-sm line-clamp-1">{n.title}</div>
+                {n.body && <div className="text-xs text-muted-foreground line-clamp-1">{n.body}</div>}
                 <div className="text-[10px] text-muted-foreground mt-0.5">{timeAgo(n.created_at)}</div>
               </li>
             ))}
           </ul>
-          <Link to="/notifications" className="mt-3 inline-flex text-xs text-muted-foreground hover:text-foreground">See all <ArrowRight className="inline size-3" /></Link>
         </Card>
       </div>
 
-      {/* Featured challenges */}
+      {/* Quick play tiles */}
       <Card className="glass p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Trophy className="size-4 text-primary" /> Featured challenges</h2>
-          <Link to="/challenges" className="text-xs text-muted-foreground hover:text-foreground">Browse all <ArrowRight className="inline size-3" /></Link>
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Quick play</h2>
+          <Link to="/play" className="text-xs text-muted-foreground hover:text-foreground">Lobby <ArrowRight className="inline size-3" /></Link>
         </div>
-        <div className="grid gap-3 md:grid-cols-4">
-          {(featured.data ?? []).map((c) => (
-            <Link key={c.id} to="/challenges/$id" params={{ id: c.id }} className="rounded-lg border border-border/60 p-3 hover:border-primary/40 transition">
-              <div className="text-sm font-semibold line-clamp-1">{c.title}</div>
-              <div className="text-xs text-muted-foreground line-clamp-2 mt-1">{c.description}</div>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-[10px] uppercase text-muted-foreground">{c.category}</span>
-                <DiceBadge size="sm" amount={c.dice_reward} />
-              </div>
+        <div className="grid gap-3 grid-cols-3 sm:grid-cols-6">
+          {[
+            { to: "/play/dice", t: "Dice" }, { to: "/play/coinflip", t: "Coin Flip" }, { to: "/play/blackjack", t: "Blackjack" },
+            { to: "/play/slots", t: "Slots" }, { to: "/play/roulette", t: "Roulette" }, { to: "/play/poker", t: "Poker" },
+          ].map((g) => (
+            <Link key={g.to} to={g.to as any} className="group rounded-lg p-3 text-center transition"
+              style={{ background: "rgba(11,77,58,0.35)", border: "1px solid rgba(201,168,76,0.3)" }}
+            >
+              <Dices className="mx-auto size-6 text-amber-300 mb-1 group-hover:scale-110 transition" />
+              <div className="text-xs font-semibold text-amber-50">{g.t}</div>
             </Link>
           ))}
         </div>
       </Card>
 
-      {/* Continue playing + Recent games + Leaderboard */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="glass p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Continue playing</h2>
-            <Link to="/play" className="text-xs text-muted-foreground hover:text-foreground">Lobby <ArrowRight className="inline size-3" /></Link>
-          </div>
-          <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
-            {[
-              { to: "/play/dice", t: "Dice" }, { to: "/play/coinflip", t: "Coin Flip" }, { to: "/play/blackjack", t: "Blackjack" },
-              { to: "/play/slots", t: "Slots" }, { to: "/play/split-steal", t: "Split or Steal" }, { to: "/play/poker", t: "Poker" },
-            ].map((g) => (
-              <Link key={g.to} to={g.to as any} className="rounded-lg border border-border/60 p-4 text-center hover:border-primary/40 transition">
-                <Dices className="mx-auto size-6 text-primary mb-1" />
-                <div className="text-sm font-semibold">{g.t}</div>
+      {/* Bento row 2: Featured challenges */}
+      <Card className="glass p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Trophy className="size-4 text-primary" /> Featured challenges</h2>
+          <Link to="/challenges" className="text-xs text-muted-foreground hover:text-foreground">Browse all <ArrowRight className="inline size-3" /></Link>
+        </div>
+        {(featured.data ?? []).length === 0 ? (
+          <EmptyState icon={Trophy} title="No featured challenges" description="Staff will spotlight new ones soon." />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {(featured.data ?? []).map((c) => (
+              <Link key={c.id} to="/challenges/$id" params={{ id: c.id }} className="rounded-lg border border-border/60 p-3 hover:border-amber-400/40 transition">
+                <div className="text-sm font-semibold line-clamp-1">{c.title}</div>
+                <div className="text-xs text-muted-foreground line-clamp-2 mt-1">{c.description}</div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-[10px] uppercase text-muted-foreground">{c.category}</span>
+                  <DiceBadge size="sm" amount={c.dice_reward} />
+                </div>
               </Link>
             ))}
           </div>
-          <div className="mt-4">
-            <div className="text-xs text-muted-foreground mb-2">Recent results</div>
-            <ul className="space-y-1 text-sm">
-              {(recentGames.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No games yet — try your first one.</li>}
-              {(recentGames.data ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between rounded-md bg-white/5 px-3 py-1.5">
-                  <span className="capitalize">{r.kind} · {r.outcome}</span>
-                  <span className={r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        )}
+      </Card>
+
+      {/* Bento row 3: Recent games + leaderboard preview + marketplace picks */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="glass p-5">
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Recent results</h2>
+          <ul className="space-y-1 text-sm">
+            {(recentGames.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No games yet — try your first one.</li>}
+            {(recentGames.data ?? []).map((r) => (
+              <li key={r.id} className="flex items-center justify-between rounded-md bg-white/5 px-3 py-1.5">
+                <span className="capitalize text-xs">{r.kind} · {r.outcome}</span>
+                <span className={`text-sm font-semibold ${r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}`}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
+              </li>
+            ))}
+          </ul>
         </Card>
         <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3">Top players</h2>
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Trophy className="size-4 text-amber-400" /> Top players</h2>
           <ul className="space-y-2">
             {(leaderPreview.data ?? []).map((p, i) => (
               <li key={p.id} className="flex items-center gap-3">
                 <div className={`w-6 text-right text-sm font-bold ${i === 0 ? "text-gold" : "text-muted-foreground"}`}>#{i + 1}</div>
                 <Avatar className="size-7"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
-                <div className="flex-1 text-sm">{p.display_name}</div>
+                <div className="flex-1 text-sm truncate">{p.display_name}</div>
                 <div className="text-xs text-muted-foreground">Lvl {p.level}</div>
               </li>
             ))}
           </ul>
           <Link to="/leaderboard" className="mt-3 inline-flex text-xs text-muted-foreground hover:text-foreground">View leaderboard <ArrowRight className="inline size-3" /></Link>
         </Card>
+        <Card className="glass p-5">
+          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="size-4 text-primary" /> Marketplace</h2>
+          {(featuredListings.data ?? []).length === 0 ? (
+            <p className="text-xs text-muted-foreground">Nothing live yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(featuredListings.data ?? []).map((l) => (
+                <Link key={l.id} to="/marketplace/$id" params={{ id: l.id }} className="block rounded-md border border-border/60 p-2 hover:border-amber-400/40">
+                  <div className="text-sm font-medium line-clamp-1">{l.title}</div>
+                  <div className="flex justify-between items-center mt-1"><span className="text-[10px] uppercase text-muted-foreground">{l.category}</span><DiceBadge size="sm" amount={l.price} /></div>
+                </Link>
+              ))}
+            </ul>
+          )}
+        </Card>
       </div>
 
-      {/* Activity + featured listings */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="glass p-5 lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold mb-3">Friend activity</h2>
-          <ul className="space-y-2 text-sm">
-            {(feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">Nothing yet — add friends to see their wins.</li>}
-            {(feed.data ?? []).map((a: any) => (
-              <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
-                <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
-                <div className="flex-1"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{a.title}</span></div>
-                <span className="text-xs text-muted-foreground">{timeAgo(a.created_at)}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-        <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3">Marketplace picks</h2>
-          <ul className="space-y-2">
-            {(featuredListings.data ?? []).length === 0 && <p className="text-xs text-muted-foreground">Nothing live yet.</p>}
-            {(featuredListings.data ?? []).map((l) => (
-              <Link key={l.id} to="/marketplace/$id" params={{ id: l.id }} className="block rounded-md border border-border/60 p-2 hover:border-primary/40">
-                <div className="text-sm font-medium line-clamp-1">{l.title}</div>
-                <div className="flex justify-between items-center mt-1"><span className="text-[10px] uppercase text-muted-foreground">{l.category}</span><DiceBadge size="sm" amount={l.price} /></div>
-              </Link>
+      {/* Friend activity */}
+      <Card className="glass p-5">
+        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Users className="size-4 text-primary" /> Friend activity</h2>
+        <ul className="space-y-2 text-sm">
+          {(feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">Nothing yet — add friends to see their wins.</li>}
+          {(feed.data ?? []).map((a: any) => (
+            <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
+              <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
+              <div className="flex-1 min-w-0"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{a.title}</span></div>
+              <span className="text-xs text-muted-foreground shrink-0">{timeAgo(a.created_at)}</span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
+  );
+}
             ))}
           </ul>
           <Link to="/marketplace" className="mt-3 inline-flex text-xs text-muted-foreground hover:text-foreground">Browse marketplace <ArrowRight className="inline size-3" /></Link>
