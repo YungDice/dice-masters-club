@@ -1115,6 +1115,7 @@ export type Database = {
     }
     Functions: {
       change_username: { Args: { _new_username: string }; Returns: Json }
+      cleanup_stale_data: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
