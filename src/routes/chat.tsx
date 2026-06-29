@@ -49,9 +49,10 @@ function Chat() {
     if (!user) return;
     const text = body.trim();
     if (!text) return;
+    if (text.length > 500) { toast.error("Messages over 500 characters are VIP-only."); return; }
     setBody("");
     const { error } = await supabase.from("chat_messages").insert({ user_id: user.id, body: text });
-    if (error) toast.error(error.message);
+    if (error) toast.error("Couldn't send message. VIP is required for longer messages or media.");
   }
 
   async function remove(id: string) {
