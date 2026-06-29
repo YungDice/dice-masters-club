@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EmptyState } from "@/components/dice/EmptyState";
+import { PageHeader } from "@/components/dice/PageHeader";
 import { sendFriendRequest, respondFriendRequest } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
