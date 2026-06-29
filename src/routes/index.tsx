@@ -111,43 +111,49 @@ function Dashboard() {
 
   const daily = useQuery({
     queryKey: ["daily-challenge"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data } = await supabase.from("challenges").select("*").eq("is_daily", true).eq("status", "active").limit(1).maybeSingle();
+      const { data } = await supabase.from("challenges").select("id,title,description,dice_reward,category").eq("is_daily", true).eq("status", "active").limit(1).maybeSingle();
       return data;
     },
   });
   const featured = useQuery({
     queryKey: ["featured-challenges"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data } = await supabase.from("challenges").select("*").eq("is_featured", true).eq("status", "active").limit(4);
+      const { data } = await supabase.from("challenges").select("id,title,description,dice_reward,category").eq("is_featured", true).eq("status", "active").limit(4);
       return data ?? [];
     },
   });
   const feed = useQuery({
     queryKey: ["activity-feed"],
+    staleTime: 60_000,
     queryFn: async () => {
-      const { data } = await supabase.from("activity_feed").select("*, profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)").order("created_at", { ascending: false }).limit(6);
+      const { data } = await supabase.from("activity_feed").select("id,title,created_at,user_id,profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)").order("created_at", { ascending: false }).limit(6);
       return data ?? [];
     },
   });
   const recentGames = useQuery({
     queryKey: ["recent-games", user?.id],
     enabled: !!user?.id,
+    staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase.from("game_results").select("id,kind,outcome,delta").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
       return data ?? [];
     },
   });
   const notif = useQuery({
     queryKey: ["notif-preview", user?.id],
     enabled: !!user?.id,
+    staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("notifications").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(4);
+      const { data } = await supabase.from("notifications").select("id,title,body,created_at").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(4);
       return data ?? [];
     },
   });
   const leaderPreview = useQuery({
     queryKey: ["lb-preview"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,xp,level").order("xp", { ascending: false }).limit(5);
       return data ?? [];
@@ -155,8 +161,9 @@ function Dashboard() {
   });
   const featuredListings = useQuery({
     queryKey: ["fea-listings"],
+    staleTime: 2 * 60_000,
     queryFn: async () => {
-      const { data } = await supabase.from("marketplace_listings").select("*").eq("status", "active").order("created_at", { ascending: false }).limit(4);
+      const { data } = await supabase.from("marketplace_listings").select("id,title,category,price").eq("status", "active").order("created_at", { ascending: false }).limit(4);
       return data ?? [];
     },
   });
