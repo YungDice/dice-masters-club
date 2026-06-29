@@ -88,7 +88,12 @@ function Friends() {
 
   return (
     <div className="space-y-4">
-      <div><h1 className="font-display text-3xl font-bold">Friends</h1></div>
+      <PageHeader
+        icon={Users}
+        title="Friends"
+        subtitle={`${(friends.data ?? []).length} friend${(friends.data ?? []).length === 1 ? "" : "s"} · search anyone by @username`}
+        accent="emerald"
+      />
       <Card className="glass p-3">
         <div className="relative"><Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" /><Input className="pl-8" placeholder="Search by username..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {q.length >= 2 && (
