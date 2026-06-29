@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 
 import { fmt, timeAgo } from "@/lib/format";
-import { PaymentTestModeBanner } from "@/components/dice/PaymentTestModeBanner";
+
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — DICE" }] }),
