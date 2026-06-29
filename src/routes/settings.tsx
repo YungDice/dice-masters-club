@@ -194,3 +194,77 @@ function Settings() {
     </div>
   );
 }
+
+function TagCard({ profile, wallet, refetch, qc }: any) {
+  const [tag, setTag] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sellOpen, setSellOpen] = useState(false);
+  const [sellPrice, setSellPrice] = useState(1000);
+  const [saleType, setSaleType] = useState<"fixed" | "auction">("fixed");
+  const [hours, setHours] = useState(24);
+  const claim = useServerFn(claimTag);
+  const listFn = useServerFn(listTagForSale);
+  const currentTag: string | null = profile?.tag ?? null;
+  async function doClaim() {
+    if ((wallet?.balance ?? 0) < 5000) { toast.error("Need 5,000 DICE"); return; }
+    if (!/^[A-Za-z0-9]{2,6}$/.test(tag)) { toast.error("2–6 letters/numbers"); return; }
+    setBusy(true);
+    try { const r = await claim({ data: { tag } }); toast.success(`Tag #${r.tag} is yours!`); refetch(); qc.invalidateQueries({ queryKey: ["wallet"] }); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+  async function doList() {
+    setBusy(true);
+    try {
+      const r = await listFn({ data: { price: sellPrice, sale_type: saleType, duration_hours: hours } });
+      toast.success("Tag listed on marketplace");
+      refetch(); qc.invalidateQueries({ queryKey: ["listings"] });
+      setSellOpen(false);
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+  return (
+    <Card className="glass p-6 space-y-3 border-primary/40">
+      <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Hash className="text-primary" /> Your tag</h2>
+      <p className="text-xs text-muted-foreground">Discord-style identity: <b>@{profile?.username ?? "you"}#TAG</b>. Costs <b>5,000 DICE</b> to claim. Each tag is unique — if taken, buy it on the marketplace from its owner.</p>
+      {currentTag ? (
+        <div className="space-y-3">
+          <div className="text-2xl font-mono font-bold text-primary">@{profile?.username}#{currentTag}</div>
+          {!sellOpen ? (
+            <Button variant="outline" onClick={() => setSellOpen(true)}>Sell tag on marketplace</Button>
+          ) : (
+            <div className="rounded-md bg-white/5 p-3 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Sale type</Label>
+                  <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={saleType} onChange={(e) => setSaleType(e.target.value as any)}>
+                    <option value="fixed">Fixed price</option>
+                    <option value="auction">Auction</option>
+                  </select>
+                </div>
+                <div><Label>{saleType === "auction" ? "Starting bid (DICE)" : "Price (DICE)"}</Label>
+                  <Input type="number" min={100} max={1000000} value={sellPrice} onChange={(e) => setSellPrice(+e.target.value)} />
+                </div>
+              </div>
+              {saleType === "auction" && (
+                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1–48)</Label>
+                  <input type="range" min={1} max={48} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Button onClick={doList} disabled={busy} className="glow-red">{busy ? "Listing..." : "List for sale"}</Button>
+                <Button variant="outline" onClick={() => setSellOpen(false)}>Cancel</Button>
+              </div>
+              <p className="text-xs text-muted-foreground">While listed, the tag is removed from your profile and shown next to your username only when the auction ends with no bids.</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-lg">#</span>
+          <Input value={tag} onChange={(e) => setTag(e.target.value.toUpperCase())} maxLength={6} placeholder="EG. WOLF" />
+          <Button onClick={doClaim} disabled={busy || tag.length < 2} className="glow-red">{busy ? "Claiming..." : "Claim — 5,000 DICE"}</Button>
+        </div>
+      )}
+    </Card>
+  );
+}
