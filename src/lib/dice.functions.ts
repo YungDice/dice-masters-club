@@ -837,6 +837,7 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "chat_msg", 60, 30, "chat");
     const { data: prof } = await supabaseAdmin.from("profiles").select("vip_until").eq("id", context.userId).single();
     const isVip = !!prof?.vip_until && new Date(prof.vip_until) > new Date();
     const maxLen = isVip ? 4000 : 500;
