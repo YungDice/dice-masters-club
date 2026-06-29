@@ -26,6 +26,7 @@ import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlaySplitStealRouteImport } from './routes/play.split-steal'
 import { Route as PlaySlotsRouteImport } from './routes/play.slots'
+import { Route as PlayRouletteRouteImport } from './routes/play.roulette'
 import { Route as PlayPokerRouteImport } from './routes/play.poker'
 import { Route as PlayDiceRouteImport } from './routes/play.dice'
 import { Route as PlayCoinflipRouteImport } from './routes/play.coinflip'
@@ -122,6 +123,11 @@ const PlaySlotsRoute = PlaySlotsRouteImport.update({
   path: '/play/slots',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayRouletteRoute = PlayRouletteRouteImport.update({
+  id: '/play/roulette',
+  path: '/play/roulette',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayPokerRoute = PlayPokerRouteImport.update({
   id: '/play/poker',
   path: '/play/poker',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/play/coinflip': typeof PlayCoinflipRoute
   '/play/dice': typeof PlayDiceRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/play/coinflip': typeof PlayCoinflipRoute
   '/play/dice': typeof PlayDiceRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/play/coinflip': typeof PlayCoinflipRoute
   '/play/dice': typeof PlayDiceRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
@@ -284,6 +293,7 @@ export interface FileRouteTypes {
     | '/play/coinflip'
     | '/play/dice'
     | '/play/poker'
+    | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
     | '/u/$username'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/play/coinflip'
     | '/play/dice'
     | '/play/poker'
+    | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
     | '/u/$username'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/play/coinflip'
     | '/play/dice'
     | '/play/poker'
+    | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
     | '/u/$username'
@@ -372,6 +384,7 @@ export interface RootRouteChildren {
   PlayCoinflipRoute: typeof PlayCoinflipRoute
   PlayDiceRoute: typeof PlayDiceRoute
   PlayPokerRoute: typeof PlayPokerRoute
+  PlayRouletteRoute: typeof PlayRouletteRoute
   PlaySlotsRoute: typeof PlaySlotsRoute
   PlaySplitStealRoute: typeof PlaySplitStealRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -502,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlaySlotsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/roulette': {
+      id: '/play/roulette'
+      path: '/play/roulette'
+      fullPath: '/play/roulette'
+      preLoaderRoute: typeof PlayRouletteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/poker': {
       id: '/play/poker'
       path: '/play/poker'
@@ -607,6 +627,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayCoinflipRoute: PlayCoinflipRoute,
   PlayDiceRoute: PlayDiceRoute,
   PlayPokerRoute: PlayPokerRoute,
+  PlayRouletteRoute: PlayRouletteRoute,
   PlaySlotsRoute: PlaySlotsRoute,
   PlaySplitStealRoute: PlaySplitStealRoute,
   UUsernameRoute: UUsernameRoute,

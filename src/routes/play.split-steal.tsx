@@ -80,11 +80,31 @@ function SS() {
             )}
           </div>
           {active && (
-            <div className="rounded-lg border border-border/60 p-4 text-center">
-              <div className="text-xs text-muted-foreground">In room. Make your choice:</div>
-              <div className="mt-3 flex gap-2 justify-center">
-                <Button variant="outline" className="flex-1" onClick={() => pick("split")}>SPLIT</Button>
-                <Button variant="destructive" className="flex-1" onClick={() => pick("steal")}>STEAL</Button>
+            <div className="rounded-lg border border-border/60 p-4 text-center felt-bg">
+              <div className="text-xs text-muted-foreground">In room. Pick a card:</div>
+              <div className="mt-4 flex gap-4 justify-center">
+                <button onClick={() => pick("split")}
+                  className="group w-32 h-44 rounded-xl flex flex-col items-center justify-center font-display text-xl text-white transition hover:scale-105"
+                  style={{
+                    background: "linear-gradient(160deg, #16a34a, #064e3b)",
+                    border: "2px solid #34d399",
+                    boxShadow: "0 0 24px -6px rgba(52,211,153,0.6), inset 0 -8px 16px rgba(0,0,0,0.35)",
+                  }}>
+                  <HandHelping className="size-8 mb-2" />
+                  SPLIT
+                  <span className="text-[10px] uppercase tracking-widest text-emerald-100/80 mt-1">share the pot</span>
+                </button>
+                <button onClick={() => pick("steal")}
+                  className="group w-32 h-44 rounded-xl flex flex-col items-center justify-center font-display text-xl text-white transition hover:scale-105"
+                  style={{
+                    background: "linear-gradient(160deg, #dc2626, #7f1d1d)",
+                    border: "2px solid #f87171",
+                    boxShadow: "0 0 24px -6px rgba(248,113,113,0.6), inset 0 -8px 16px rgba(0,0,0,0.35)",
+                  }}>
+                  <span className="text-3xl mb-2">⚔️</span>
+                  STEAL
+                  <span className="text-[10px] uppercase tracking-widest text-red-100/80 mt-1">take it all</span>
+                </button>
               </div>
             </div>
           )}

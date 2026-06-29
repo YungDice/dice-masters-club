@@ -153,23 +153,68 @@ function Slots() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <Card className="glass p-8 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-20" style={{
-          background: "radial-gradient(circle at 50% 30%, hsl(var(--primary) / 0.5), transparent 60%)",
-        }} />
+      <Card className="glass p-8 text-center relative overflow-hidden" style={{
+        background: "radial-gradient(circle at 50% 0%, rgba(201,168,76,0.18), transparent 60%), linear-gradient(180deg, #1a0f06, #0a0604)",
+        border: "1px solid rgba(201,168,76,0.35)",
+      }}>
         <h1 className="font-display text-3xl font-bold flex items-center justify-center gap-2 relative"><Cherry className="text-red-400" />Slots</h1>
 
-        <div className="mt-8 inline-flex gap-3 p-4 rounded-2xl bg-gradient-to-b from-amber-700/30 to-amber-900/30 border-2 border-amber-500/40 shadow-[0_0_40px_-10px_hsl(var(--primary)/0.6)]">
-          {strips.map((strip, i) => (
-            <Reel key={i} strip={strip} spinning={spinning}
-              stopDelayMs={i * 350}
-              isWin={isWin && !!results && results[0] === results[1] && results[1] === results[2]} />
-          ))}
+        {/* Marquee with chasing bulbs */}
+        <div className="mt-6 mx-auto inline-block px-6 py-2 rounded-xl relative" style={{
+          background: "linear-gradient(180deg, #3a1d08, #1a0c04)",
+          border: "2px solid #c9a84c",
+          boxShadow: "0 0 24px -4px rgba(201,168,76,0.6), inset 0 0 12px rgba(0,0,0,0.6)",
+        }}>
+          <div className="font-display text-xl tracking-[0.3em] text-amber-300" style={{ textShadow: "0 0 10px rgba(252,211,77,0.6)" }}>JACKPOT</div>
+          {/* bulb ring */}
+          <div className="absolute -inset-1 flex justify-between px-2 pointer-events-none">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <motion.span key={i}
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: (i % 7) * 0.12 }}
+                className="size-1.5 rounded-full bg-amber-300"
+                style={{ boxShadow: "0 0 6px rgba(252,211,77,0.9)" }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Cabinet with reels + lever */}
+        <div className="mt-6 inline-flex items-end gap-3">
+          <div className="inline-flex gap-3 p-4 rounded-2xl" style={{
+            background: "linear-gradient(180deg, #2a1a08, #0f0804)",
+            border: "3px solid #c9a84c",
+            boxShadow: "inset 0 0 20px rgba(0,0,0,0.7), 0 0 40px -8px rgba(201,168,76,0.5)",
+          }}>
+            {strips.map((strip, i) => (
+              <Reel key={i} strip={strip} spinning={spinning}
+                stopDelayMs={i * 350}
+                isWin={isWin && !!results && results[0] === results[1] && results[1] === results[2]} />
+            ))}
+          </div>
+          {/* Lever */}
+          <motion.button
+            onClick={spin}
+            disabled={spinning}
+            aria-label="Pull lever"
+            initial={{ rotate: 0 }}
+            animate={spinning ? { rotate: [0, 35, 0] } : { rotate: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative h-[19rem] w-6 origin-bottom disabled:cursor-not-allowed"
+          >
+            <div className="absolute inset-x-0 bottom-0 top-0 rounded-full"
+              style={{ background: "linear-gradient(180deg, #6b6b6b, #1a1a1a)", boxShadow: "inset -2px 0 4px rgba(0,0,0,0.6)" }} />
+            <div className="absolute left-1/2 -translate-x-1/2 -top-2 size-9 rounded-full"
+              style={{
+                background: "radial-gradient(circle at 30% 30%, #ff6b6b, #b91c1c)",
+                boxShadow: "inset 0 -3px 6px rgba(0,0,0,0.5), 0 0 16px -2px rgba(220,38,38,0.7)",
+                border: "2px solid #7f1d1d",
+              }} />
+          </motion.button>
         </div>
 
         {!spinning && payout !== null && payout > 0 && (
           <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-            className="mt-6 font-display text-3xl text-emerald-400">
+            className="mt-6 font-display text-3xl text-emerald-400" style={{ textShadow: "0 0 12px rgba(52,211,153,0.7)" }}>
             🎉 WIN +{fmt(payout)} DICE
           </motion.div>
         )}

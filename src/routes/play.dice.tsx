@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Dices } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
@@ -16,14 +15,23 @@ import { useWallet } from "@/hooks/use-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import { Die3D } from "@/components/dice/casino/Die3D";
 
 export const Route = createFileRoute("/play/dice")({
   head: () => ({ meta: [{ title: "Dice — DICE" }] }),
   component: () => <AppShell><DicePage /></AppShell>,
 });
 
-function Die({ v }: { v: number }) {
-  return <div className="size-16 rounded-lg glass grid place-items-center font-display text-3xl font-bold glow-red">{v || "?"}</div>;
+function DiePair({ total, rolling }: { total: number; rolling: boolean }) {
+  // Split total (2-12) into two faces; if 0 show placeholder pair (1,1)
+  const a = total ? Math.max(1, Math.min(6, Math.ceil(total / 2))) : 1;
+  const b = total ? total - a : 1;
+  return (
+    <div className="flex gap-4">
+      <Die3D value={a} rolling={rolling} />
+      <Die3D value={Math.max(1, Math.min(6, b)) || 1} rolling={rolling} />
+    </div>
+  );
 }
 
 function DicePage() {
@@ -62,9 +70,9 @@ function Solo() {
       <Card className="glass p-8 text-center felt-bg">
         <p className="text-sm text-muted-foreground">Higher roll wins. Tie refunds your stake.</p>
         <div className="mt-8 flex items-center justify-center gap-10">
-          <div><div className="text-xs uppercase text-muted-foreground mb-2">You</div><motion.div animate={rolling ? { rotate: [0, 360] } : {}} transition={{ duration: 0.6 }}><Die v={result?.me ?? 0} /></motion.div></div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
           <div className="text-2xl text-muted-foreground">vs</div>
-          <div><div className="text-xs uppercase text-muted-foreground mb-2">House</div><motion.div animate={rolling ? { rotate: [0, -360] } : {}} transition={{ duration: 0.6 }}><Die v={result?.house ?? 0} /></motion.div></div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
         </div>
         {result && <div className={`mt-6 font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-muted-foreground" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
       </Card>
@@ -171,9 +179,9 @@ function PvP() {
       {lastResult && (
         <Card className="glass p-6 text-center felt-bg">
           <div className="flex items-center justify-center gap-10">
-            <div><div className="text-xs uppercase text-muted-foreground mb-2">Host</div><Die v={lastResult.hostRoll} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
             <div className="text-2xl text-muted-foreground">vs</div>
-            <div><div className="text-xs uppercase text-muted-foreground mb-2">Challenger</div><Die v={lastResult.joinRoll} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase text-muted-foreground mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
           </div>
           <div className={`mt-4 font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-muted-foreground" : "text-destructive"}`}>
             {lastResult.winnerId === user?.id ? `+${fmt(lastResult.pot / 2)} DICE` : lastResult.winnerId === null ? "TIE — refunded" : `-${fmt(lastResult.pot / 2)} DICE`}
