@@ -53,7 +53,11 @@ function CreateListing() {
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
         license_notes: form.license_notes || null,
         ownership_confirmed: true, status: "pending_review",
-      });
+        sale_type: form.sale_type,
+        auction_ends_at: form.sale_type === "auction"
+          ? new Date(Date.now() + form.duration_hours * 3600_000).toISOString() : null,
+        min_bid: form.sale_type === "auction" ? Number(form.price) : null,
+      } as any);
       if (error) throw error;
       toast.success("Listing submitted for review");
       nav({ to: "/marketplace" });
