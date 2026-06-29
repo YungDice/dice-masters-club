@@ -84,9 +84,14 @@ function DiceBoard() {
 function LB() {
   return (
     <div className="space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Trophy className="text-primary" /> Leaderboard</h1>
+      <PageHeader
+        icon={Trophy}
+        title="Leaderboard"
+        subtitle="The top players of DICE — climb the ranks."
+        accent="gold"
+      />
       <Tabs defaultValue="dice">
-        <TabsList>
+        <TabsList className="bg-card/40 backdrop-blur">
           <TabsTrigger value="dice"><Coins className="size-4 mr-1" /> DICE</TabsTrigger>
           <TabsTrigger value="xp">XP</TabsTrigger>
           <TabsTrigger value="level">Level</TabsTrigger>
