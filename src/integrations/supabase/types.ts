@@ -690,6 +690,38 @@ export type Database = {
         }
         Relationships: []
       }
+      marketplace_bids: {
+        Row: {
+          amount: number
+          bidder_id: string
+          created_at: string
+          id: string
+          listing_id: string
+        }
+        Insert: {
+          amount: number
+          bidder_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+        }
+        Update: {
+          amount?: number
+          bidder_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_bids_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_favorites: {
         Row: {
           created_at: string
@@ -718,55 +750,76 @@ export type Database = {
       }
       marketplace_listings: {
         Row: {
+          auction_ends_at: string | null
           category: string
           created_at: string
+          current_bid: number | null
+          current_bidder_id: string | null
           description: string
           file_url: string | null
           id: string
           license_notes: string | null
+          min_bid: number | null
           ownership_confirmed: boolean
           preview_url: string | null
           price: number
+          sale_type: string
           sales_count: number
           seller_id: string
           status: Database["public"]["Enums"]["listing_status"]
+          tag_value: string | null
           tags: string[]
           title: string
           updated_at: string
+          winner_id: string | null
         }
         Insert: {
+          auction_ends_at?: string | null
           category: string
           created_at?: string
+          current_bid?: number | null
+          current_bidder_id?: string | null
           description: string
           file_url?: string | null
           id?: string
           license_notes?: string | null
+          min_bid?: number | null
           ownership_confirmed?: boolean
           preview_url?: string | null
           price: number
+          sale_type?: string
           sales_count?: number
           seller_id: string
           status?: Database["public"]["Enums"]["listing_status"]
+          tag_value?: string | null
           tags?: string[]
           title: string
           updated_at?: string
+          winner_id?: string | null
         }
         Update: {
+          auction_ends_at?: string | null
           category?: string
           created_at?: string
+          current_bid?: number | null
+          current_bidder_id?: string | null
           description?: string
           file_url?: string | null
           id?: string
           license_notes?: string | null
+          min_bid?: number | null
           ownership_confirmed?: boolean
           preview_url?: string | null
           price?: number
+          sale_type?: string
           sales_count?: number
           seller_id?: string
           status?: Database["public"]["Enums"]["listing_status"]
+          tag_value?: string | null
           tags?: string[]
           title?: string
           updated_at?: string
+          winner_id?: string | null
         }
         Relationships: []
       }
@@ -887,6 +940,7 @@ export type Database = {
           privacy_profile: string
           reputation: number
           streak_days: number
+          tag: string | null
           terms_accepted_at: string
           updated_at: string
           username: string
@@ -909,6 +963,7 @@ export type Database = {
           privacy_profile?: string
           reputation?: number
           streak_days?: number
+          tag?: string | null
           terms_accepted_at?: string
           updated_at?: string
           username: string
@@ -931,6 +986,7 @@ export type Database = {
           privacy_profile?: string
           reputation?: number
           streak_days?: number
+          tag?: string | null
           terms_accepted_at?: string
           updated_at?: string
           username?: string
