@@ -709,7 +709,7 @@ export const createChallengePaid = createServerFn({ method: "POST" })
       title: data.title, description: data.description, rules: data.rules ?? null,
       category: data.category as any, difficulty: data.difficulty as any, proof_type: data.proof_type as any,
       dice_reward: data.dice_reward, xp_reward: data.xp_reward,
-      tags: data.tags, status: "pending_review",
+      tags: data.tags, status: "active",
     }).select("id").single();
     if (error) {
       // refund
@@ -807,7 +807,12 @@ export const buyLevelUp = createServerFn({ method: "POST" })
       _source: "level_up", _ref_kind: "level", _ref_id: null as any, _note: `Lvl ${lvl} -> ${lvl + 1}`,
     });
     const newLevel = lvl + 1;
-    const updates: any = { level: newLevel };
+    // Stack XP forward so the purchased level "counts" toward XP progress.
+    // Threshold to BE level N (per award_idle_xp formula) is 100*(N+1)^2.
+    const xpThreshold = 100 * (newLevel + 1) * (newLevel + 1);
+    const { data: cur } = await supabaseAdmin.from("profiles").select("xp").eq("id", context.userId).single();
+    const newXp = Math.max(Number(cur?.xp ?? 0), xpThreshold);
+    const updates: any = { level: newLevel, xp: newXp };
     let bonus: string | null = null;
     if (newLevel === 10) {
       const base = prof?.vip_until && new Date(prof.vip_until) > new Date() ? new Date(prof.vip_until) : new Date();

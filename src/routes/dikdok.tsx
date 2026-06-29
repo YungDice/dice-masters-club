@@ -108,12 +108,6 @@ function DikDok() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        icon={Music2}
-        title="DikDok"
-        subtitle="Swipe through the community feed · ❤️ a post: you +5, creator +10 DICE"
-        accent="primary"
-      />
       <div className={`${isWide ? "max-w-4xl" : "max-w-md"} mx-auto transition-all`}>
       <div className={`relative mx-auto rounded-2xl overflow-hidden bg-black border border-border/60 glow-red w-full ${isWide ? "aspect-video" : "aspect-[9/16]"}`}>
         {isVideo && (

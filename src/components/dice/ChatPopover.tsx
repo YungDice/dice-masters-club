@@ -12,12 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { sendChatMessage } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
+const LAST_SEEN_KEY = "dice:chat:last_seen_at";
+
 export function ChatPopover() {
   const { user } = useAuth();
   const { data: profile } = useMyProfile(user?.id);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState("");
+  const [unread, setUnread] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const send = useServerFn(sendChatMessage);
   const isVip = !!(profile as any)?.vip_until && new Date((profile as any).vip_until) > new Date();
@@ -42,14 +45,38 @@ export function ChatPopover() {
     },
   });
 
+  // Initial unread count from last-seen timestamp
   useEffect(() => {
-    if (!open) return;
-    const ch = supabase.channel("chat_messages_popover").on("postgres_changes",
-      { event: "*", schema: "public", table: "chat_messages" },
-      () => qc.invalidateQueries({ queryKey: ["chat-popover"] }),
+    const lastSeen = localStorage.getItem(LAST_SEEN_KEY) ?? new Date(0).toISOString();
+    (async () => {
+      const { count } = await supabase
+        .from("chat_messages")
+        .select("id", { count: "exact", head: true })
+        .gt("created_at", lastSeen);
+      setUnread(count ?? 0);
+    })();
+  }, []);
+
+  // Always-on realtime to track unread (and refresh open popover)
+  useEffect(() => {
+    const ch = supabase.channel("chat_messages_badge").on("postgres_changes",
+      { event: "INSERT", schema: "public", table: "chat_messages" },
+      (payload: any) => {
+        const row = payload.new;
+        if (row?.user_id !== user?.id) setUnread((n) => n + 1);
+        if (open) qc.invalidateQueries({ queryKey: ["chat-popover"] });
+      },
     ).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [open, qc]);
+  }, [open, qc, user?.id]);
+
+  // Mark as read when opening
+  useEffect(() => {
+    if (open) {
+      setUnread(0);
+      localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+    }
+  }, [open]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -79,8 +106,13 @@ export function ChatPopover() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="grid size-9 place-items-center rounded-md hover:bg-white/5" aria-label="Open global chat">
+        <button className="relative grid size-9 place-items-center rounded-md hover:bg-white/5" aria-label="Open global chat">
           <MessageSquare className="size-4" />
+          {unread > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold grid place-items-center leading-none shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-[380px] p-0 glass">

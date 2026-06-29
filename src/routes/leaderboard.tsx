@@ -94,13 +94,17 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
                 className="flex flex-col items-center"
               >
                 <div className="relative mb-3">
-                  {rank === 1 && (
+                  {rank <= 3 && (
                     <motion.div
                       animate={{ y: [0, -3, 0] }}
-                      transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+                      transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut", delay: rank * 0.2 }}
                       className="absolute -top-9 left-1/2 -translate-x-1/2"
                     >
-                      <Crown className="size-8 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.9)]" />
+                      <Crown className={`drop-shadow-[0_0_10px_rgba(0,0,0,0.6)] ${
+                        rank === 1 ? "size-9 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.9)]"
+                        : rank === 2 ? "size-7 text-slate-200 drop-shadow-[0_0_8px_rgba(203,213,225,0.8)]"
+                        : "size-6 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]"
+                      }`} />
                     </motion.div>
                   )}
                   <Avatar className={`size-20 md:size-28 ring-4 ${r.ring} ${r.glow}`}>
