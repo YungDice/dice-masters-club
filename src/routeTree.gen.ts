@@ -35,6 +35,7 @@ import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 import { Route as ChallengesNewRouteImport } from './routes/challenges.new'
 import { Route as ChallengesIdRouteImport } from './routes/challenges.$id'
 import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -166,6 +167,12 @@ const ChallengesIdSubmitRoute = ChallengesIdSubmitRouteImport.update({
   path: '/submit',
   getParentRoute: () => ChallengesIdRoute,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/marketplace': typeof MarketplaceIndexRoute
   '/play': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -251,6 +260,7 @@ export interface FileRoutesById {
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/marketplace/'
     | '/play/'
     | '/challenges/$id/submit'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/marketplace'
     | '/play'
     | '/challenges/$id/submit'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -337,6 +349,7 @@ export interface FileRouteTypes {
     | '/marketplace/'
     | '/play/'
     | '/challenges/$id/submit'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -365,6 +378,7 @@ export interface RootRouteChildren {
   ChallengesIndexRoute: typeof ChallengesIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -551,6 +565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChallengesIdSubmitRouteImport
       parentRoute: typeof ChallengesIdRoute
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -592,6 +613,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChallengesIndexRoute: ChallengesIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
