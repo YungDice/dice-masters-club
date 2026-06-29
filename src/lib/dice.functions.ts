@@ -460,6 +460,28 @@ export const listTagForSale = createServerFn({ method: "POST" })
     const ends = data.sale_type === "auction"
       ? new Date(Date.now() + (data.duration_hours ?? 24) * 3600_000).toISOString()
       : null;
+    // Escrow: remove tag from profile while listed
+    await supabaseAdmin.from("profiles").update({ tag: null }).eq("id", context.userId);
+    const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
+      seller_id: context.userId,
+      title: `Tag #${me.tag}`,
+      description: `Discord-style user tag #${me.tag}.`,
+      category: "tag",
+      price: data.price,
+      tag_value: me.tag,
+      sale_type: data.sale_type,
+      auction_ends_at: ends,
+      min_bid: data.sale_type === "auction" ? data.price : null,
+      ownership_confirmed: true,
+      status: "active",
+    }).select().single();
+    if (error) {
+      // Restore tag on failure
+      await supabaseAdmin.from("profiles").update({ tag: me.tag }).eq("id", context.userId);
+      throw error;
+    }
+    return { ok: true, id: listing!.id };
+  });
 // ---------- Auctions: place bid (atomic) ----------
 export const placeBid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
