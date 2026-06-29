@@ -67,7 +67,10 @@ function DiceBoard() {
             <span className={`w-7 text-right font-display font-bold ${i === 0 ? "text-gold" : i < 3 ? "text-primary" : "text-muted-foreground"}`}>{i === 0 ? <Crown className="inline size-4" /> : `#${i + 1}`}</span>
             <Avatar className="size-8"><AvatarImage src={w.profile?.avatar_url ?? undefined} /><AvatarFallback>{w.profile?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
             {w.profile?.username
-              ? <Link to="/u/$username" params={{ username: w.profile.username }} className="flex-1 text-sm font-medium hover:underline truncate">{w.profile.display_name}</Link>
+              ? <Link to="/u/$username" params={{ username: w.profile.username }} className="flex-1 text-sm font-medium hover:underline truncate">
+                  {w.profile.display_name}
+                  <span className="ml-1 text-xs text-muted-foreground font-mono">@{w.profile.username}{w.profile.tag && <span className="text-primary">#{w.profile.tag}</span>}</span>
+                </Link>
               : <span className="flex-1 text-sm text-muted-foreground">Anonymous</span>}
             <span className="text-xs text-muted-foreground">Lifetime {fmt(w.lifetime_earned)}</span>
             <span className="text-sm font-bold w-28 text-right text-primary">{fmt(w.balance)} <span className="text-xs text-muted-foreground font-normal">DICE</span></span>
