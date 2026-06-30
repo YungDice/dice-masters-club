@@ -132,6 +132,32 @@ function MyProfile() {
         </div>
       </Card>
 
+      <Card className={`glass p-5 ${tier.glow ? `shadow-lg ${tier.glow}` : ""}`}>
+        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Swords className="size-4 text-primary" />Rank</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Tier</div>
+            <div className={`text-2xl font-display font-bold ${tier.color}`}>{tier.name}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Wins</div>
+            <div className="text-2xl font-display font-bold text-emerald-400">{rank.data?.wins ?? 0}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Losses</div>
+            <div className="text-2xl font-display font-bold text-rose-400">{rank.data?.losses ?? 0}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">W/L Ratio</div>
+            <div className="text-2xl font-display font-bold text-primary">
+              {rank.data?.total ? `${(rank.data.ratio * 100).toFixed(0)}%` : "—"}
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">Computed from your PvP &amp; casino game history ({rank.data?.total ?? 0} games tracked).</p>
+      </Card>
+
+
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
         {myAchievements.data?.length === 0 && <p className="text-sm text-muted-foreground">No badges yet.</p>}
