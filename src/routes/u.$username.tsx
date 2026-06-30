@@ -128,6 +128,33 @@ function UProfile() {
         </div>
       </Card>
 
+      {(() => {
+        const rs = rankStats.data ?? { wins: 0, losses: 0, total: 0, ratio: 0 };
+        const tier = tierFor(rs.wins, rs.ratio);
+        return (
+          <Card className="glass p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`grid size-12 place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 ${tier.color}`}>
+                  <Shield className="size-6" />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground">Competitive rank</div>
+                  <div className={`font-display text-2xl font-bold ${tier.color}`}>{tier.name}</div>
+                </div>
+              </div>
+              <div className="flex gap-4 text-sm">
+                <div className="text-center"><div className="text-emerald-400 font-bold text-lg">{rs.wins}</div><div className="text-xs text-muted-foreground">Wins</div></div>
+                <div className="text-center"><div className="text-destructive font-bold text-lg">{rs.losses}</div><div className="text-xs text-muted-foreground">Losses</div></div>
+                <div className="text-center"><div className="font-bold text-lg flex items-center gap-1"><Swords className="size-4 text-primary" />{Math.round(rs.ratio * 100)}%</div><div className="text-xs text-muted-foreground">W/L</div></div>
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
+
+
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="glass p-5">
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
