@@ -367,12 +367,18 @@ function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="glass p-5">
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Recent results</h2>
-          <ul className="space-y-1 text-sm">
+          <ul className="space-y-1.5 text-sm">
             {(recentGames.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No games yet — try your first one.</li>}
-            {(recentGames.data ?? []).map((r) => (
-              <li key={r.id} className="flex items-center justify-between rounded-md bg-white/5 px-3 py-1.5">
-                <span className="capitalize text-xs">{r.kind} · {r.outcome}</span>
-                <span className={`text-sm font-semibold ${r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}`}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
+            {(recentGames.data ?? []).map((r: any) => (
+              <li key={r.id} className="rounded-md bg-white/5 px-3 py-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="capitalize text-xs font-medium">{r.kind} · <span className="opacity-80">{r.outcome}</span></span>
+                  <span className={`text-sm font-semibold ${r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}`}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>bet {fmt(r.wagered ?? 0)} · payout {fmt(r.payout ?? 0)}</span>
+                  <span>{timeAgo(r.created_at)}</span>
+                </div>
               </li>
             ))}
           </ul>
