@@ -262,7 +262,7 @@ function Page() {
               </Button>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              Base capacity: <b>{cap}</b> {isVip ? "(VIP)" : "(upgrade to VIP for 4 slots)"}
+              Base capacity: <b>{cap}</b> / 10 {isVip ? "(VIP base 4)" : "(non-VIP base 2 — upgrade to VIP for 4)"} · Buy more slots in your Base.
             </div>
           </div>
           <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-primary/30 to-fuchsia-700/20 border border-primary/40 grid place-items-center overflow-hidden">
