@@ -131,6 +131,36 @@ export type Database = {
         }
         Relationships: []
       }
+      baddie_templates: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          income_per_hour: number
+          name: string
+          rarity: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          image_url?: string | null
+          income_per_hour: number
+          name: string
+          rarity: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          income_per_hour?: number
+          name?: string
+          rarity?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       challenge_comments: {
         Row: {
           body: string
@@ -1231,6 +1261,41 @@ export type Database = {
           },
         ]
       }
+      user_baddies: {
+        Row: {
+          acquired_at: string
+          id: string
+          last_collected_at: string
+          name: string | null
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          last_collected_at?: string
+          name?: string | null
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          last_collected_at?: string
+          name?: string | null
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_baddies_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "baddie_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1324,6 +1389,13 @@ export type Database = {
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
+      collect_baddie_tx: {
+        Args: { _baddie_id: string }
+        Returns: {
+          amount: number
+          last_collected_at: string
+        }[]
+      }
       expire_auctions: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
       grant_achievement_tx: {
@@ -1339,6 +1411,16 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
+      open_baddie_case_tx: {
+        Args: never
+        Returns: {
+          income_per_hour: number
+          name: string
+          rarity: string
+          template_id: string
+          user_baddie_id: string
+        }[]
+      }
       place_bid_tx: {
         Args: { _amount: number; _bidder: string; _listing_id: string }
         Returns: Json
