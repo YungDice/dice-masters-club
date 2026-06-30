@@ -12,6 +12,7 @@ import {
   Menu,
   Images,
   Music2,
+  Sparkles,
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
