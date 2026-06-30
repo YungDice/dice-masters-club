@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Trophy, Flame, Star, Calendar, Award } from "lucide-react";
+import { Trophy, Flame, Star, Calendar, Award, Swords, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/dice/TopNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
+import { tierFor } from "@/lib/rank";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/u/$username")({
   head: () => ({ meta: [{ title: "Profile — DICE" }] }),
@@ -42,6 +44,20 @@ function UProfile() {
       return data ?? [];
     },
   });
+  const rankStats = useQuery({
+    queryKey: ["u-rank", prof.data?.id],
+    enabled: !!prof.data?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", prof.data!.id).limit(1000);
+      const rows = data ?? [];
+      const wins = rows.filter((r: any) => r.outcome === "win").length;
+      const losses = rows.filter((r: any) => r.outcome === "loss").length;
+      const total = wins + losses;
+      const ratio = total > 0 ? wins / total : 0;
+      return { wins, losses, total, ratio };
+    },
+  });
+
 
   const friendship = useQuery({
     queryKey: ["friendship", user?.id, prof.data?.id],
@@ -111,6 +127,33 @@ function UProfile() {
           </div>
         </div>
       </Card>
+
+      {(() => {
+        const rs = rankStats.data ?? { wins: 0, losses: 0, total: 0, ratio: 0 };
+        const tier = tierFor(rs.wins, rs.ratio);
+        return (
+          <Card className="glass p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`grid size-12 place-items-center rounded-xl bg-white/5 ring-1 ring-white/10 ${tier.color}`}>
+                  <Shield className="size-6" />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground">Competitive rank</div>
+                  <div className={`font-display text-2xl font-bold ${tier.color}`}>{tier.name}</div>
+                </div>
+              </div>
+              <div className="flex gap-4 text-sm">
+                <div className="text-center"><div className="text-emerald-400 font-bold text-lg">{rs.wins}</div><div className="text-xs text-muted-foreground">Wins</div></div>
+                <div className="text-center"><div className="text-destructive font-bold text-lg">{rs.losses}</div><div className="text-xs text-muted-foreground">Losses</div></div>
+                <div className="text-center"><div className="font-bold text-lg flex items-center gap-1"><Swords className="size-4 text-primary" />{Math.round(rs.ratio * 100)}%</div><div className="text-xs text-muted-foreground">W/L</div></div>
+              </div>
+            </div>
+          </Card>
+        );
+      })()}
+
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="glass p-5">

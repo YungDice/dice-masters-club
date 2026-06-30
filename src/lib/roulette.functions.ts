@@ -92,5 +92,12 @@ export const rouletteSpin = createServerFn({ method: "POST" })
         _note: `Roulette ${pocket}`,
       });
     }
-    return { pocket, pocketIndex: idx, color: pocketColor(pocket), payout, net: payout - total, bets: perBet };
+    const net = payout - total;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "roulette", _delta: net,
+      _outcome: net > 0 ? "win" : net < 0 ? "loss" : "tie",
+      _room_id: null, _details: { pocket, payout, stake: total } as any,
+    });
+    return { pocket, pocketIndex: idx, color: pocketColor(pocket), payout, net, bets: perBet };
+
   });

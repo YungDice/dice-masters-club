@@ -63,8 +63,12 @@ export const playDiceSolo = createServerFn({ method: "POST" })
       });
       delta = 0; outcome = "tie";
     }
-    // Solo result has no room row; client logs through transactions instead
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "dice", _delta: delta, _outcome: outcome,
+      _room_id: null, _details: { me, house } as any,
+    });
     return { me, house, delta, outcome };
+
   });
 
 // ---------- Slots ----------
@@ -95,8 +99,15 @@ export const playSlots = createServerFn({ method: "POST" })
         _source: "slots", _ref_kind: "slots", _ref_id: null as any, _note: "Slots payout",
       });
     }
-    return { reels, payout, delta: payout - data.bet };
+    const slotsNet = payout - data.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "slots", _delta: slotsNet,
+      _outcome: slotsNet > 0 ? "win" : slotsNet < 0 ? "loss" : "tie",
+      _room_id: null, _details: { reels, payout } as any,
+    });
+    return { reels, payout, delta: slotsNet };
   });
+
 
 // ---------- Coin flip PvP: create / join / resolve ----------
 export const createCoinFlip = createServerFn({ method: "POST" })
@@ -254,7 +265,14 @@ export const playBlackjack = createServerFn({ method: "POST" })
         _source: "blackjack", _ref_kind: "blackjack", _ref_id: null as any, _note: outcome,
       });
     }
-    return { player, dealer, outcome, delta: payout - data.bet, playerScore: p, dealerScore: dl };
+    const bjDelta = payout - data.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "blackjack", _delta: bjDelta,
+      _outcome: outcome === "push" ? "tie" : outcome,
+      _room_id: null, _details: { p, dl } as any,
+    });
+    return { player, dealer, outcome, delta: bjDelta, playerScore: p, dealerScore: dl };
+
   });
 
 // ---------- Split-or-Steal PvP ----------
@@ -329,8 +347,21 @@ export const choiceSplitSteal = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_rooms").update({
       status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
     }).eq("id", data.roomId);
+    const stake = (room!.stake as number);
+    const aDelta = aPay - stake, bDelta = bPay - stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: a.user_id, _kind: "split_steal", _delta: aDelta,
+      _outcome: aDelta > 0 ? "win" : aDelta < 0 ? "loss" : "tie",
+      _room_id: data.roomId, _details: { outcome, choice: ac } as any,
+    });
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: b.user_id, _kind: "split_steal", _delta: bDelta,
+      _outcome: bDelta > 0 ? "win" : bDelta < 0 ? "loss" : "tie",
+      _room_id: data.roomId, _details: { outcome, choice: bc } as any,
+    });
     return { waiting: false, outcome, aPay, bPay };
   });
+
 
 // ---------- Dice PvP room ----------
 export const createDiceRoom = createServerFn({ method: "POST" })
@@ -394,7 +425,23 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
       status: "finished", winner_id: winnerId,
       state: { hostRoll, joinRoll }, finished_at: new Date().toISOString(),
     }).eq("id", room.id);
+    {
+      const stakeAmt = room.stake as number;
+      const hostDelta = winnerId === room.host_id ? stakeAmt : winnerId === null ? 0 : -stakeAmt;
+      const joinDelta = winnerId === context.userId ? stakeAmt : winnerId === null ? 0 : -stakeAmt;
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: room.host_id, _kind: "dice", _delta: hostDelta,
+        _outcome: hostDelta > 0 ? "win" : hostDelta < 0 ? "loss" : "tie",
+        _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+      });
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "dice", _delta: joinDelta,
+        _outcome: joinDelta > 0 ? "win" : joinDelta < 0 ? "loss" : "tie",
+        _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+      });
+    }
     return { hostRoll, joinRoll, winnerId, pot };
+
   });
 
 // ---------- Marketplace buy (fixed sale only) ----------
@@ -915,7 +962,14 @@ export const coinFlipBot = createServerFn({ method: "POST" })
         _source: "coinflip_bot", _ref_kind: "coinflip", _ref_id: null as any, _note: "Win vs Bot",
       });
     }
-    return { flip, won, delta: won ? stake : -stake };
+    const cfbDelta = won ? stake : -stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "coinflip", _delta: cfbDelta,
+      _outcome: won ? "win" : "loss",
+      _room_id: null, _details: { flip, vs: "bot" } as any,
+    });
+    return { flip, won, delta: cfbDelta };
+
   });
 
 // ---------- Bot: Split or Steal vs Bot ----------
@@ -946,8 +1000,15 @@ export const splitStealBot = createServerFn({ method: "POST" })
         _source: "split_steal_bot", _ref_kind: "split_steal", _ref_id: null as any, _note: outcome,
       });
     }
-    return { bot, outcome, payout, delta: payout - stake };
+    const ssbDelta = payout - stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "split_steal", _delta: ssbDelta,
+      _outcome: ssbDelta > 0 ? "win" : ssbDelta < 0 ? "loss" : "tie",
+      _room_id: null, _details: { outcome, bot, vs: "bot" } as any,
+    });
+    return { bot, outcome, payout, delta: ssbDelta };
   });
+
 
 
 // ---------- Submit challenge proof (server-validated) ----------

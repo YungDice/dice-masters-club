@@ -113,8 +113,16 @@ export const bjDeal = createServerFn({ method: "POST" })
     if (error) throw error;
     // Persist secret deck + true dealer hand
     await savePrivate(supabaseAdmin, room.id, { deck, dealerHole: dealer[1], hand: player });
+    if (status === "finished" && outcome) {
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "blackjack", _delta: delta,
+        _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
+        _room_id: room.id, _details: { initial: true } as any,
+      });
+    }
     return { roomId: room.id, ...publicState };
   });
+
 
 export const bjAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -181,7 +189,15 @@ export const bjAction = createServerFn({ method: "POST" })
       finished_at: status === "finished" ? new Date().toISOString() : null,
     }).eq("id", room.id);
     await savePrivate(supabaseAdmin, room.id, { deck, dealerHole: dealer[1], hand: player });
+    if (status === "finished" && outcome) {
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "blackjack", _delta: delta,
+        _outcome: outcome === "push" ? "tie" : outcome,
+        _room_id: room.id, _details: { doubled, action: data.action } as any,
+      });
+    }
     return { roomId: room.id, ...view };
+
   });
 
 // ---------------- Video Poker (Jacks or Better) ----------------
@@ -270,7 +286,14 @@ export const vpDraw = createServerFn({ method: "POST" })
       state: next, status: "finished", finished_at: new Date().toISOString(),
     }).eq("id", room.id);
     await savePrivate(supabaseAdmin, room.id, { deck, hand: newHand });
-    return { hand: newHand, outcome: result, payout: payAmount, delta: payAmount - pubState.bet };
+    const vpDelta = payAmount - pubState.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "poker", _delta: vpDelta,
+      _outcome: vpDelta > 0 ? "win" : vpDelta < 0 ? "loss" : "tie",
+      _room_id: room.id, _details: { result } as any,
+    });
+    return { hand: newHand, outcome: result, payout: payAmount, delta: vpDelta };
+
   });
 
 export const VP_PAYTABLE = VP_PAY;
@@ -439,6 +462,12 @@ async function mbjResolve(adm: any, room: any, s: any) {
       body: `Hand ${ps} vs Dealer ${ds} · ${seat.delta >= 0 ? "+" : ""}${seat.delta} DICE`,
       link: `/play/blackjack`,
     });
+    await adm.rpc("record_game_result", {
+      _uid: seat.userId, _kind: "blackjack", _delta: seat.delta,
+      _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
+      _room_id: room.id, _details: { ps, ds, mp: true },
+    });
+
   }
   s.phase = "finished";
 }

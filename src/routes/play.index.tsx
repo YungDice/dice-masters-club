@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User } from "lucide-react";
+import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User, Bird, Mountain } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 
 type Mode = "solo" | "pvp" | "both";
@@ -14,7 +14,10 @@ const games: Game[] = [
   { to: "/play/slots",       title: "Slots",          icon: Cherry,      desc: "Spin the reels. Daily free spin.",                  modes: "solo", minBet: 5  },
   { to: "/play/split-steal", title: "Split or Steal", icon: HandHelping, desc: "Trust game. Both stake. Both choose.",              modes: "both", minBet: 50 },
   { to: "/play/poker",       title: "Video Poker",    icon: Layers,      desc: "Jacks or Better. Hold cards, draw the rest.",       modes: "solo", minBet: 10 },
+  { to: "/play/flappy",      title: "Flappy DICE",    icon: Bird,        desc: "Tap to flap. +50 DICE per gate cleared.",          modes: "solo", minBet: 0  },
+  { to: "/play/obby",        title: "DICE Obby",      icon: Mountain,    desc: "Run, jump, dodge. +150 DICE per level.",           modes: "solo", minBet: 0  },
 ];
+
 
 function GameTile({ g }: { g: Game }) {
   return (
