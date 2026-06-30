@@ -1058,6 +1058,7 @@ export type Database = {
           updated_at: string
           username: string
           username_changed_at: string | null
+          username_free_change_available: boolean
           vip_until: string | null
           xp: number
         }
@@ -1084,6 +1085,7 @@ export type Database = {
           updated_at?: string
           username: string
           username_changed_at?: string | null
+          username_free_change_available?: boolean
           vip_until?: string | null
           xp?: number
         }
@@ -1110,6 +1112,7 @@ export type Database = {
           updated_at?: string
           username?: string
           username_changed_at?: string | null
+          username_free_change_available?: boolean
           vip_until?: string | null
           xp?: number
         }
@@ -1298,6 +1301,17 @@ export type Database = {
           _window_seconds: number
         }
         Returns: boolean
+      }
+      record_game_result: {
+        Args: {
+          _delta: number
+          _details: Json
+          _kind: string
+          _outcome: string
+          _room_id: string
+          _uid: string
+        }
+        Returns: undefined
       }
       review_proof_tx: {
         Args: {
