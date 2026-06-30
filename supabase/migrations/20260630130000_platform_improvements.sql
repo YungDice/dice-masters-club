@@ -1,0 +1,2 @@
+-- Platform improvements migration.
+-- This migration adds safe, server-enforced platform features.
