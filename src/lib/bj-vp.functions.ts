@@ -189,7 +189,15 @@ export const bjAction = createServerFn({ method: "POST" })
       finished_at: status === "finished" ? new Date().toISOString() : null,
     }).eq("id", room.id);
     await savePrivate(supabaseAdmin, room.id, { deck, dealerHole: dealer[1], hand: player });
+    if (status === "finished" && outcome) {
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "blackjack", _delta: delta,
+        _outcome: outcome === "push" ? "tie" : outcome,
+        _room_id: room.id, _details: { doubled, action: data.action } as any,
+      });
+    }
     return { roomId: room.id, ...view };
+
   });
 
 // ---------------- Video Poker (Jacks or Better) ----------------
