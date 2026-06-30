@@ -125,23 +125,60 @@ function Dashboard() {
       return data ?? [];
     },
   });
-  const feed = useQuery({
-    queryKey: ["activity-feed"],
-    staleTime: 60_000,
+  const friendIds = useQuery({
+    queryKey: ["friend-ids", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("activity_feed").select("id,title,created_at,user_id,profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)").order("created_at", { ascending: false }).limit(6);
+      const { data } = await supabase
+        .from("friendships")
+        .select("requester_id,addressee_id,status")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user!.id},addressee_id.eq.${user!.id}`);
+      const ids = new Set<string>();
+      for (const r of (data ?? []) as any[]) {
+        if (r.requester_id !== user!.id) ids.add(r.requester_id);
+        if (r.addressee_id !== user!.id) ids.add(r.addressee_id);
+      }
+      return Array.from(ids);
+    },
+  });
+  const feed = useQuery({
+    queryKey: ["friend-activity", user?.id, friendIds.data?.length ?? 0],
+    enabled: !!user?.id && (friendIds.data?.length ?? 0) > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("activity_feed")
+        .select("id,kind,title,payload,created_at,user_id,profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)")
+        .in("user_id", friendIds.data!)
+        .order("created_at", { ascending: false })
+        .limit(20);
       return data ?? [];
     },
   });
   const recentGames = useQuery({
     queryKey: ["recent-games", user?.id],
     enabled: !!user?.id,
-    staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("id,kind,outcome,delta").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase
+        .from("game_results")
+        .select("id,kind,outcome,delta,wagered,payout,created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
       return data ?? [];
     },
   });
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel(`home-feeds-${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_results", filter: `user_id=eq.${user.id}` },
+        () => { recentGames.refetch(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_feed" },
+        (p: any) => { if (friendIds.data?.includes(p.new?.user_id)) feed.refetch(); })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id, friendIds.data?.join(",")]);
   const notif = useQuery({
     queryKey: ["notif-preview", user?.id],
     enabled: !!user?.id,
@@ -330,12 +367,18 @@ function Dashboard() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="glass p-5">
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Recent results</h2>
-          <ul className="space-y-1 text-sm">
+          <ul className="space-y-1.5 text-sm">
             {(recentGames.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No games yet — try your first one.</li>}
-            {(recentGames.data ?? []).map((r) => (
-              <li key={r.id} className="flex items-center justify-between rounded-md bg-white/5 px-3 py-1.5">
-                <span className="capitalize text-xs">{r.kind} · {r.outcome}</span>
-                <span className={`text-sm font-semibold ${r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}`}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
+            {(recentGames.data ?? []).map((r: any) => (
+              <li key={r.id} className="rounded-md bg-white/5 px-3 py-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="capitalize text-xs font-medium">{r.kind} · <span className="opacity-80">{r.outcome}</span></span>
+                  <span className={`text-sm font-semibold ${r.delta > 0 ? "text-emerald-400" : r.delta < 0 ? "text-destructive" : ""}`}>{r.delta > 0 ? "+" : ""}{fmt(r.delta)}</span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>bet {fmt(r.wagered ?? 0)} · payout {fmt(r.payout ?? 0)}</span>
+                  <span>{timeAgo(r.created_at)}</span>
+                </div>
               </li>
             ))}
           </ul>
@@ -375,14 +418,27 @@ function Dashboard() {
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Users className="size-4 text-primary" /> Friend activity</h2>
         <ul className="space-y-2 text-sm">
-          {(feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">Nothing yet — add friends to see their wins.</li>}
-          {(feed.data ?? []).map((a: any) => (
-            <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
-              <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
-              <div className="flex-1 min-w-0"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{a.title}</span></div>
-              <span className="text-xs text-muted-foreground shrink-0">{timeAgo(a.created_at)}</span>
-            </li>
-          ))}
+          {friendIds.isLoading && <li className="text-muted-foreground text-xs">Loading…</li>}
+          {!friendIds.isLoading && (friendIds.data?.length ?? 0) === 0 && <li className="text-muted-foreground text-xs">Add friends to see their activity here.</li>}
+          {(friendIds.data?.length ?? 0) > 0 && (feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No friend activity yet.</li>}
+          {(feed.data ?? []).map((a: any) => {
+            const p = a.payload ?? {};
+            let label = a.title ?? a.kind;
+            if (a.kind === "game_result") label = `played ${p.game ?? "a game"} — ${p.outcome ?? ""} (${p.delta > 0 ? "+" : ""}${fmt(p.delta ?? 0)})`;
+            else if (a.kind === "baddie_unlocked") label = `unboxed ${p.rarity ?? ""} Baddie ${p.name ?? ""}`;
+            else if (a.kind === "baddie_income") label = `collected ${fmt(p.amount ?? 0)} DICE from a Baddie`;
+            else if (a.kind === "marketplace_buy") label = `bought "${p.title ?? "an item"}" for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "marketplace_sell") label = `sold "${p.title ?? "an item"}" for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "auction_won") label = `won an auction for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "achievement") label = `earned achievement ${p.achievement ?? ""}`;
+            return (
+              <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
+                <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
+                <div className="flex-1 min-w-0 text-sm truncate"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{label}</span></div>
+                <span className="text-xs text-muted-foreground shrink-0">{timeAgo(a.created_at)}</span>
+              </li>
+            );
+          })}
         </ul>
       </Card>
     </div>

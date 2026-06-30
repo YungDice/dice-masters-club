@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect } from "react";
 import { Sparkles, PackageOpen, Coins, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +15,7 @@ import { EmptyState } from "@/components/dice/EmptyState";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
+import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 
 export const Route = createFileRoute("/baddies")({
   head: () => ({ meta: [{ title: "Baddie Cases — DICE" }] }),
@@ -30,12 +30,22 @@ const RARITY_STYLE: Record<string, string> = {
   rare:      "from-sky-500/20 to-sky-700/10 border-sky-400/40 text-sky-200",
   epic:      "from-fuchsia-500/20 to-fuchsia-700/10 border-fuchsia-400/40 text-fuchsia-200",
   legendary: "from-amber-400/30 to-rose-500/10 border-amber-300/60 text-amber-200",
+  unreal:    "from-violet-500/30 via-cyan-400/20 to-fuchsia-500/20 border-cyan-300/60 text-cyan-100 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]",
+  elias:     "from-amber-300/40 via-black/40 to-amber-500/30 border-amber-200 text-amber-50 ring-2 ring-amber-300/70 shadow-[0_0_28px_-4px_rgba(252,211,77,0.75)]",
 };
+
+const RARITY_ORDER = ["common","uncommon","rare","epic","legendary","unreal","elias"];
 
 function useTickingNow(intervalMs = 1000) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), intervalMs); return () => clearInterval(t); }, [intervalMs]);
   return now;
+}
+
+function templateImage(t: { id?: string; image_url?: string | null }) {
+  if (t.image_url) return t.image_url;
+  if (t.id === "elias") return eliasAsset.url;
+  return null;
 }
 
 function Page() {
@@ -66,11 +76,13 @@ function Page() {
   const templates = useQuery({
     queryKey: ["baddie-templates"],
     queryFn: async () => {
-      const { data } = await supabase.from("baddie_templates" as any).select("*").order("income_per_hour");
-      return data ?? [];
+      const { data } = await supabase.from("baddie_templates" as any).select("*");
+      const list = (data ?? []) as any[];
+      return list.sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
     },
   });
 
+  const totalWeight = (templates.data ?? []).reduce((s: number, t: any) => s + (t.weight ?? 0), 0) || 1;
   const count = (baddies.data ?? []).length;
 
   async function openCase() {
@@ -84,7 +96,11 @@ function Page() {
       setReveal(row);
       qc.invalidateQueries({ queryKey: ["my-baddies"] });
       qc.invalidateQueries({ queryKey: ["wallet"] });
-    } catch (e: any) { toast.error(e.message); } finally { setRolling(false); }
+    } catch (e: any) {
+      const msg = String(e?.message ?? "");
+      if (/insufficient/i.test(msg)) toast.error("Not enough DICE — case costs 1,000 DICE.");
+      else toast.error(msg || "Failed to open case");
+    } finally { setRolling(false); }
   }
 
   async function collect(id: string) {
@@ -128,14 +144,25 @@ function Page() {
               Open a case to unbox a Baddie of random rarity. Higher rarities pay more DICE per hour.
               Unclaimed income caps at 24 hours per Baddie to keep things fair.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
-              {(templates.data ?? []).map((t: any) => (
-                <div key={t.id} className={`rounded-lg border bg-gradient-to-br p-2 text-xs ${RARITY_STYLE[t.rarity]}`}>
-                  <div className="font-semibold truncate">{t.name}</div>
-                  <div className="opacity-80 capitalize">{t.rarity}</div>
-                  <div className="opacity-80">{t.income_per_hour}/h</div>
-                </div>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
+              {(templates.data ?? []).map((t: any) => {
+                const pct = (t.weight / totalWeight) * 100;
+                const pctText = pct >= 1 ? `${pct.toFixed(0)}%` : `${pct.toFixed(1)}%`;
+                const img = templateImage(t);
+                return (
+                  <div key={t.id} className={`rounded-lg border bg-gradient-to-br p-2 text-xs ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common}`}>
+                    {img ? (
+                      <div className="aspect-square w-full rounded-md overflow-hidden mb-1 ring-1 ring-white/10">
+                        <img src={img} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    ) : null}
+                    <div className="font-semibold truncate">{t.name}</div>
+                    <div className="opacity-80 capitalize">{t.rarity}</div>
+                    <div className="opacity-80">{t.income_per_hour}/h</div>
+                    <div className="font-bold mt-0.5">{pctText}</div>
+                  </div>
+                );
+              })}
             </div>
             <div className="flex items-center gap-3">
               <DiceBadge size="lg" amount={CASE_COST} />
@@ -166,11 +193,17 @@ function Page() {
                 const t = b.template;
                 const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 24 * 3600);
                 const pending = Math.floor((t.income_per_hour * secs) / 3600);
+                const img = templateImage(t);
                 return (
-                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity]}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <div className="font-display font-semibold">{b.name ?? t.name}</div>
+                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common}`}>
+                    <div className="flex items-center gap-3 mb-2">
+                      {img ? (
+                        <img src={img} alt={t.name} className="size-14 rounded-md object-cover ring-1 ring-white/10" loading="lazy" />
+                      ) : (
+                        <div className="size-14 rounded-md grid place-items-center bg-white/5"><Sparkles className="size-6 opacity-80" /></div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display font-semibold truncate">{b.name ?? t.name}</div>
                         <div className="text-xs capitalize opacity-80">{t.rarity} · {t.income_per_hour}/h</div>
                       </div>
                       <Coins className="size-5 opacity-80" />
@@ -193,8 +226,16 @@ function Page() {
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>New Baddie!</DialogTitle></DialogHeader>
           {reveal && (
-            <div className={`rounded-xl border bg-gradient-to-br p-6 text-center ${RARITY_STYLE[reveal.rarity]}`}>
-              <Sparkles className="size-12 mx-auto mb-2" />
+            <div className={`rounded-xl border bg-gradient-to-br p-6 text-center ${RARITY_STYLE[reveal.rarity] ?? RARITY_STYLE.common}`}>
+              {templateImage({ id: reveal.template_id, image_url: reveal.image_url }) ? (
+                <img
+                  src={templateImage({ id: reveal.template_id, image_url: reveal.image_url })!}
+                  alt={reveal.name}
+                  className="mx-auto mb-3 size-40 rounded-xl object-cover ring-2 ring-white/20"
+                />
+              ) : (
+                <Sparkles className="size-12 mx-auto mb-2" />
+              )}
               <div className="font-display text-2xl font-bold">{reveal.name}</div>
               <div className="capitalize opacity-80 mb-2">{reveal.rarity}</div>
               <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>

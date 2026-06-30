@@ -48,7 +48,8 @@ export type Database = {
           id: string
           kind: string
           link: string | null
-          title: string
+          payload: Json
+          title: string | null
           user_id: string
           visibility: string
         }
@@ -58,7 +59,8 @@ export type Database = {
           id?: string
           kind: string
           link?: string | null
-          title: string
+          payload?: Json
+          title?: string | null
           user_id: string
           visibility?: string
         }
@@ -68,7 +70,8 @@ export type Database = {
           id?: string
           kind?: string
           link?: string | null
-          title?: string
+          payload?: Json
+          title?: string | null
           user_id?: string
           visibility?: string
         }
@@ -717,7 +720,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["game_kind"]
           outcome: string | null
           payout: number
-          room_id: string
+          room_id: string | null
           user_id: string
           wagered: number
         }
@@ -729,7 +732,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
           payout?: number
-          room_id: string
+          room_id?: string | null
           user_id: string
           wagered?: number
         }
@@ -741,7 +744,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
           payout?: number
-          room_id?: string
+          room_id?: string | null
           user_id?: string
           wagered?: number
         }
@@ -1414,6 +1417,7 @@ export type Database = {
       open_baddie_case_tx: {
         Args: never
         Returns: {
+          image_url: string
           income_per_hour: number
           name: string
           rarity: string
