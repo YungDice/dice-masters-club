@@ -348,6 +348,36 @@ function Page() {
               {cap >= 10 ? "Max slots" : "Buy +1 slot · 25,000 DICE"}
             </Button>
           </div>
+
+          {/* VIP Autosell settings */}
+          <div className={`rounded-lg border px-3 py-2 ${isVip ? "border-amber-300/40 bg-amber-300/5" : "border-border/60 bg-white/5 opacity-70"}`}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <Crown className="size-4 text-amber-300" />
+              <div className="text-sm font-semibold">Auto-sell by rarity {isVip ? "" : "(VIP only)"}</div>
+            </div>
+            <div className="text-[11px] text-muted-foreground mb-2">
+              Selected rarities are sold instantly when unboxed for half their hourly income.
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {RARITY_ORDER.map((r) => {
+                const checked = autosellList.includes(r);
+                return (
+                  <label
+                    key={r}
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs capitalize cursor-pointer ${RARITY_STYLE[r]} ${!isVip ? "pointer-events-none" : ""}`}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => toggleAutosell(r, !!v)}
+                      disabled={!isVip}
+                    />
+                    {r}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           {count === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty base" description="Open a case to recruit your first Baddie." />
           ) : (
