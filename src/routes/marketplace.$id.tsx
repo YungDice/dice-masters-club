@@ -1,16 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Heart, Flag, Gavel, AtSign } from "lucide-react";
+import { ArrowLeft, Heart, Flag, Gavel, AtSign, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useMyRoles } from "@/hooks/use-profile";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
-import { buyListing, placeBid, settleAuction } from "@/lib/dice.functions";
+import { buyListing, placeBid, settleAuction, adminDeleteListing } from "@/lib/dice.functions";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -36,10 +37,14 @@ function useCountdown(target: string | null) {
 function Detail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const roles = useMyRoles(user?.id);
+  const isMod = (roles.data ?? []).some((r) => r === "admin" || r === "owner");
+  const nav = useNavigate();
   const qc = useQueryClient();
   const buy = useServerFn(buyListing);
   const bid = useServerFn(placeBid);
   const settle = useServerFn(settleAuction);
+  const modDelete = useServerFn(adminDeleteListing);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [busy, setBusy] = useState(false);
 
@@ -179,6 +184,17 @@ function Detail() {
               <Button onClick={setAsAvatar} variant="secondary" className="w-full">Set as profile picture</Button>
             )}
             <div className="text-xs text-muted-foreground">Sold by @{l.seller?.username}{l.seller?.tag ? `#${l.seller.tag}` : ""}</div>
+            {(isTag || l.category === "username") && l.status === "active" && (
+              <div className="text-xs text-amber-400">Still attached to seller until purchase.</div>
+            )}
+            {isMod && l.status === "active" && (
+              <Button variant="destructive" className="w-full mt-2" onClick={async () => {
+                const reason = window.prompt("Reason for removing this listing? (will refund any bids/escrow)") ?? "";
+                if (reason === null) return;
+                try { await modDelete({ data: { listingId: id, reason } }); toast.success("Listing removed and refunded"); nav({ to: "/marketplace" }); }
+                catch (e: any) { toast.error(e.message); }
+              }}><ShieldAlert className="size-4 mr-1" />Remove (mod)</Button>
+            )}
           </div>
         </div>
       </Card>

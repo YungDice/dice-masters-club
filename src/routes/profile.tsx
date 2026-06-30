@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { COUNTRIES } from "@/lib/countries";
+import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 
 import { fmt, timeAgo } from "@/lib/format";
 
@@ -75,15 +76,9 @@ function MyProfile() {
   const tier = tierFor(rank.data?.wins ?? 0, rank.data?.ratio ?? 0);
 
   return (
-    <div
-      className="space-y-4 relative"
-      style={profileBg && vipActive ? {
-        backgroundImage: `linear-gradient(to bottom, rgba(8,6,14,0.85), rgba(8,6,14,0.95)), url(${profileBg})`,
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-        backgroundPosition: "center",
-      } : undefined}
-    >
+    <ProfileBackdrop url={vipActive ? profileBg : null}>
+    <div className="space-y-4 relative">
+
 
       <Card className="glass overflow-hidden border-white/10">
         <div className={`w-full ${banner && vipActive ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
@@ -184,5 +179,6 @@ function MyProfile() {
         )}
       </Card>
     </div>
+    </ProfileBackdrop>
   );
 }

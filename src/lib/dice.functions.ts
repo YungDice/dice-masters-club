@@ -1087,3 +1087,53 @@ export const submitProof = createServerFn({ method: "POST" })
       );
     return { ok: true, id: proof.id };
   });
+
+// ---------- Admin moderation ----------
+export const adminDeleteListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { listingId: string; reason?: string }) =>
+    z.object({ listingId: z.string().uuid(), reason: z.string().max(500).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("admin_delete_listing_tx" as any, {
+      _listing_id: data.listingId, _reason: data.reason ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+export const adminDeleteChallenge = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { challengeId: string; reason?: string }) =>
+    z.object({ challengeId: z.string().uuid(), reason: z.string().max(500).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("admin_delete_challenge_tx" as any, {
+      _challenge_id: data.challengeId, _reason: data.reason ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+export const grantAchievement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string; achievementId: string }) =>
+    z.object({ userId: z.string().uuid(), achievementId: z.string().min(1).max(64) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("grant_achievement_tx" as any, {
+      _user: data.userId, _achievement: data.achievementId,
+    });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+export const setActiveTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { tag: string | null }) => z.object({ tag: z.string().nullable() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("set_active_tag" as any, { _tag: data.tag });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });

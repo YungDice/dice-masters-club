@@ -686,8 +686,10 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["game_kind"]
           outcome: string | null
+          payout: number
           room_id: string
           user_id: string
+          wagered: number
         }
         Insert: {
           created_at?: string
@@ -696,8 +698,10 @@ export type Database = {
           id?: string
           kind: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
+          payout?: number
           room_id: string
           user_id: string
+          wagered?: number
         }
         Update: {
           created_at?: string
@@ -706,8 +710,10 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
+          payout?: number
           room_id?: string
           user_id?: string
+          wagered?: number
         }
         Relationships: [
           {
@@ -1034,6 +1040,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_tags: {
+        Row: {
+          acquired_at: string
+          id: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          id?: string
+          tag: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          id?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1046,6 +1073,8 @@ export type Database = {
           id: string
           is_18_plus: boolean
           last_login_at: string | null
+          last_seen_at: string | null
+          last_streak_date: string | null
           last_xp_tick_at: string | null
           level: number
           privacy_activity: string
@@ -1073,6 +1102,8 @@ export type Database = {
           id: string
           is_18_plus?: boolean
           last_login_at?: string | null
+          last_seen_at?: string | null
+          last_streak_date?: string | null
           last_xp_tick_at?: string | null
           level?: number
           privacy_activity?: string
@@ -1100,6 +1131,8 @@ export type Database = {
           id?: string
           is_18_plus?: boolean
           last_login_at?: string | null
+          last_seen_at?: string | null
+          last_streak_date?: string | null
           last_xp_tick_at?: string | null
           level?: number
           privacy_activity?: string
@@ -1254,9 +1287,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_game_stats: {
+        Row: {
+          games_played: number | null
+          losses: number | null
+          net: number | null
+          ties: number | null
+          total_lost: number | null
+          total_wagered: number | null
+          total_won: number | null
+          user_id: string | null
+          wins: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      admin_delete_challenge_tx: {
+        Args: { _challenge_id: string; _reason: string }
+        Returns: Json
+      }
+      admin_delete_listing_tx: {
+        Args: { _listing_id: string; _reason: string }
+        Returns: Json
+      }
+      assert_bet_within_limit: {
+        Args: { _amount: number; _uid: string }
+        Returns: undefined
+      }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
       buy_listing_tx: {
@@ -1268,6 +1326,10 @@ export type Database = {
       cleanup_stale_data: { Args: never; Returns: undefined }
       expire_auctions: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
+      grant_achievement_tx: {
+        Args: { _achievement: string; _user: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1302,17 +1364,31 @@ export type Database = {
         }
         Returns: boolean
       }
-      record_game_result: {
-        Args: {
-          _delta: number
-          _details: Json
-          _kind: string
-          _outcome: string
-          _room_id: string
-          _uid: string
-        }
-        Returns: undefined
-      }
+      record_game_result:
+        | {
+            Args: {
+              _delta: number
+              _details: Json
+              _kind: string
+              _outcome: string
+              _room_id: string
+              _uid: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _delta: number
+              _details: Json
+              _kind: string
+              _outcome: string
+              _payout?: number
+              _room_id: string
+              _uid: string
+              _wagered?: number
+            }
+            Returns: undefined
+          }
       review_proof_tx: {
         Args: {
           _approve: boolean
@@ -1322,7 +1398,9 @@ export type Database = {
         }
         Returns: Json
       }
+      set_active_tag: { Args: { _tag: string }; Returns: Json }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
+      touch_presence: { Args: never; Returns: Json }
       wallet_adjust: {
         Args: {
           _delta: number
