@@ -22,6 +22,7 @@ export function ChatPopover() {
   const [body, setBody] = useState("");
   const [unread, setUnread] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const send = useServerFn(sendChatMessage);
   const isVip = !!(profile as any)?.vip_until && new Date((profile as any).vip_until) > new Date();
   const maxLen = isVip ? 4000 : 500;
