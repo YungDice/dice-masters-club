@@ -173,7 +173,7 @@ function UProfile() {
       </Card>
 
       {(() => {
-        const rs = rankStats.data ?? { wins: 0, losses: 0, total: 0, ratio: 0 };
+        const rs: any = rankStats.data ?? { wins: 0, losses: 0, draws: 0, total: 0, wagered: 0, won: 0, lost: 0, ratio: 0 };
         const tier = tierFor(rs.wins, rs.ratio);
         return (
           <Card className="glass p-5">
