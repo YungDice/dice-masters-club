@@ -946,6 +946,14 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     if ((data.body?.length ?? 0) > maxLen) throw new Error(`Message too long (limit ${maxLen})`);
     if (data.mediaUrl && !isVip) throw new Error("VIP required to send images");
     if (!data.body?.trim() && !data.mediaUrl) throw new Error("Empty message");
+    // Restrict mediaUrl to our own Supabase storage to prevent tracking pixels / phishing.
+    if (data.mediaUrl) {
+      let host = "";
+      try { host = new URL(data.mediaUrl).host; } catch { throw new Error("Invalid media URL"); }
+      const supaHost = (() => { try { return new URL(process.env.SUPABASE_URL ?? "").host; } catch { return ""; } })();
+      const ok = (supaHost && host === supaHost) || host.endsWith(".supabase.co") || host.endsWith(".supabase.in");
+      if (!ok) throw new Error("Media must be hosted in app storage");
+    }
     const { error } = await supabaseAdmin.from("chat_messages").insert({
       user_id: context.userId,
       body: data.body ?? "",
