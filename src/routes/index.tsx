@@ -125,23 +125,60 @@ function Dashboard() {
       return data ?? [];
     },
   });
-  const feed = useQuery({
-    queryKey: ["activity-feed"],
-    staleTime: 60_000,
+  const friendIds = useQuery({
+    queryKey: ["friend-ids", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("activity_feed").select("id,title,created_at,user_id,profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)").order("created_at", { ascending: false }).limit(6);
+      const { data } = await supabase
+        .from("friendships")
+        .select("requester_id,addressee_id,status")
+        .eq("status", "accepted")
+        .or(`requester_id.eq.${user!.id},addressee_id.eq.${user!.id}`);
+      const ids = new Set<string>();
+      for (const r of (data ?? []) as any[]) {
+        if (r.requester_id !== user!.id) ids.add(r.requester_id);
+        if (r.addressee_id !== user!.id) ids.add(r.addressee_id);
+      }
+      return Array.from(ids);
+    },
+  });
+  const feed = useQuery({
+    queryKey: ["friend-activity", user?.id, friendIds.data?.length ?? 0],
+    enabled: !!user?.id && (friendIds.data?.length ?? 0) > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("activity_feed")
+        .select("id,kind,title,payload,created_at,user_id,profiles!activity_feed_user_id_fkey(username,display_name,avatar_url)")
+        .in("user_id", friendIds.data!)
+        .order("created_at", { ascending: false })
+        .limit(20);
       return data ?? [];
     },
   });
   const recentGames = useQuery({
     queryKey: ["recent-games", user?.id],
     enabled: !!user?.id,
-    staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("id,kind,outcome,delta").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase
+        .from("game_results")
+        .select("id,kind,outcome,delta,wagered,payout,created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
       return data ?? [];
     },
   });
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase
+      .channel(`home-feeds-${user.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_results", filter: `user_id=eq.${user.id}` },
+        () => { recentGames.refetch(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_feed" },
+        (p: any) => { if (friendIds.data?.includes(p.new?.user_id)) feed.refetch(); })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user?.id, friendIds.data?.join(",")]);
   const notif = useQuery({
     queryKey: ["notif-preview", user?.id],
     enabled: !!user?.id,
