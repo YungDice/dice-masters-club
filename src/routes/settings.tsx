@@ -345,8 +345,8 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
                 </div>
               </div>
               {saleType === "auction" && (
-                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1–48)</Label>
-                  <input type="range" min={1} max={48} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
+                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1h–7d)</Label>
+                  <input type="range" min={1} max={168} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
                 </div>
               )}
               <div className="flex gap-2">
