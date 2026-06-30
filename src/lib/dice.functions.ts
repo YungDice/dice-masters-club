@@ -145,6 +145,12 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Room not joinable");
     if (room.host_id === context.userId) throw new Error("Can't join your own room");
+    // Atomically claim the room: only one concurrent join can transition waiting -> active
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({
+      status: "active",
+      state: { ...(room.state as any), joiner_id: context.userId },
+    }).eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimed || claimed.length === 0) throw new Error("Room no longer joinable");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Escrow",
@@ -152,10 +158,6 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "active",
-      state: { ...(room.state as any), joiner_id: context.userId },
-    }).eq("id", room.id);
     return { ok: true, roomId: room.id };
   });
 
@@ -181,21 +183,22 @@ export const pickCoinFlipSide = createServerFn({ method: "POST" })
       host_pick: isHost ? data.side : (state.host_pick ?? other),
       joiner_pick: isHost ? (state.joiner_pick ?? other) : data.side,
     };
-    // Resolve
     const flip = cryptoRandFloat() < 0.5 ? "heads" : "tails";
     const hostWon = next.host_pick === flip;
     const pot = room.stake * 2;
     const winnerId = hostWon ? room.host_id : state.joiner_id;
     const loserId = hostWon ? state.joiner_id : room.host_id;
+    // Atomically resolve the room: only the first concurrent caller wins the transition.
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({
+      status: "finished", winner_id: winnerId,
+      state: { ...next, flip },
+      finished_at: new Date().toISOString(),
+    }).eq("id", room.id).eq("status", "active").select("id");
+    if (!claimed || claimed.length === 0) throw new Error("Room already resolved");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: winnerId, _delta: pot, _type: "game_win",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Coin flip win",
     });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "finished", winner_id: winnerId,
-      state: { ...next, flip },
-      finished_at: new Date().toISOString(),
-    }).eq("id", room.id);
     await supabaseAdmin.from("game_results").insert([
       { room_id: room.id, user_id: winnerId, kind: "coinflip", delta: room.stake, outcome: "win", details: { flip } },
       { room_id: room.id, user_id: loserId, kind: "coinflip", delta: -room.stake, outcome: "loss", details: { flip } },
@@ -305,6 +308,10 @@ export const joinSplitSteal = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Room not joinable");
     if (room.host_id === context.userId) throw new Error("Can't join own");
+    // Atomic claim: only one concurrent join wins the waiting->active transition.
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({ status: "active" })
+      .eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimed || claimed.length === 0) throw new Error("Room no longer joinable");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "split_steal", _ref_kind: "split_steal", _ref_id: room.id, _note: "Escrow",
@@ -312,7 +319,6 @@ export const joinSplitSteal = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
-    await supabaseAdmin.from("game_rooms").update({ status: "active" }).eq("id", room.id);
     return room;
   });
 
@@ -342,11 +348,13 @@ export const choiceSplitSteal = createServerFn({ method: "POST" })
     else if (ac === "steal" && bc === "split") { outcome = "a_steals"; aPay = pot; }
     else if (ac === "split" && bc === "steal") { outcome = "b_steals"; bPay = pot; }
     else { outcome = "both_steal"; }
+    // Atomically transition active -> finished so concurrent submitters cannot double-pay.
+    const { data: claimedSS } = await supabaseAdmin.from("game_rooms").update({
+      status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
+    }).eq("id", data.roomId).eq("status", "active").select("id");
+    if (!claimedSS || claimedSS.length === 0) return { waiting: false, outcome, aPay: 0, bPay: 0, alreadyResolved: true };
     if (aPay > 0) await supabaseAdmin.rpc("wallet_adjust", { _user: a.user_id, _delta: aPay, _type: "game_payout", _source: "split_steal", _ref_kind: "split_steal", _ref_id: data.roomId, _note: outcome });
     if (bPay > 0) await supabaseAdmin.rpc("wallet_adjust", { _user: b.user_id, _delta: bPay, _type: "game_payout", _source: "split_steal", _ref_kind: "split_steal", _ref_id: data.roomId, _note: outcome });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
-    }).eq("id", data.roomId);
     const stake = (room!.stake as number);
     const aDelta = aPay - stake, bDelta = bPay - stake;
     await supabaseAdmin.rpc("record_game_result" as any, {
@@ -393,6 +401,10 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Not joinable");
     if (room.host_id === context.userId) throw new Error("Own room");
+    // Atomically transition waiting -> active so concurrent joins cannot both pass the guard.
+    const { data: claimedD } = await supabaseAdmin.from("game_rooms").update({ status: "active" })
+      .eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimedD || claimedD.length === 0) throw new Error("Room no longer joinable");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "dice_pvp", _ref_kind: "dice", _ref_id: room.id, _note: "Escrow",
@@ -946,6 +958,14 @@ export const sendChatMessage = createServerFn({ method: "POST" })
     if ((data.body?.length ?? 0) > maxLen) throw new Error(`Message too long (limit ${maxLen})`);
     if (data.mediaUrl && !isVip) throw new Error("VIP required to send images");
     if (!data.body?.trim() && !data.mediaUrl) throw new Error("Empty message");
+    // Restrict mediaUrl to our own Supabase storage to prevent tracking pixels / phishing.
+    if (data.mediaUrl) {
+      let host = "";
+      try { host = new URL(data.mediaUrl).host; } catch { throw new Error("Invalid media URL"); }
+      const supaHost = (() => { try { return new URL(process.env.SUPABASE_URL ?? "").host; } catch { return ""; } })();
+      const ok = (supaHost && host === supaHost) || host.endsWith(".supabase.co") || host.endsWith(".supabase.in");
+      if (!ok) throw new Error("Media must be hosted in app storage");
+    }
     const { error } = await supabaseAdmin.from("chat_messages").insert({
       user_id: context.userId,
       body: data.body ?? "",
