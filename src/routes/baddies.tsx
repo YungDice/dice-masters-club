@@ -63,8 +63,11 @@ function buildReel(templates: any[], winning: any) {
   const REEL = 80;
   const out: any[] = [];
   for (let i = 0; i < REEL; i++) out.push(weighted[Math.floor(Math.random() * weighted.length)]);
-  // Place the winning card well before the end so there's reel to the right of the marker
-  return { reel: out, winIndex: REEL - 12 };
+  // Place the winning card well before the end so there's still reel to the right of the marker
+  const winIndex = REEL - 12;
+  out[winIndex] = winning;
+  (out as any).__winIndex = winIndex;
+  return out;
 }
 
 const CARD_W = 128; // px
