@@ -1096,6 +1096,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          autosell_rarities: string[]
           avatar_url: string | null
           baddie_slots_bought: number
           banner_url: string | null
@@ -1126,6 +1127,7 @@ export type Database = {
           xp: number
         }
         Insert: {
+          autosell_rarities?: string[]
           avatar_url?: string | null
           baddie_slots_bought?: number
           banner_url?: string | null
@@ -1156,6 +1158,7 @@ export type Database = {
           xp?: number
         }
         Update: {
+          autosell_rarities?: string[]
           avatar_url?: string | null
           baddie_slots_bought?: number
           banner_url?: string | null
@@ -1427,10 +1430,12 @@ export type Database = {
       open_baddie_case_tx: {
         Args: never
         Returns: {
+          autosold: boolean
           image_url: string
           income_per_hour: number
           name: string
           rarity: string
+          sell_price: number
           template_id: string
           user_baddie_id: string
         }[]
@@ -1496,6 +1501,10 @@ export type Database = {
       }
       sell_baddie_tx: { Args: { _baddie_id: string }; Returns: Json }
       set_active_tag: { Args: { _tag: string }; Returns: Json }
+      set_autosell_rarities: {
+        Args: { _rarities: string[] }
+        Returns: string[]
+      }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
       wallet_adjust: {
