@@ -22,6 +22,7 @@ export function ChatPopover() {
   const [body, setBody] = useState("");
   const [unread, setUnread] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const send = useServerFn(sendChatMessage);
   const isVip = !!(profile as any)?.vip_until && new Date((profile as any).vip_until) > new Date();
   const maxLen = isVip ? 4000 : 500;
@@ -95,6 +96,15 @@ export function ChatPopover() {
   useEffect(() => { if (open) markRead(); }, [open, markRead]);
   useEffect(() => () => { markRead(); }, [markRead]);
 
+  // Always scroll to latest when the popover opens or new messages arrive
+  useEffect(() => {
+    if (!open) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    // Defer to next frame so the list has rendered
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  }, [open, q.data]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -138,7 +148,7 @@ export function ChatPopover() {
           <div className="font-display text-sm font-semibold">Global Chat</div>
           {isVip && <span className="ml-auto flex items-center gap-1 text-xs text-amber-400"><Crown className="size-3" />VIP</span>}
         </div>
-        <div className="h-80 overflow-y-auto p-3 space-y-2">
+        <div ref={scrollRef} className="h-80 overflow-y-auto p-3 space-y-2">
           {q.isLoading && <p className="text-xs text-muted-foreground text-center py-6">Loading…</p>}
           {!q.isLoading && !(q.data ?? []).length && (
             <p className="text-xs text-muted-foreground text-center py-6">Say hi 👋</p>

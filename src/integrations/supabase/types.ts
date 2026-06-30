@@ -1097,6 +1097,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          baddie_slots_bought: number
           banner_url: string | null
           bio: string | null
           country: string | null
@@ -1126,6 +1127,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          baddie_slots_bought?: number
           banner_url?: string | null
           bio?: string | null
           country?: string | null
@@ -1155,6 +1157,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          baddie_slots_bought?: number
           banner_url?: string | null
           bio?: string | null
           country?: string | null
@@ -1385,6 +1388,13 @@ export type Database = {
       }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
+      buy_baddie_slot_tx: {
+        Args: never
+        Returns: {
+          new_balance: number
+          slots_bought: number
+        }[]
+      }
       buy_listing_tx: {
         Args: { _buyer: string; _listing_id: string }
         Returns: Json

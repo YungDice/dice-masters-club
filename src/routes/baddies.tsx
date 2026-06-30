@@ -60,11 +60,13 @@ function buildReel(templates: any[], winning: any) {
     for (let i = 0; i < w; i++) weighted.push(t);
   }
   if (weighted.length === 0) weighted.push(...templates);
-  const REEL = 60;
+  const REEL = 80;
   const out: any[] = [];
   for (let i = 0; i < REEL; i++) out.push(weighted[Math.floor(Math.random() * weighted.length)]);
-  // Insert one of each rarity sprinkled so the reel feels diverse
-  out[REEL - 1] = winning;
+  // Place the winning card well before the end so there's still reel to the right of the marker
+  const winIndex = REEL - 12;
+  out[winIndex] = winning;
+  (out as any).__winIndex = winIndex;
   return out;
 }
 
@@ -77,7 +79,8 @@ function Page() {
   const prof = useMyProfile(user?.id);
   const qc = useQueryClient();
   const isVip = isVipActive((prof.data as any)?.vip_until);
-  const cap = isVip ? 4 : 2;
+  const slotsBought = (prof.data as any)?.baddie_slots_bought ?? 0;
+  const cap = Math.min(10, (isVip ? 4 : 2) + slotsBought);
   const [baseOpen, setBaseOpen] = useState(false);
   const [rolling, setRolling] = useState(false);
   const [reveal, setReveal] = useState<any>(null);
@@ -146,7 +149,7 @@ function Page() {
           const viewport = reelViewportRef.current;
           const vpW = viewport?.clientWidth ?? 600;
           const centerOffset = vpW / 2 - CARD_W / 2;
-          const winIndex = newReel.length - 1;
+          const winIndex = (newReel as any).__winIndex ?? (newReel.length - 12);
           const target = winIndex * CARD_TOTAL - centerOffset
             + (Math.random() * 40 - 20); // tiny jitter
           setTransition("transform 5.2s cubic-bezier(0.08, 0.82, 0.17, 1)");
@@ -193,6 +196,21 @@ function Page() {
       qc.invalidateQueries({ queryKey: ["my-baddies"] });
       qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
+  }
+
+  async function buySlot() {
+    try {
+      const { error } = await supabase.rpc("buy_baddie_slot_tx" as any);
+      if (error) throw error;
+      toast.success("Slot purchased! +1 Baddie capacity");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) {
+      const msg = String(e?.message ?? "");
+      if (/insufficient/i.test(msg)) toast.error("Not enough DICE — slot costs 25,000 DICE.");
+      else if (/max baddie slots/i.test(msg)) toast.error("Maximum 10 baddie slots reached.");
+      else toast.error(msg || "Failed to buy slot");
+    }
   }
 
   return (
@@ -244,7 +262,7 @@ function Page() {
               </Button>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              Base capacity: <b>{cap}</b> {isVip ? "(VIP)" : "(upgrade to VIP for 4 slots)"}
+              Base capacity: <b>{cap}</b> / 10 {isVip ? "(VIP base 4)" : "(non-VIP base 2 — upgrade to VIP for 4)"} · Buy more slots in your Base.
             </div>
           </div>
           <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-primary/30 to-fuchsia-700/20 border border-primary/40 grid place-items-center overflow-hidden">
@@ -309,6 +327,14 @@ function Page() {
       <Dialog open={baseOpen} onOpenChange={setBaseOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Your Baddie Base ({count}/{cap})</DialogTitle></DialogHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-white/5 px-3 py-2">
+            <div className="text-xs text-muted-foreground">
+              Base: <b>{isVip ? 4 : 2}</b> · Bought: <b>{slotsBought}</b> · Max <b>10</b>
+            </div>
+            <Button size="sm" variant="outline" onClick={buySlot} disabled={cap >= 10}>
+              {cap >= 10 ? "Max slots" : "Buy +1 slot · 25,000 DICE"}
+            </Button>
+          </div>
           {count === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty base" description="Open a case to recruit your first Baddie." />
           ) : (
