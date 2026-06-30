@@ -425,7 +425,23 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
       status: "finished", winner_id: winnerId,
       state: { hostRoll, joinRoll }, finished_at: new Date().toISOString(),
     }).eq("id", room.id);
+    {
+      const stakeAmt = room.stake as number;
+      const hostDelta = winnerId === room.host_id ? stakeAmt : winnerId === null ? 0 : -stakeAmt;
+      const joinDelta = winnerId === context.userId ? stakeAmt : winnerId === null ? 0 : -stakeAmt;
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: room.host_id, _kind: "dice", _delta: hostDelta,
+        _outcome: hostDelta > 0 ? "win" : hostDelta < 0 ? "loss" : "tie",
+        _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+      });
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "dice", _delta: joinDelta,
+        _outcome: joinDelta > 0 ? "win" : joinDelta < 0 ? "loss" : "tie",
+        _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+      });
+    }
     return { hostRoll, joinRoll, winnerId, pot };
+
   });
 
 // ---------- Marketplace buy (fixed sale only) ----------
