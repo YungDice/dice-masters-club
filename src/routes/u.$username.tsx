@@ -199,10 +199,7 @@ function UProfile() {
         );
       })()}
 
-            </div>
-          </Card>
-        );
-      })()}
+
 
 
 
