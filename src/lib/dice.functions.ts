@@ -1000,8 +1000,15 @@ export const splitStealBot = createServerFn({ method: "POST" })
         _source: "split_steal_bot", _ref_kind: "split_steal", _ref_id: null as any, _note: outcome,
       });
     }
-    return { bot, outcome, payout, delta: payout - stake };
+    const ssbDelta = payout - stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "split_steal", _delta: ssbDelta,
+      _outcome: ssbDelta > 0 ? "win" : ssbDelta < 0 ? "loss" : "tie",
+      _room_id: null, _details: { outcome, bot, vs: "bot" } as any,
+    });
+    return { bot, outcome, payout, delta: ssbDelta };
   });
+
 
 
 // ---------- Submit challenge proof (server-validated) ----------
