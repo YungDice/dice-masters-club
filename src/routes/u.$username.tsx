@@ -24,59 +24,69 @@ export const Route = createFileRoute("/u/$username")({
 function UProfile() {
   const { username } = Route.useParams();
   const { user } = useAuth();
+  const qc = useQueryClient();
+  const sendReqFn = useServerFn(sendFriendRequest);
+  const respondFn = useServerFn(respondFriendRequest);
+
   const prof = useQuery({
     queryKey: ["u", username],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("*").eq("username", username).maybeSingle();
+      if (error) throw error;
       return data;
     },
   });
+  const pid = prof.data?.id;
   const achievements = useQuery({
-    queryKey: ["u-ach", prof.data?.id],
-    enabled: !!prof.data?.id,
+    queryKey: ["u-ach", pid],
+    enabled: !!pid,
     queryFn: async () => {
-      const { data } = await supabase.from("user_achievements").select("*, achievements(*)").eq("user_id", prof.data!.id);
+      const { data } = await supabase.from("user_achievements").select("*, achievements(*)").eq("user_id", pid!);
       return data ?? [];
     },
   });
   const games = useQuery({
-    queryKey: ["u-games", prof.data?.id],
-    enabled: !!prof.data?.id,
+    queryKey: ["u-games", pid],
+    enabled: !!pid,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("*").eq("user_id", prof.data!.id).order("created_at", { ascending: false }).limit(8);
+      const { data } = await supabase.from("game_results").select("*").eq("user_id", pid!).order("created_at", { ascending: false }).limit(8);
       return data ?? [];
     },
   });
   const rankStats = useQuery({
-    queryKey: ["u-rank", prof.data?.id],
-    enabled: !!prof.data?.id,
+    queryKey: ["u-rank", pid],
+    enabled: !!pid,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", prof.data!.id).limit(1000);
-      const rows = data ?? [];
-      const wins = rows.filter((r: any) => r.outcome === "win").length;
-      const losses = rows.filter((r: any) => r.outcome === "loss").length;
-      const total = wins + losses;
-      const ratio = total > 0 ? wins / total : 0;
-      return { wins, losses, total, ratio };
+      const { data } = await supabase.from("game_results").select("outcome,delta,wagered,payout").eq("user_id", pid!).limit(5000);
+      const rows = (data ?? []) as any[];
+      const wins = rows.filter((r) => r.outcome === "win").length;
+      const losses = rows.filter((r) => r.outcome === "loss").length;
+      const draws = rows.filter((r) => r.outcome === "draw").length;
+      const total = rows.length;
+      const wagered = rows.reduce((s, r) => s + Number(r.wagered ?? 0), 0);
+      const won = rows.reduce((s, r) => s + Math.max(Number(r.payout ?? 0), Number(r.delta ?? 0) > 0 ? Number(r.delta) : 0), 0);
+      const lost = rows.reduce((s, r) => s + (Number(r.delta ?? 0) < 0 ? -Number(r.delta) : 0), 0);
+      const ratio = losses === 0 ? (wins > 0 ? wins : 0) : wins / losses;
+      return { wins, losses, draws, total, wagered, won, lost, ratio };
     },
   });
 
-
   const friendship = useQuery({
-    queryKey: ["friendship", user?.id, prof.data?.id],
-    enabled: !!user?.id && !!prof.data?.id && user.id !== prof.data.id,
+    queryKey: ["friendship", user?.id, pid],
+    enabled: !!user?.id && !!pid && user!.id !== pid,
     queryFn: async () => {
       const { data } = await supabase
         .from("friendships")
         .select("*")
-        .or(`and(requester_id.eq.${user!.id},addressee_id.eq.${prof.data!.id}),and(requester_id.eq.${prof.data!.id},addressee_id.eq.${user!.id})`)
+        .or(`and(requester_id.eq.${user!.id},addressee_id.eq.${pid}),and(requester_id.eq.${pid},addressee_id.eq.${user!.id})`)
         .maybeSingle();
       return data;
     },
   });
 
-  if (!prof.data) return <div className="text-center text-muted-foreground py-20">Loading…</div>;
-  const p = prof.data;
+  if (prof.isLoading) return <div className="text-center text-muted-foreground py-20">Loading…</div>;
+  if (!prof.data) return <div className="text-center text-muted-foreground py-20">User not found.</div>;
+  const p: any = prof.data;
   const isMe = user?.id === p.id;
   const f: any = friendship.data;
   const rel = !f ? "none"
@@ -85,13 +95,11 @@ function UProfile() {
     : f.status === "blocked" ? "blocked"
     : "none";
 
-  const profileBg = (p as any).profile_bg_url as string | null;
-  const vipActive = isVipActive((p as any).vip_until);
-  const onlineMs = (p as any).last_seen_at ? Date.now() - new Date((p as any).last_seen_at).getTime() : Infinity;
+  const profileBg = p.profile_bg_url as string | null;
+  const vipActive = isVipActive(p.vip_until);
+  const onlineMs = p.last_seen_at ? Date.now() - new Date(p.last_seen_at).getTime() : Infinity;
   const isOnline = onlineMs < 2 * 60 * 1000;
-  const qc = useQueryClient();
-  const sendReqFn = useServerFn(sendFriendRequest);
-  const respondFn = useServerFn(respondFriendRequest);
+  const dn = p.display_name ?? p.username ?? "User";
 
   async function addFriend() {
     if (!user) return;
@@ -112,6 +120,7 @@ function UProfile() {
     catch (e: any) { toast.error(e.message ?? "Failed"); }
     friendship.refetch();
   }
+
 
   return (
     <ProfileBackdrop url={vipActive ? profileBg : null}>
