@@ -79,7 +79,8 @@ function Page() {
   const prof = useMyProfile(user?.id);
   const qc = useQueryClient();
   const isVip = isVipActive((prof.data as any)?.vip_until);
-  const cap = isVip ? 4 : 2;
+  const slotsBought = (prof.data as any)?.baddie_slots_bought ?? 0;
+  const cap = Math.min(10, (isVip ? 4 : 2) + slotsBought);
   const [baseOpen, setBaseOpen] = useState(false);
   const [rolling, setRolling] = useState(false);
   const [reveal, setReveal] = useState<any>(null);
