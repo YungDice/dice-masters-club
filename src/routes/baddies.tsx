@@ -60,12 +60,11 @@ function buildReel(templates: any[], winning: any) {
     for (let i = 0; i < w; i++) weighted.push(t);
   }
   if (weighted.length === 0) weighted.push(...templates);
-  const REEL = 60;
+  const REEL = 80;
   const out: any[] = [];
   for (let i = 0; i < REEL; i++) out.push(weighted[Math.floor(Math.random() * weighted.length)]);
-  // Insert one of each rarity sprinkled so the reel feels diverse
-  out[REEL - 1] = winning;
-  return out;
+  // Place the winning card well before the end so there's reel to the right of the marker
+  return { reel: out, winIndex: REEL - 12 };
 }
 
 const CARD_W = 128; // px
