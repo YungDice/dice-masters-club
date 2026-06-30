@@ -99,8 +99,15 @@ export const playSlots = createServerFn({ method: "POST" })
         _source: "slots", _ref_kind: "slots", _ref_id: null as any, _note: "Slots payout",
       });
     }
-    return { reels, payout, delta: payout - data.bet };
+    const slotsNet = payout - data.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "slots", _delta: slotsNet,
+      _outcome: slotsNet > 0 ? "win" : slotsNet < 0 ? "loss" : "tie",
+      _room_id: null, _details: { reels, payout } as any,
+    });
+    return { reels, payout, delta: slotsNet };
   });
+
 
 // ---------- Coin flip PvP: create / join / resolve ----------
 export const createCoinFlip = createServerFn({ method: "POST" })
