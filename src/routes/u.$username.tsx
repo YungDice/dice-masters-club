@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Trophy, Flame, Star, Calendar, Award } from "lucide-react";
+import { Trophy, Flame, Star, Calendar, Award, Swords, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/dice/TopNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
+import { tierFor } from "@/lib/rank";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/u/$username")({
   head: () => ({ meta: [{ title: "Profile — DICE" }] }),
