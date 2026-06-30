@@ -139,9 +139,6 @@ function Detail() {
             <div className="text-xs text-muted-foreground">{c.xp_reward} XP</div>
           </div>
         </div>
-        <div className="mt-5 flex gap-2 flex-wrap">
-          <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
-        </div>
 
         <div className="mt-5 flex gap-2 flex-wrap">
           <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
