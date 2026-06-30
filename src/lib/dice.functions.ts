@@ -63,8 +63,12 @@ export const playDiceSolo = createServerFn({ method: "POST" })
       });
       delta = 0; outcome = "tie";
     }
-    // Solo result has no room row; client logs through transactions instead
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "dice", _delta: delta, _outcome: outcome,
+      _room_id: null, _details: { me, house } as any,
+    });
     return { me, house, delta, outcome };
+
   });
 
 // ---------- Slots ----------
