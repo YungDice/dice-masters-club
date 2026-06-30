@@ -286,7 +286,14 @@ export const vpDraw = createServerFn({ method: "POST" })
       state: next, status: "finished", finished_at: new Date().toISOString(),
     }).eq("id", room.id);
     await savePrivate(supabaseAdmin, room.id, { deck, hand: newHand });
-    return { hand: newHand, outcome: result, payout: payAmount, delta: payAmount - pubState.bet };
+    const vpDelta = payAmount - pubState.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "poker", _delta: vpDelta,
+      _outcome: vpDelta > 0 ? "win" : vpDelta < 0 ? "loss" : "tie",
+      _room_id: room.id, _details: { result } as any,
+    });
+    return { hand: newHand, outcome: result, payout: payAmount, delta: vpDelta };
+
   });
 
 export const VP_PAYTABLE = VP_PAY;
