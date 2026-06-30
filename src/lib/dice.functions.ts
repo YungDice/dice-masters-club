@@ -265,7 +265,14 @@ export const playBlackjack = createServerFn({ method: "POST" })
         _source: "blackjack", _ref_kind: "blackjack", _ref_id: null as any, _note: outcome,
       });
     }
-    return { player, dealer, outcome, delta: payout - data.bet, playerScore: p, dealerScore: dl };
+    const bjDelta = payout - data.bet;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "blackjack", _delta: bjDelta,
+      _outcome: outcome === "push" ? "tie" : outcome,
+      _room_id: null, _details: { p, dl } as any,
+    });
+    return { player, dealer, outcome, delta: bjDelta, playerScore: p, dealerScore: dl };
+
   });
 
 // ---------- Split-or-Steal PvP ----------
