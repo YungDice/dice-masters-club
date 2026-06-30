@@ -165,8 +165,6 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
 // known the coin is flipped and the room resolves.
 export const pickCoinFlipSide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-export const pickCoinFlipSide = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((d: { roomId: string; side: "heads" | "tails" }) =>
     z.object({ roomId: z.string().uuid(), side: z.enum(["heads", "tails"]) }).parse(d))
   .handler(async ({ data, context }) => {
