@@ -44,6 +44,20 @@ function UProfile() {
       return data ?? [];
     },
   });
+  const rankStats = useQuery({
+    queryKey: ["u-rank", prof.data?.id],
+    enabled: !!prof.data?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", prof.data!.id).limit(1000);
+      const rows = data ?? [];
+      const wins = rows.filter((r: any) => r.outcome === "win").length;
+      const losses = rows.filter((r: any) => r.outcome === "loss").length;
+      const total = wins + losses;
+      const ratio = total > 0 ? wins / total : 0;
+      return { wins, losses, total, ratio };
+    },
+  });
+
 
   const friendship = useQuery({
     queryKey: ["friendship", user?.id, prof.data?.id],
