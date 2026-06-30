@@ -270,9 +270,14 @@ function Page() {
             </div>
             <div className="flex items-center gap-3">
               <DiceBadge size="lg" amount={CASE_COST} />
-              <Button onClick={openCase} disabled={rolling || count >= cap} className="glow-red">
-                {rolling ? "Rolling…" : count >= cap ? <><Lock className="size-4 mr-1" />Base full</> : "Open case"}
-              </Button>
+              {(() => {
+                const blocked = count >= cap && !(isVip && autosellList.length > 0);
+                return (
+                  <Button onClick={openCase} disabled={rolling || blocked} className="glow-red">
+                    {rolling ? "Rolling…" : blocked ? <><Lock className="size-4 mr-1" />Base full</> : "Open case"}
+                  </Button>
+                );
+              })()}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
               Base capacity: <b>{cap}</b> / 10 {isVip ? "(VIP base 4)" : "(non-VIP base 2 — upgrade to VIP for 4)"} · Buy more slots in your Base.
