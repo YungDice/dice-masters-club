@@ -113,8 +113,16 @@ export const bjDeal = createServerFn({ method: "POST" })
     if (error) throw error;
     // Persist secret deck + true dealer hand
     await savePrivate(supabaseAdmin, room.id, { deck, dealerHole: dealer[1], hand: player });
+    if (status === "finished" && outcome) {
+      await supabaseAdmin.rpc("record_game_result" as any, {
+        _uid: context.userId, _kind: "blackjack", _delta: delta,
+        _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
+        _room_id: room.id, _details: { initial: true } as any,
+      });
+    }
     return { roomId: room.id, ...publicState };
   });
+
 
 export const bjAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
