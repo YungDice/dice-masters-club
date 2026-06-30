@@ -69,12 +69,17 @@ function Reel({
       />
       <div
         className="will-change-transform"
-        style={{
-          transform: `translate3d(0, ${spinning ? spinY : finalY}px, 0)`,
-          transition: spinning
-            ? "transform 0.001s linear"
-            : `transform ${1.4 + stopDelayMs / 1000}s cubic-bezier(0.08,0.82,0.17,1) ${stopDelayMs / 1000}s`,
-        }}
+        style={
+          spinning
+            ? {
+                transform: `translate3d(0, ${spinY}px, 0)`,
+                animation: "slot-spin 0.45s linear infinite",
+              }
+            : {
+                transform: `translate3d(0, ${finalY}px, 0)`,
+                transition: `transform ${1.4 + stopDelayMs / 1000}s cubic-bezier(0.08,0.82,0.17,1) ${stopDelayMs / 1000}s`,
+              }
+        }
       >
         {strip.map((s, i) => (
           <div
@@ -86,6 +91,7 @@ function Reel({
           </div>
         ))}
       </div>
+      <style>{`@keyframes slot-spin { from { transform: translate3d(0, ${spinY}px, 0); } to { transform: translate3d(0, ${spinY - ROW_H * 4}px, 0); } }`}</style>
     </div>
   );
 }
