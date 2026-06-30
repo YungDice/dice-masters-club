@@ -962,7 +962,14 @@ export const coinFlipBot = createServerFn({ method: "POST" })
         _source: "coinflip_bot", _ref_kind: "coinflip", _ref_id: null as any, _note: "Win vs Bot",
       });
     }
-    return { flip, won, delta: won ? stake : -stake };
+    const cfbDelta = won ? stake : -stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: context.userId, _kind: "coinflip", _delta: cfbDelta,
+      _outcome: won ? "win" : "loss",
+      _room_id: null, _details: { flip, vs: "bot" } as any,
+    });
+    return { flip, won, delta: cfbDelta };
+
   });
 
 // ---------- Bot: Split or Steal vs Bot ----------
