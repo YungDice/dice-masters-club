@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { MessageSquare, Camera, ArrowLeft } from "lucide-react";
+import { MessageSquare, Camera, ArrowLeft, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useMyRoles } from "@/hooks/use-profile";
+import { adminDeleteChallenge } from "@/lib/dice.functions";
 import { AppShell } from "@/components/dice/TopNav";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { Button } from "@/components/ui/button";
