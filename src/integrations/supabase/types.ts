@@ -720,7 +720,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["game_kind"]
           outcome: string | null
           payout: number
-          room_id: string
+          room_id: string | null
           user_id: string
           wagered: number
         }
@@ -732,7 +732,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
           payout?: number
-          room_id: string
+          room_id?: string | null
           user_id: string
           wagered?: number
         }
@@ -744,7 +744,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["game_kind"]
           outcome?: string | null
           payout?: number
-          room_id?: string
+          room_id?: string | null
           user_id?: string
           wagered?: number
         }
