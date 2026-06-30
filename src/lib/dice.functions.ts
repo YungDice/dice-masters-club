@@ -505,37 +505,52 @@ export const claimTag = createServerFn({ method: "POST" })
 // ---------- List my tag for sale (fixed or auction) ----------
 export const listTagForSale = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { price: number; sale_type: "fixed" | "auction"; duration_hours?: number }) =>
+  .inputValidator((d: { tag?: string; price: number; sale_type: "fixed" | "auction"; duration_hours?: number }) =>
     z.object({
+      tag: z.string().regex(/^[A-Za-z0-9]{2,6}$/).optional(),
       price: z.number().int().min(100).max(1_000_000),
       sale_type: z.enum(["fixed", "auction"]),
       duration_hours: z.number().int().min(1).max(168).optional(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: me } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
-    if (!me?.tag) throw new Error("You don't own a tag");
+    // Pick the tag to list: explicit or the user's active tag.
+    let tagToList = data.tag ?? null;
+    if (!tagToList) {
+      const { data: me } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
+      tagToList = me?.tag ?? null;
+    }
+    if (!tagToList) throw new Error("You don't own a tag");
+
+    // Verify ownership via profile_tags
+    const { data: owned } = await supabaseAdmin.from("profile_tags" as any).select("tag").eq("user_id", context.userId).eq("tag", tagToList).maybeSingle();
+    if (!owned) throw new Error("You don't own that tag");
+
+    // Block duplicate active listing for the same tag
+    const { data: dupe } = await supabaseAdmin.from("marketplace_listings")
+      .select("id").eq("seller_id", context.userId).eq("category", "tag")
+      .eq("tag_value", tagToList).eq("status", "active").maybeSingle();
+    if (dupe) throw new Error("This tag is already listed");
+
     const ends = data.sale_type === "auction"
       ? new Date(Date.now() + (data.duration_hours ?? 24) * 3600_000).toISOString()
       : null;
-    await supabaseAdmin.from("profiles").update({ tag: null }).eq("id", context.userId);
+
+    // IMPORTANT: tag stays attached to seller. buy_listing_tx / settle_auction_tx move ownership on purchase.
     const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
       seller_id: context.userId,
-      title: `Tag #${me.tag}`,
-      description: `Discord-style user tag #${me.tag}.`,
+      title: `Tag #${tagToList}`,
+      description: `Discord-style user tag #${tagToList}.`,
       category: "tag",
       price: data.price,
-      tag_value: me.tag,
+      tag_value: tagToList,
       sale_type: data.sale_type,
       auction_ends_at: ends,
       min_bid: data.sale_type === "auction" ? data.price : null,
       ownership_confirmed: true,
       status: "active",
     }).select().single();
-    if (error) {
-      await supabaseAdmin.from("profiles").update({ tag: me.tag }).eq("id", context.userId);
-      throw error;
-    }
+    if (error) throw error;
     return { ok: true, id: listing!.id };
   });
 
