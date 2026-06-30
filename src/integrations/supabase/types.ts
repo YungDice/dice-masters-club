@@ -48,7 +48,8 @@ export type Database = {
           id: string
           kind: string
           link: string | null
-          title: string
+          payload: Json
+          title: string | null
           user_id: string
           visibility: string
         }
@@ -58,7 +59,8 @@ export type Database = {
           id?: string
           kind: string
           link?: string | null
-          title: string
+          payload?: Json
+          title?: string | null
           user_id: string
           visibility?: string
         }
@@ -68,7 +70,8 @@ export type Database = {
           id?: string
           kind?: string
           link?: string | null
-          title?: string
+          payload?: Json
+          title?: string | null
           user_id?: string
           visibility?: string
         }
