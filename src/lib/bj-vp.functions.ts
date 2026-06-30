@@ -462,6 +462,12 @@ async function mbjResolve(adm: any, room: any, s: any) {
       body: `Hand ${ps} vs Dealer ${ds} · ${seat.delta >= 0 ? "+" : ""}${seat.delta} DICE`,
       link: `/play/blackjack`,
     });
+    await adm.rpc("record_game_result", {
+      _uid: seat.userId, _kind: "blackjack", _delta: seat.delta,
+      _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
+      _room_id: room.id, _details: { ps, ds, mp: true },
+    });
+
   }
   s.phase = "finished";
 }
