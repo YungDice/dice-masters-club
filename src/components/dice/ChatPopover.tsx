@@ -96,6 +96,15 @@ export function ChatPopover() {
   useEffect(() => { if (open) markRead(); }, [open, markRead]);
   useEffect(() => () => { markRead(); }, [markRead]);
 
+  // Always scroll to latest when the popover opens or new messages arrive
+  useEffect(() => {
+    if (!open) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    // Defer to next frame so the list has rendered
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  }, [open, q.data]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
