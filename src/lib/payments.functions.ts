@@ -6,6 +6,21 @@ type CheckoutResult = { clientSecret: string } | { error: string };
 
 // 1 unit of currency = 1,000 DICE. Min 1 unit = 1,000 DICE, max 500 units = 500,000 DICE per purchase.
 export const DICE_PER_UNIT = 1000;
+
+const ALLOWED_RETURN_HOSTS = [
+  "lovable.app", "lovable.dev", "localhost", "127.0.0.1",
+];
+
+function assertSafeReturnUrl(returnUrl: string) {
+  let u: URL;
+  try { u = new URL(returnUrl); } catch { throw new Error("Invalid return URL"); }
+  if (u.protocol !== "https:" && u.hostname !== "localhost" && u.hostname !== "127.0.0.1") {
+    throw new Error("Return URL must use https");
+  }
+  const ok = ALLOWED_RETURN_HOSTS.some((h) => u.hostname === h || u.hostname.endsWith("." + h));
+  if (!ok) throw new Error("Return URL host not allowed");
+}
+
 export const createDiceCoinsCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: {
@@ -18,6 +33,7 @@ export const createDiceCoinsCheckout = createServerFn({ method: "POST" })
       throw new Error("Amount must be 1–500");
     }
     if (!["chf", "eur", "usd"].includes(data.currency)) throw new Error("Invalid currency");
+    assertSafeReturnUrl(data.returnUrl);
     return data;
   })
   .handler(async ({ data, context }): Promise<CheckoutResult> => {
