@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, Plus, ShoppingBag, Heart, Gavel, Hash } from "lucide-react";
+import { Search, Plus, ShoppingBag, Gavel, Hash, AtSign } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,6 +84,8 @@ function Mkt() {
                 <div className="aspect-square bg-gradient-to-br from-black/60 to-black/20 grid place-items-center overflow-hidden">
                   {l.category === "tag"
                     ? <div className="text-4xl font-mono font-bold text-primary flex items-center"><Hash className="size-7" />{l.tag_value}</div>
+                    : l.category === "username"
+                    ? <div className="text-3xl font-mono font-bold text-primary flex items-center"><AtSign className="size-6" />{l.username_value}</div>
                     : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
                 </div>
               </Link>
