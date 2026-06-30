@@ -187,11 +187,18 @@ function UProfile() {
                   <div className={`font-display text-2xl font-bold ${tier.color}`}>{tier.name}</div>
                 </div>
               </div>
-              <div className="flex gap-4 text-sm">
+              <div className="flex flex-wrap gap-4 text-sm">
                 <div className="text-center"><div className="text-emerald-400 font-bold text-lg">{rs.wins}</div><div className="text-xs text-muted-foreground">Wins</div></div>
                 <div className="text-center"><div className="text-destructive font-bold text-lg">{rs.losses}</div><div className="text-xs text-muted-foreground">Losses</div></div>
-                <div className="text-center"><div className="font-bold text-lg flex items-center gap-1"><Swords className="size-4 text-primary" />{Math.round(rs.ratio * 100)}%</div><div className="text-xs text-muted-foreground">W/L</div></div>
+                {rs.draws ? <div className="text-center"><div className="font-bold text-lg">{rs.draws}</div><div className="text-xs text-muted-foreground">Draws</div></div> : null}
+                <div className="text-center"><div className="font-bold text-lg flex items-center gap-1"><Swords className="size-4 text-primary" />{rs.losses === 0 ? (rs.wins ? "∞" : "—") : rs.ratio.toFixed(2)}</div><div className="text-xs text-muted-foreground">W/L</div></div>
+                <div className="text-center"><div className="font-bold text-lg">{fmt(rs.wagered)}</div><div className="text-xs text-muted-foreground">Wagered</div></div>
               </div>
+            </div>
+          </Card>
+        );
+      })()}
+
             </div>
           </Card>
         );
