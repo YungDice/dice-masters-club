@@ -327,6 +327,14 @@ function Page() {
       <Dialog open={baseOpen} onOpenChange={setBaseOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Your Baddie Base ({count}/{cap})</DialogTitle></DialogHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-white/5 px-3 py-2">
+            <div className="text-xs text-muted-foreground">
+              Base: <b>{isVip ? 4 : 2}</b> · Bought: <b>{slotsBought}</b> · Max <b>10</b>
+            </div>
+            <Button size="sm" variant="outline" onClick={buySlot} disabled={cap >= 10}>
+              {cap >= 10 ? "Max slots" : "Buy +1 slot · 25,000 DICE"}
+            </Button>
+          </div>
           {count === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty base" description="Open a case to recruit your first Baddie." />
           ) : (
