@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, PackageOpen, Coins, Lock } from "lucide-react";
+import { Sparkles, PackageOpen, Coins, Lock, Crown } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-profile";
@@ -122,18 +123,19 @@ function Page() {
   );
   const count = (baddies.data ?? []).length;
 
+  const autosellList: string[] = (prof.data as any)?.autosell_rarities ?? [];
+
   async function openCase() {
     if (!user || rolling) return;
-    if (count >= cap) { toast.error(`Baddie Base full (${count}/${cap})`); return; }
+    const baseFullNoAutosell = count >= cap && !(isVip && autosellList.length > 0);
+    if (baseFullNoAutosell) { toast.error(`Baddie Base full (${count}/${cap})`); return; }
     setRolling(true);
     setReveal(null);
     try {
-      // Decide result on the server FIRST.
       const { data, error } = await supabase.rpc("open_baddie_case_tx" as any);
       if (error) throw error;
       const row: any = Array.isArray(data) ? data[0] : data;
 
-      // Find the full template for the winning result (for weight/etc.)
       const winningTpl = (templates.data ?? []).find((t: any) => t.id === row.template_id) ?? {
         id: row.template_id, name: row.name, rarity: row.rarity,
         income_per_hour: row.income_per_hour, image_url: row.image_url, weight: 1,
@@ -143,7 +145,6 @@ function Page() {
       setTransition("none");
       setOffset(0);
 
-      // Trigger animation on next frame
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const viewport = reelViewportRef.current;
@@ -151,15 +152,17 @@ function Page() {
           const centerOffset = vpW / 2 - CARD_W / 2;
           const winIndex = (newReel as any).__winIndex ?? (newReel.length - 12);
           const target = winIndex * CARD_TOTAL - centerOffset
-            + (Math.random() * 40 - 20); // tiny jitter
+            + (Math.random() * 40 - 20);
           setTransition("transform 5.2s cubic-bezier(0.08, 0.82, 0.17, 1)");
           setOffset(-target);
         });
       });
 
-      // Settle after the CSS transition completes
       setTimeout(() => {
         setReveal(row);
+        if (row?.autosold) {
+          toast.success(`Autosold ${row.name} for +${fmt(row.sell_price ?? 0)} DICE`);
+        }
         qc.invalidateQueries({ queryKey: ["my-baddies"] });
         qc.invalidateQueries({ queryKey: ["wallet"] });
         setRolling(false);
@@ -172,6 +175,16 @@ function Page() {
       setReel(null);
     }
   }
+
+  async function toggleAutosell(rarity: string, on: boolean) {
+    const next = on ? Array.from(new Set([...autosellList, rarity])) : autosellList.filter((r) => r !== rarity);
+    try {
+      const { error } = await supabase.rpc("set_autosell_rarities" as any, { _rarities: next });
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to update autosell"); }
+  }
+
 
   async function collect(id: string) {
     try {
