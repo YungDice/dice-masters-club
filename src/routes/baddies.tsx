@@ -148,7 +148,7 @@ function Page() {
           const viewport = reelViewportRef.current;
           const vpW = viewport?.clientWidth ?? 600;
           const centerOffset = vpW / 2 - CARD_W / 2;
-          const winIndex = newReel.length - 1;
+          const winIndex = (newReel as any).__winIndex ?? (newReel.length - 12);
           const target = winIndex * CARD_TOTAL - centerOffset
             + (Math.random() * 40 - 20); // tiny jitter
           setTransition("transform 5.2s cubic-bezier(0.08, 0.82, 0.17, 1)");
