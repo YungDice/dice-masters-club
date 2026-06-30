@@ -418,14 +418,27 @@ function Dashboard() {
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Users className="size-4 text-primary" /> Friend activity</h2>
         <ul className="space-y-2 text-sm">
-          {(feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">Nothing yet — add friends to see their wins.</li>}
-          {(feed.data ?? []).map((a: any) => (
-            <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
-              <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
-              <div className="flex-1 min-w-0"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{a.title}</span></div>
-              <span className="text-xs text-muted-foreground shrink-0">{timeAgo(a.created_at)}</span>
-            </li>
-          ))}
+          {friendIds.isLoading && <li className="text-muted-foreground text-xs">Loading…</li>}
+          {!friendIds.isLoading && (friendIds.data?.length ?? 0) === 0 && <li className="text-muted-foreground text-xs">Add friends to see their activity here.</li>}
+          {(friendIds.data?.length ?? 0) > 0 && (feed.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No friend activity yet.</li>}
+          {(feed.data ?? []).map((a: any) => {
+            const p = a.payload ?? {};
+            let label = a.title ?? a.kind;
+            if (a.kind === "game_result") label = `played ${p.game ?? "a game"} — ${p.outcome ?? ""} (${p.delta > 0 ? "+" : ""}${fmt(p.delta ?? 0)})`;
+            else if (a.kind === "baddie_unlocked") label = `unboxed ${p.rarity ?? ""} Baddie ${p.name ?? ""}`;
+            else if (a.kind === "baddie_income") label = `collected ${fmt(p.amount ?? 0)} DICE from a Baddie`;
+            else if (a.kind === "marketplace_buy") label = `bought "${p.title ?? "an item"}" for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "marketplace_sell") label = `sold "${p.title ?? "an item"}" for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "auction_won") label = `won an auction for ${fmt(p.price ?? 0)} DICE`;
+            else if (a.kind === "achievement") label = `earned achievement ${p.achievement ?? ""}`;
+            return (
+              <li key={a.id} className="flex items-center gap-3 rounded-md bg-white/5 px-3 py-2">
+                <Avatar className="size-7"><AvatarImage src={a.profiles?.avatar_url} /><AvatarFallback>{a.profiles?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
+                <div className="flex-1 min-w-0 text-sm truncate"><span className="font-medium">{a.profiles?.display_name}</span> <span className="text-muted-foreground">{label}</span></div>
+                <span className="text-xs text-muted-foreground shrink-0">{timeAgo(a.created_at)}</span>
+              </li>
+            );
+          })}
         </ul>
       </Card>
     </div>
