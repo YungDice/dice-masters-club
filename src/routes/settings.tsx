@@ -313,7 +313,7 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
     enabled: !!profile?.id,
     queryFn: async () => {
       const { data } = await supabase.from("profile_tags" as any).select("tag,acquired_at").eq("user_id", profile.id).order("acquired_at");
-      return (data ?? []) as Array<{ tag: string; acquired_at: string }>;
+      return ((data ?? []) as unknown) as Array<{ tag: string; acquired_at: string }>;
     },
   });
 
