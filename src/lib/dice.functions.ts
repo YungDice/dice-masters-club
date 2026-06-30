@@ -348,12 +348,13 @@ export const choiceSplitSteal = createServerFn({ method: "POST" })
     else if (ac === "steal" && bc === "split") { outcome = "a_steals"; aPay = pot; }
     else if (ac === "split" && bc === "steal") { outcome = "b_steals"; bPay = pot; }
     else { outcome = "both_steal"; }
+    // Atomically transition active -> finished so concurrent submitters cannot double-pay.
+    const { data: claimedSS } = await supabaseAdmin.from("game_rooms").update({
+      status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
+    }).eq("id", data.roomId).eq("status", "active").select("id");
+    if (!claimedSS || claimedSS.length === 0) return { waiting: false, outcome, aPay: 0, bPay: 0, alreadyResolved: true };
     if (aPay > 0) await supabaseAdmin.rpc("wallet_adjust", { _user: a.user_id, _delta: aPay, _type: "game_payout", _source: "split_steal", _ref_kind: "split_steal", _ref_id: data.roomId, _note: outcome });
     if (bPay > 0) await supabaseAdmin.rpc("wallet_adjust", { _user: b.user_id, _delta: bPay, _type: "game_payout", _source: "split_steal", _ref_kind: "split_steal", _ref_id: data.roomId, _note: outcome });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
-    }).eq("id", data.roomId);
-    const stake = (room!.stake as number);
     const aDelta = aPay - stake, bDelta = bPay - stake;
     await supabaseAdmin.rpc("record_game_result" as any, {
       _uid: a.user_id, _kind: "split_steal", _delta: aDelta,
