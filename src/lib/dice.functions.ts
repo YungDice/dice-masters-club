@@ -347,8 +347,21 @@ export const choiceSplitSteal = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_rooms").update({
       status: "finished", state: { ...(room!.state as any), outcome }, finished_at: new Date().toISOString(),
     }).eq("id", data.roomId);
+    const stake = (room!.stake as number);
+    const aDelta = aPay - stake, bDelta = bPay - stake;
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: a.user_id, _kind: "split_steal", _delta: aDelta,
+      _outcome: aDelta > 0 ? "win" : aDelta < 0 ? "loss" : "tie",
+      _room_id: data.roomId, _details: { outcome, choice: ac } as any,
+    });
+    await supabaseAdmin.rpc("record_game_result" as any, {
+      _uid: b.user_id, _kind: "split_steal", _delta: bDelta,
+      _outcome: bDelta > 0 ? "win" : bDelta < 0 ? "loss" : "tie",
+      _room_id: data.roomId, _details: { outcome, choice: bc } as any,
+    });
     return { waiting: false, outcome, aPay, bPay };
   });
+
 
 // ---------- Dice PvP room ----------
 export const createDiceRoom = createServerFn({ method: "POST" })
