@@ -143,6 +143,18 @@ function Detail() {
           <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
         </div>
 
+        <div className="mt-5 flex gap-2 flex-wrap">
+          <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
+          {isMod && (
+            <Button variant="destructive" onClick={async () => {
+              const reason = window.prompt("Reason for removing this challenge? (creator will be refunded)") ?? "";
+              if (reason === null) return;
+              try { await modDelete({ data: { challengeId: id, reason } }); toast.success("Challenge removed and refunded"); navigate({ to: "/challenges" }); }
+              catch (e: any) { toast.error(e.message); }
+            }}><ShieldAlert className="size-4 mr-1" />Remove (mod)</Button>
+          )}
+        </div>
+
         {c.creator && <div className="mt-4 text-xs text-muted-foreground">Created by @{c.creator.username}</div>}
       </Card>
 
