@@ -1380,6 +1380,8 @@ export type Database = {
         | "blackjack"
         | "slots"
         | "split_steal"
+        | "flappy"
+        | "obby"
       listing_status:
         | "draft"
         | "pending_review"
@@ -1596,6 +1598,8 @@ export const Constants = {
         "blackjack",
         "slots",
         "split_steal",
+        "flappy",
+        "obby",
       ],
       listing_status: [
         "draft",
