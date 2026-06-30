@@ -13,9 +13,8 @@ import {
   Images,
   Music2,
   Settings as SettingsIcon,
-  PackageOpen,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { DiceLogo } from "./Logo";
@@ -44,7 +43,6 @@ const items: NavItem[] = [
   { to: "/", label: "Home", icon: Home, exact: true, group: "main" },
   { to: "/play", label: "Play", icon: Gamepad2, group: "main" },
   { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
-  { to: "/cases", label: "Cases", icon: PackageOpen, group: "main" },
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
@@ -62,17 +60,8 @@ export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Idle XP heartbeat
   useIdleXp();
-
-  // A lightweight heartbeat powers friends' online/recently-active indicators and
-  // also applies a daily streak exactly once per UTC day.
-  useEffect(() => {
-    if (!user) return;
-    const touch = () => { void (supabase as any).rpc("touch_presence"); };
-    touch();
-    const timer = window.setInterval(touch, 60_000);
-    return () => window.clearInterval(timer);
-  }, [user?.id]);
 
   const initials =
     profile?.display_name?.[0]?.toUpperCase() ??
@@ -94,16 +83,20 @@ export function TopNav() {
       style={{ borderBottom: "1px solid rgba(201,168,76,0.18)" }}
     >
       <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4">
-        <Link to="/" className="flex items-center shrink-0"><DiceLogo /></Link>
+        {/* Left: logo */}
+        <Link to="/" className="flex items-center shrink-0">
+          <DiceLogo />
+        </Link>
 
+        {/* Center: nav pills (desktop) */}
         <nav className="hidden md:flex justify-center">
           <div className="flex items-center gap-0.5 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/5">
             {items.map((it) => {
               const active = isActive(it.to, it.exact);
               return (
-                <a
+                <Link
                   key={it.to}
-                  href={it.to}
+                  to={it.to}
                   className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                     active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
                   }`}
@@ -119,18 +112,26 @@ export function TopNav() {
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="relative inline-flex items-center gap-1.5"><it.icon className="size-3.5" /> {it.label}</span>
-                </a>
+                  <span className="relative inline-flex items-center gap-1.5">
+                    <it.icon className="size-3.5" /> {it.label}
+                  </span>
+                </Link>
               );
             })}
             {isStaff && (
-              <Link to="/admin" className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${isActive("/admin") ? "text-neon" : "text-neon/80 hover:text-neon"}`}>
+              <Link
+                to="/admin"
+                className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                  isActive("/admin") ? "text-neon" : "text-neon/80 hover:text-neon"
+                }`}
+              >
                 <Shield className="size-3.5" /> Admin
               </Link>
             )}
           </div>
         </nav>
 
+        {/* Right: balance + chat + notifs + avatar */}
         <div className="flex items-center gap-1.5 justify-end">
           <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
           <ChatPopover />
@@ -138,44 +139,79 @@ export function TopNav() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
-                <Avatar className="size-8 ring-1 ring-amber-400/40"><AvatarImage src={profile?.avatar_url ?? undefined} /><AvatarFallback>{initials}</AvatarFallback></Avatar>
-                <span className="hidden lg:inline text-sm font-medium max-w-[120px] truncate">{profile?.display_name ?? profile?.username ?? "Account"}</span>
+                <Avatar className="size-8 ring-1 ring-amber-400/40">
+                  <AvatarImage src={profile?.avatar_url ?? undefined} />
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <span className="hidden lg:inline text-sm font-medium max-w-[120px] truncate">
+                  {profile?.display_name ?? profile?.username ?? "Account"}
+                </span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
               <DropdownMenuLabel className="truncate">
-                <div className="font-semibold truncate">{profile?.display_name ?? "Account"}{profile?.tag && <span className="text-primary font-mono">#{profile.tag}</span>}</div>
-                <div className="text-xs text-muted-foreground font-mono truncate">{profile ? handle(profile) : (user?.email ?? "")}</div>
+                <div className="font-semibold truncate">
+                  {profile?.display_name ?? "Account"}
+                  {profile?.tag && <span className="text-primary font-mono">#{profile.tag}</span>}
+                </div>
+                <div className="text-xs text-muted-foreground font-mono truncate">
+                  {profile ? handle(profile) : (user?.email ?? "")}
+                </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <div className="px-2 py-1.5 sm:hidden"><DiceBadge amount={wallet?.balance ?? 0} /></div>
+              <div className="px-2 py-1.5 sm:hidden">
+                <DiceBadge amount={wallet?.balance ?? 0} />
+              </div>
               <DropdownMenuSeparator className="sm:hidden" />
               <DropdownMenuItem asChild><Link to="/profile"><UserIcon className="mr-2 size-4" />Profile</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/settings"><SettingsIcon className="mr-2 size-4" />Settings</Link></DropdownMenuItem>
               {isStaff && <DropdownMenuItem asChild><Link to="/admin"><Shield className="mr-2 size-4" />Admin</Link></DropdownMenuItem>}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive"><LogOut className="mr-2 size-4" />Sign out</DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut} className="text-destructive">
+                <LogOut className="mr-2 size-4" />Sign out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild><button className="grid size-9 place-items-center rounded-md hover:bg-white/5 md:hidden" aria-label="Open menu"><Menu className="size-5" /></button></SheetTrigger>
+            <SheetTrigger asChild>
+              <button
+                className="grid size-9 place-items-center rounded-md hover:bg-white/5 md:hidden"
+                aria-label="Open menu"
+              >
+                <Menu className="size-5" />
+              </button>
+            </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader><SheetTitle>Menu</SheetTitle></SheetHeader>
               <div className="mt-4 space-y-5">
                 {(["main", "social", "market"] as const).map((g) => (
                   <div key={g}>
-                    <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5">{g === "main" ? "Play" : g === "social" ? "Social" : "Market"}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5">
+                      {g === "main" ? "Play" : g === "social" ? "Social" : "Market"}
+                    </div>
                     <div className="space-y-0.5">
                       {items.filter((i) => i.group === g).map((it) => (
-                        <a key={it.to} href={it.to} onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"}`}>
+                        <Link
+                          key={it.to}
+                          to={it.to}
+                          onClick={() => setMobileOpen(false)}
+                          className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
+                            isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
+                          }`}
+                        >
                           <it.icon className="size-4" /> {it.label}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </div>
                 ))}
-                {isStaff && <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-neon hover:bg-neon/10"><Shield className="size-4" /> Admin</Link>}
+                {isStaff && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-neon hover:bg-neon/10">
+                    <Shield className="size-4" /> Admin
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>
@@ -192,7 +228,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
     return null;
   }
-  return <div className="min-h-screen"><TopNav /><main className="mx-auto max-w-7xl px-4 py-6">{children}</main></div>;
+  return (
+    <div className="min-h-screen">
+      <TopNav />
+      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+    </div>
+  );
 }
 
 export function _useButton() { return Button; }
