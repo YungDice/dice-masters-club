@@ -165,6 +165,8 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
 // known the coin is flipped and the room resolves.
 export const pickCoinFlipSide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+export const pickCoinFlipSide = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: { roomId: string; side: "heads" | "tails" }) =>
     z.object({ roomId: z.string().uuid(), side: z.enum(["heads", "tails"]) }).parse(d))
   .handler(async ({ data, context }) => {
@@ -183,21 +185,22 @@ export const pickCoinFlipSide = createServerFn({ method: "POST" })
       host_pick: isHost ? data.side : (state.host_pick ?? other),
       joiner_pick: isHost ? (state.joiner_pick ?? other) : data.side,
     };
-    // Resolve
     const flip = cryptoRandFloat() < 0.5 ? "heads" : "tails";
     const hostWon = next.host_pick === flip;
     const pot = room.stake * 2;
     const winnerId = hostWon ? room.host_id : state.joiner_id;
     const loserId = hostWon ? state.joiner_id : room.host_id;
+    // Atomically resolve the room: only the first concurrent caller wins the transition.
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({
+      status: "finished", winner_id: winnerId,
+      state: { ...next, flip },
+      finished_at: new Date().toISOString(),
+    }).eq("id", room.id).eq("status", "active").select("id");
+    if (!claimed || claimed.length === 0) throw new Error("Room already resolved");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: winnerId, _delta: pot, _type: "game_win",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Coin flip win",
     });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "finished", winner_id: winnerId,
-      state: { ...next, flip },
-      finished_at: new Date().toISOString(),
-    }).eq("id", room.id);
     await supabaseAdmin.from("game_results").insert([
       { room_id: room.id, user_id: winnerId, kind: "coinflip", delta: room.stake, outcome: "win", details: { flip } },
       { room_id: room.id, user_id: loserId, kind: "coinflip", delta: -room.stake, outcome: "loss", details: { flip } },
