@@ -142,6 +142,8 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
       </Card>
 
       <BannerCard user={user} profile={profile} refetch={refetch} qc={qc} />
+      <ProfileBgCard user={user} profile={profile} refetch={refetch} qc={qc} />
+
 
 
       <Card className="glass p-6 space-y-4">
