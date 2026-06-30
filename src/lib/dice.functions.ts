@@ -401,6 +401,10 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Not joinable");
     if (room.host_id === context.userId) throw new Error("Own room");
+    // Atomically transition waiting -> active so concurrent joins cannot both pass the guard.
+    const { data: claimedD } = await supabaseAdmin.from("game_rooms").update({ status: "active" })
+      .eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimedD || claimedD.length === 0) throw new Error("Room no longer joinable");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "dice_pvp", _ref_kind: "dice", _ref_id: room.id, _note: "Escrow",
