@@ -145,6 +145,12 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Room not joinable");
     if (room.host_id === context.userId) throw new Error("Can't join your own room");
+    // Atomically claim the room: only one concurrent join can transition waiting -> active
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({
+      status: "active",
+      state: { ...(room.state as any), joiner_id: context.userId },
+    }).eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimed || claimed.length === 0) throw new Error("Room no longer joinable");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Escrow",
@@ -152,10 +158,6 @@ export const joinCoinFlip = createServerFn({ method: "POST" })
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
-    await supabaseAdmin.from("game_rooms").update({
-      status: "active",
-      state: { ...(room.state as any), joiner_id: context.userId },
-    }).eq("id", room.id);
     return { ok: true, roomId: room.id };
   });
 
