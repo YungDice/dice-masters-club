@@ -133,10 +133,11 @@ function UProfile() {
         )}
         <div className="p-6">
           <div className="flex flex-wrap items-center gap-5">
-            <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback></Avatar>
+            <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{dn[0]?.toUpperCase() ?? "?"}</AvatarFallback></Avatar>
             <div className="flex-1">
               <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-                <span>{p.display_name}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</span>
+                <span>{dn}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</span>
+
                 <span className={`inline-flex items-center gap-1 text-xs font-normal ${isOnline ? "text-emerald-400" : "text-muted-foreground"}`}>
                   <Circle className={`size-2 ${isOnline ? "fill-emerald-400 text-emerald-400" : "fill-muted-foreground/50 text-muted-foreground/50"}`} />
                   {isOnline ? "Online" : (p as any).last_seen_at ? `Last seen ${timeAgo((p as any).last_seen_at)}` : "Offline"}
