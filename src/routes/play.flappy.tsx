@@ -86,13 +86,18 @@ function FlappyGame() {
     if (status !== "playing") return;
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
-    let raf = 0; let alive = true;
-    const loop = () => {
+    let raf = 0; let alive = true; let lastT = performance.now();
+    const loop = (t: number) => {
       if (!alive) return;
+      // Fixed-step physics: 60Hz baseline regardless of monitor refresh.
+      // dt is in 60Hz "frames" so velocity/gravity constants stay tuned for 60fps.
+      let dt = (t - lastT) / (1000 / 60);
+      lastT = t;
+      if (dt > 4) dt = 4; // pause/tab switch guard
       const s = stateRef.current;
       s.frame++;
-      s.v += GRAVITY;
-      s.y += s.v;
+      s.v += GRAVITY * dt;
+      s.y += s.v * dt;
 
       // Spawn pipes
       if (s.pipes.length === 0 || s.pipes[s.pipes.length - 1].x < W - PIPE_SPACING) {
@@ -100,7 +105,7 @@ function FlappyGame() {
         s.pipes.push({ x: W + 20, topH, passed: false, idx: s.nextIdx++ });
       }
       // Move + cull pipes
-      for (const p of s.pipes) p.x -= SCROLL_V;
+      for (const p of s.pipes) p.x -= SCROLL_V * dt;
       s.pipes = s.pipes.filter((p) => p.x + PIPE_W > -10);
 
       // Collisions

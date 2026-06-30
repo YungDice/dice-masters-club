@@ -128,7 +128,7 @@ function ObbyGame() {
     if (status !== "playing" || !mapRef.current) return;
     const ctx = canvasRef.current?.getContext("2d"); if (!ctx) return;
     const { map, rows, cols, checkpointsX } = mapRef.current;
-    let raf = 0, alive = true;
+    let raf = 0, alive = true, lastT = performance.now();
 
     function solidAt(tx: number, ty: number) {
       if (ty < 0 || ty >= rows || tx < 0 || tx >= cols) return false;
@@ -139,8 +139,11 @@ function ObbyGame() {
       return map[ty][tx];
     }
 
-    const loop = () => {
+    const loop = (t: number) => {
       if (!alive) return;
+      let dt = (t - lastT) / (1000 / 60);
+      lastT = t;
+      if (dt > 4) dt = 4;
       const p = playerRef.current;
       const k = keysRef.current;
       const left = k["ArrowLeft"] || k["KeyA"];
@@ -149,10 +152,10 @@ function ObbyGame() {
 
       p.vx = (right ? MOVE_V : 0) - (left ? MOVE_V : 0);
       if (jump && p.onGround) { p.vy = JUMP_V; p.onGround = false; }
-      p.vy = Math.min(p.vy + GRAVITY, 14);
+      p.vy = Math.min(p.vy + GRAVITY * dt, 16);
 
       // Horizontal collide
-      p.x += p.vx;
+      p.x += p.vx * dt;
       {
         const tx1 = Math.floor(p.x / TILE), tx2 = Math.floor((p.x + PLAYER_W - 1) / TILE);
         const ty1 = Math.floor(p.y / TILE), ty2 = Math.floor((p.y + PLAYER_H - 1) / TILE);
@@ -162,7 +165,7 @@ function ObbyGame() {
         }
       }
       // Vertical collide
-      p.y += p.vy;
+      p.y += p.vy * dt;
       p.onGround = false;
       {
         const tx1 = Math.floor(p.x / TILE), tx2 = Math.floor((p.x + PLAYER_W - 1) / TILE);
@@ -172,6 +175,7 @@ function ObbyGame() {
           if (solidAt(tx, ty2) && p.vy > 0) { p.y = ty2 * TILE - PLAYER_H; p.vy = 0; p.onGround = true; }
         }
       }
+
 
       // Hazard check (any lava overlap)
       {

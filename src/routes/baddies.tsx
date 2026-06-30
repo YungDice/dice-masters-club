@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, PackageOpen, Coins, Lock } from "lucide-react";
+import { Sparkles, PackageOpen, Coins, Lock, Crown } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-profile";
@@ -122,18 +123,19 @@ function Page() {
   );
   const count = (baddies.data ?? []).length;
 
+  const autosellList: string[] = (prof.data as any)?.autosell_rarities ?? [];
+
   async function openCase() {
     if (!user || rolling) return;
-    if (count >= cap) { toast.error(`Baddie Base full (${count}/${cap})`); return; }
+    const baseFullNoAutosell = count >= cap && !(isVip && autosellList.length > 0);
+    if (baseFullNoAutosell) { toast.error(`Baddie Base full (${count}/${cap})`); return; }
     setRolling(true);
     setReveal(null);
     try {
-      // Decide result on the server FIRST.
       const { data, error } = await supabase.rpc("open_baddie_case_tx" as any);
       if (error) throw error;
       const row: any = Array.isArray(data) ? data[0] : data;
 
-      // Find the full template for the winning result (for weight/etc.)
       const winningTpl = (templates.data ?? []).find((t: any) => t.id === row.template_id) ?? {
         id: row.template_id, name: row.name, rarity: row.rarity,
         income_per_hour: row.income_per_hour, image_url: row.image_url, weight: 1,
@@ -143,7 +145,6 @@ function Page() {
       setTransition("none");
       setOffset(0);
 
-      // Trigger animation on next frame
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const viewport = reelViewportRef.current;
@@ -151,15 +152,17 @@ function Page() {
           const centerOffset = vpW / 2 - CARD_W / 2;
           const winIndex = (newReel as any).__winIndex ?? (newReel.length - 12);
           const target = winIndex * CARD_TOTAL - centerOffset
-            + (Math.random() * 40 - 20); // tiny jitter
+            + (Math.random() * 40 - 20);
           setTransition("transform 5.2s cubic-bezier(0.08, 0.82, 0.17, 1)");
           setOffset(-target);
         });
       });
 
-      // Settle after the CSS transition completes
       setTimeout(() => {
         setReveal(row);
+        if (row?.autosold) {
+          toast.success(`Autosold ${row.name} for +${fmt(row.sell_price ?? 0)} DICE`);
+        }
         qc.invalidateQueries({ queryKey: ["my-baddies"] });
         qc.invalidateQueries({ queryKey: ["wallet"] });
         setRolling(false);
@@ -172,6 +175,16 @@ function Page() {
       setReel(null);
     }
   }
+
+  async function toggleAutosell(rarity: string, on: boolean) {
+    const next = on ? Array.from(new Set([...autosellList, rarity])) : autosellList.filter((r) => r !== rarity);
+    try {
+      const { error } = await supabase.rpc("set_autosell_rarities" as any, { _rarities: next });
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to update autosell"); }
+  }
+
 
   async function collect(id: string) {
     try {
@@ -257,9 +270,14 @@ function Page() {
             </div>
             <div className="flex items-center gap-3">
               <DiceBadge size="lg" amount={CASE_COST} />
-              <Button onClick={openCase} disabled={rolling || count >= cap} className="glow-red">
-                {rolling ? "Rolling…" : count >= cap ? <><Lock className="size-4 mr-1" />Base full</> : "Open case"}
-              </Button>
+              {(() => {
+                const blocked = count >= cap && !(isVip && autosellList.length > 0);
+                return (
+                  <Button onClick={openCase} disabled={rolling || blocked} className="glow-red">
+                    {rolling ? "Rolling…" : blocked ? <><Lock className="size-4 mr-1" />Base full</> : "Open case"}
+                  </Button>
+                );
+              })()}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
               Base capacity: <b>{cap}</b> / 10 {isVip ? "(VIP base 4)" : "(non-VIP base 2 — upgrade to VIP for 4)"} · Buy more slots in your Base.
@@ -335,6 +353,36 @@ function Page() {
               {cap >= 10 ? "Max slots" : "Buy +1 slot · 25,000 DICE"}
             </Button>
           </div>
+
+          {/* VIP Autosell settings */}
+          <div className={`rounded-lg border px-3 py-2 ${isVip ? "border-amber-300/40 bg-amber-300/5" : "border-border/60 bg-white/5 opacity-70"}`}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <Crown className="size-4 text-amber-300" />
+              <div className="text-sm font-semibold">Auto-sell by rarity {isVip ? "" : "(VIP only)"}</div>
+            </div>
+            <div className="text-[11px] text-muted-foreground mb-2">
+              Selected rarities are sold instantly when unboxed for half their hourly income.
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {RARITY_ORDER.map((r) => {
+                const checked = autosellList.includes(r);
+                return (
+                  <label
+                    key={r}
+                    className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs capitalize cursor-pointer ${RARITY_STYLE[r]} ${!isVip ? "pointer-events-none" : ""}`}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={(v) => toggleAutosell(r, !!v)}
+                      disabled={!isVip}
+                    />
+                    {r}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           {count === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty base" description="Open a case to recruit your first Baddie." />
           ) : (
@@ -394,7 +442,7 @@ function Page() {
       {/* Reveal modal */}
       <Dialog open={!!reveal} onOpenChange={(o) => !o && setReveal(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>New Baddie!</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{reveal?.autosold ? "Autosold!" : "New Baddie!"}</DialogTitle></DialogHeader>
           {reveal && (
             <div className={`rounded-xl border bg-gradient-to-br p-6 text-center ${RARITY_STYLE[reveal.rarity] ?? RARITY_STYLE.common}`}>
               {templateImage({ id: reveal.template_id, image_url: reveal.image_url }) ? (
@@ -408,7 +456,11 @@ function Page() {
               )}
               <div className="font-display text-2xl font-bold">{reveal.name}</div>
               <div className="capitalize opacity-80 mb-2">{reveal.rarity}</div>
-              <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>
+              {reveal.autosold ? (
+                <div className="text-sm text-emerald-300 font-bold">+{fmt(reveal.sell_price ?? 0)} DICE (autosold)</div>
+              ) : (
+                <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>
+              )}
             </div>
           )}
         </DialogContent>
