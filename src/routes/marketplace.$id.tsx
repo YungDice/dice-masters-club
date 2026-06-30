@@ -118,6 +118,8 @@ function Detail() {
           <div className="aspect-square rounded-lg bg-black/30 grid place-items-center overflow-hidden">
             {isTag ? (
               <div className="text-5xl font-mono font-bold text-primary">#{l.tag_value}</div>
+            ) : l.category === "username" ? (
+              <div className="text-4xl md:text-5xl font-mono font-bold text-primary flex items-center"><AtSign className="size-8 md:size-10" />{l.username_value}</div>
             ) : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <div className="text-muted-foreground">No preview</div>}
           </div>
           <div className="space-y-3">
