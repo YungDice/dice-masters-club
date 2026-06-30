@@ -198,6 +198,21 @@ function Page() {
     } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
   }
 
+  async function buySlot() {
+    try {
+      const { error } = await supabase.rpc("buy_baddie_slot_tx" as any);
+      if (error) throw error;
+      toast.success("Slot purchased! +1 Baddie capacity");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) {
+      const msg = String(e?.message ?? "");
+      if (/insufficient/i.test(msg)) toast.error("Not enough DICE — slot costs 25,000 DICE.");
+      else if (/max baddie slots/i.test(msg)) toast.error("Maximum 10 baddie slots reached.");
+      else toast.error(msg || "Failed to buy slot");
+    }
+  }
+
   return (
     <div className="space-y-5">
       <PageHeader
