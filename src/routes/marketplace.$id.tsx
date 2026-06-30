@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Heart, Flag, Gavel } from "lucide-react";
+import { ArrowLeft, Heart, Flag, Gavel, AtSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AppShell } from "@/components/dice/TopNav";
@@ -118,6 +118,8 @@ function Detail() {
           <div className="aspect-square rounded-lg bg-black/30 grid place-items-center overflow-hidden">
             {isTag ? (
               <div className="text-5xl font-mono font-bold text-primary">#{l.tag_value}</div>
+            ) : l.category === "username" ? (
+              <div className="text-4xl md:text-5xl font-mono font-bold text-primary flex items-center"><AtSign className="size-8 md:size-10" />{l.username_value}</div>
             ) : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <div className="text-muted-foreground">No preview</div>}
           </div>
           <div className="space-y-3">

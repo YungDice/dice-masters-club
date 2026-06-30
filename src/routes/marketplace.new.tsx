@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useMyRoles } from "@/hooks/use-profile";
+import { useMyProfile } from "@/hooks/use-profile";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,15 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ImagePlus, Gavel, Tag, ArrowLeft, X } from "lucide-react";
+import { ImagePlus, Gavel, Tag as TagIcon, ArrowLeft, X, Hash, AtSign, Package } from "lucide-react";
 import { toast } from "sonner";
+import { listTagForSale, listUsernameForSale } from "@/lib/dice.functions";
 
 export const Route = createFileRoute("/marketplace/new")({
   head: () => ({ meta: [{ title: "List item — DICE" }] }),
   component: () => <AppShell><CreateListing /></AppShell>,
 });
 
-const CATEGORIES = [
+const ITEM_CATEGORIES = [
   { value: "art", label: "🎨 Art" },
   { value: "photo", label: "📷 Photo" },
   { value: "gif", label: "🎞️ GIF" },
@@ -27,14 +29,87 @@ const CATEGORIES = [
   { value: "banner", label: "🖼️ Banner" },
   { value: "template", label: "📋 Template" },
   { value: "cosmetic", label: "💎 Cosmetic" },
+  { value: "avatar", label: "👤 Avatar" },
   { value: "other", label: "📦 Other" },
 ];
 
+type Mode = "item" | "tag" | "username";
+
 function CreateListing() {
   const { user } = useAuth();
-  const { data: roles } = useMyRoles(user?.id);
-  const isStaff = roles?.some((r) => r === "owner" || r === "admin");
+  const { data: profile } = useMyProfile(user?.id);
   const nav = useNavigate();
+  const [mode, setMode] = useState<Mode>("item");
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-4">
+      <Link to="/marketplace" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" /> Back to Marketplace
+      </Link>
+
+      <Card className="glass p-6 md:p-8">
+        <div className="space-y-1 mb-5">
+          <h1 className="font-display text-3xl font-bold">Create a listing</h1>
+          <p className="text-sm text-muted-foreground">Pick what you want to sell — a digital item, your tag, or your username.</p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          <ModeCard active={mode === "item"} onClick={() => setMode("item")} icon={<Package className="size-4" />} title="Item" sub="Art, GIF, avatar…" />
+          <ModeCard active={mode === "tag"} onClick={() => setMode("tag")} icon={<Hash className="size-4" />} title="Tag" sub={profile?.tag ? `#${profile.tag}` : "Need a tag"} />
+          <ModeCard active={mode === "username"} onClick={() => setMode("username")} icon={<AtSign className="size-4" />} title="Username" sub={profile?.username ? `@${profile.username}` : "—"} />
+        </div>
+
+        {mode === "item" && <ItemForm user={user} onDone={() => nav({ to: "/marketplace" })} />}
+        {mode === "tag" && <TagForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
+        {mode === "username" && <UsernameForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
+      </Card>
+    </div>
+  );
+}
+
+function ModeCard({ active, onClick, icon, title, sub }: any) {
+  return (
+    <button type="button" onClick={onClick}
+      className={`p-3 rounded-lg border text-left transition ${active ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
+      <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
+      <div className="text-[11px] text-muted-foreground mt-0.5 truncate">{sub}</div>
+    </button>
+  );
+}
+
+function SaleControls({ form, setForm }: any) {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button" onClick={() => setForm({ ...form, sale_type: "fixed" })}
+          className={`p-3 rounded-lg border text-left transition ${form.sale_type === "fixed" ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
+          <div className="flex items-center gap-2 font-semibold"><TagIcon className="size-4" /> Fixed price</div>
+          <div className="text-xs text-muted-foreground mt-1">First buyer wins.</div>
+        </button>
+        <button type="button" onClick={() => setForm({ ...form, sale_type: "auction" })}
+          className={`p-3 rounded-lg border text-left transition ${form.sale_type === "auction" ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
+          <div className="flex items-center gap-2 font-semibold"><Gavel className="size-4" /> Auction</div>
+          <div className="text-xs text-muted-foreground mt-1">Highest bid after timer.</div>
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>{form.sale_type === "auction" ? "Starting bid" : "Price"} (DICE)</Label>
+          <Input type="number" min={1} max={1000000} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} />
+        </div>
+        {form.sale_type === "auction" && (
+          <div>
+            <Label>Duration: <b>{form.duration_hours}h</b> <span className="text-muted-foreground text-xs">(1h–7d)</span></Label>
+            <input type="range" min={1} max={168} value={form.duration_hours}
+              onChange={(e) => setForm({ ...form, duration_hours: +e.target.value })} className="w-full mt-3" />
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function ItemForm({ user, onDone }: any) {
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({
     title: "", description: "", category: "art", price: 100,
@@ -63,9 +138,8 @@ function CreateListing() {
     e.preventDefault();
     if (!user) return;
     if (!form.title.trim()) return toast.error("Add a title");
-    if (!preview) return toast.error("Add a preview image so buyers can see your item");
-    if (!form.ownership) return toast.error("Confirm you own the rights to this content");
-    
+    if (!preview) return toast.error("Add a preview image");
+    if (!form.ownership) return toast.error("Confirm rights ownership");
     setBusy(true);
     try {
       const previewSigned = await uploadOne(preview);
@@ -75,131 +149,157 @@ function CreateListing() {
         preview_url: previewSigned, file_url: null,
         tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
         license_notes: form.license_notes || null,
-        ownership_confirmed: true, status: "pending_review",
+        ownership_confirmed: true, status: "active",
         sale_type: form.sale_type,
         auction_ends_at: form.sale_type === "auction"
           ? new Date(Date.now() + form.duration_hours * 3600_000).toISOString() : null,
         min_bid: form.sale_type === "auction" ? Number(form.price) : null,
       } as any);
       if (error) throw error;
-      toast.success("Listing submitted for review!");
-      nav({ to: "/marketplace" });
+      toast.success("Listing published!");
+      onDone();
     } catch (e: any) { toast.error(e.message); }
     finally { setBusy(false); }
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-4">
-      <Link to="/marketplace" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="size-4" /> Back to Marketplace
-      </Link>
-
-      <Card className="glass p-6 md:p-8">
-        <div className="space-y-1 mb-6">
-          <h1 className="font-display text-3xl font-bold">Create a listing</h1>
-          <p className="text-sm text-muted-foreground">Digital items only. No physical goods, weapons, substances, personal data, or sexual content. No copyrighted material without rights.</p>
-        </div>
-
-        <form onSubmit={submit} className="space-y-6">
-          {/* Step 1: Image */}
-          <section className="space-y-2">
-            <div className="flex items-center gap-2"><span className="inline-flex size-6 rounded-full bg-primary/20 text-primary text-xs items-center justify-center font-bold">1</span><h2 className="font-semibold">Preview image</h2></div>
-            <p className="text-xs text-muted-foreground">This is what buyers see first. Use a clear, square image (PNG, JPG, GIF, or MP4).</p>
-            {previewUrl ? (
-              <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-border/60">
-                {preview?.type.startsWith("video") ? (
-                  <video src={previewUrl} className="w-full h-full object-cover" muted autoPlay loop />
-                ) : (
-                  <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
-                )}
-                <button type="button" onClick={() => onPick(null)} className="absolute top-1 right-1 size-7 grid place-items-center rounded-full bg-black/70 text-white hover:bg-black">
-                  <X className="size-4" />
-                </button>
-              </div>
+    <form onSubmit={submit} className="space-y-5">
+      <section className="space-y-2">
+        <h2 className="font-semibold">Preview image</h2>
+        {previewUrl ? (
+          <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-border/60">
+            {preview?.type.startsWith("video") ? (
+              <video src={previewUrl} className="w-full h-full object-cover" muted autoPlay loop />
             ) : (
-              <label className="flex flex-col items-center justify-center w-48 h-48 rounded-lg border-2 border-dashed border-border hover:border-primary/60 cursor-pointer transition">
-                <ImagePlus className="size-8 text-muted-foreground mb-1" />
-                <span className="text-xs text-muted-foreground">Click to upload</span>
-                <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
-              </label>
+              <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
             )}
-          </section>
+            <button type="button" onClick={() => onPick(null)} className="absolute top-1 right-1 size-7 grid place-items-center rounded-full bg-black/70 text-white hover:bg-black"><X className="size-4" /></button>
+          </div>
+        ) : (
+          <label className="flex flex-col items-center justify-center w-48 h-48 rounded-lg border-2 border-dashed border-border hover:border-primary/60 cursor-pointer transition">
+            <ImagePlus className="size-8 text-muted-foreground mb-1" />
+            <span className="text-xs text-muted-foreground">Click to upload</span>
+            <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => onPick(e.target.files?.[0] ?? null)} />
+          </label>
+        )}
+      </section>
 
-          {/* Step 2: Details */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2"><span className="inline-flex size-6 rounded-full bg-primary/20 text-primary text-xs items-center justify-center font-bold">2</span><h2 className="font-semibold">Item details</h2></div>
-            <div>
-              <Label>Title <span className="text-muted-foreground text-xs">({form.title.length}/120)</span></Label>
-              <Input required maxLength={120} placeholder="e.g. Neon Skull Avatar" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            </div>
-            <div>
-              <Label>Description</Label>
-              <Textarea maxLength={1500} placeholder="Tell buyers what makes your item special…" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            </div>
-            <div>
-              <Label>Category</Label>
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-1">
-                {[...CATEGORIES, { value: "avatar", label: "👤 Avatar" }].map((c) => (
-                  <button type="button" key={c.value} onClick={() => setForm({ ...form, category: c.value })}
-                    className={`px-2 py-2 text-xs rounded-md border transition ${form.category === c.value ? "border-primary bg-primary/15 text-primary" : "border-border/60 hover:border-border"}`}>
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label>Tags <span className="text-muted-foreground text-xs">(comma-separated, optional)</span></Label>
-              <Input placeholder="dark, neon, retro" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
-            </div>
-          </section>
+      <section className="space-y-3">
+        <h2 className="font-semibold">Details</h2>
+        <div>
+          <Label>Title <span className="text-muted-foreground text-xs">({form.title.length}/120)</span></Label>
+          <Input required maxLength={120} placeholder="e.g. Neon Skull Avatar" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+        </div>
+        <div>
+          <Label>Description</Label>
+          <Textarea maxLength={1500} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </div>
+        <div>
+          <Label>Category</Label>
+          <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-1">
+            {ITEM_CATEGORIES.map((c) => (
+              <button type="button" key={c.value} onClick={() => setForm({ ...form, category: c.value })}
+                className={`px-2 py-2 text-xs rounded-md border transition ${form.category === c.value ? "border-primary bg-primary/15 text-primary" : "border-border/60 hover:border-border"}`}>{c.label}</button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label>Tags <span className="text-muted-foreground text-xs">(comma-separated)</span></Label>
+          <Input placeholder="dark, neon, retro" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
+        </div>
+      </section>
 
-          {/* Step 3: Sale type */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2"><span className="inline-flex size-6 rounded-full bg-primary/20 text-primary text-xs items-center justify-center font-bold">3</span><h2 className="font-semibold">How do you want to sell it?</h2></div>
-            <div className="grid grid-cols-2 gap-3">
-              <button type="button" onClick={() => setForm({ ...form, sale_type: "fixed" })}
-                className={`p-4 rounded-lg border text-left transition ${form.sale_type === "fixed" ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
-                <div className="flex items-center gap-2 font-semibold"><Tag className="size-4" /> Fixed price</div>
-                <div className="text-xs text-muted-foreground mt-1">First buyer wins. Instant sale.</div>
-              </button>
-              <button type="button" onClick={() => setForm({ ...form, sale_type: "auction" })}
-                className={`p-4 rounded-lg border text-left transition ${form.sale_type === "auction" ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
-                <div className="flex items-center gap-2 font-semibold"><Gavel className="size-4" /> Auction</div>
-                <div className="text-xs text-muted-foreground mt-1">Highest bid wins after the timer.</div>
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>{form.sale_type === "auction" ? "Starting bid" : "Price"} (DICE)</Label>
-                <Input type="number" min={1} max={1000000} value={form.price} onChange={(e) => setForm({ ...form, price: +e.target.value })} />
-              </div>
-              {form.sale_type === "auction" && (
-                <div>
-                  <Label>Duration: <b>{form.duration_hours}h</b> (1–48)</Label>
-                  <input type="range" min={1} max={48} value={form.duration_hours} onChange={(e) => setForm({ ...form, duration_hours: +e.target.value })} className="w-full mt-3" />
-                </div>
-              )}
-            </div>
-          </section>
+      <section className="space-y-3">
+        <h2 className="font-semibold">How do you want to sell it?</h2>
+        <SaleControls form={form} setForm={setForm} />
+      </section>
 
-          {/* Step 4: Confirm */}
-          <section className="space-y-3 pt-2 border-t border-border/40">
-            <div>
-              <Label>License / usage notes <span className="text-muted-foreground text-xs">(optional)</span></Label>
-              <Textarea rows={2} placeholder="e.g. Personal use only, no resale" value={form.license_notes} onChange={(e) => setForm({ ...form, license_notes: e.target.value })} maxLength={500} />
-            </div>
-            <label className="flex items-start gap-2 text-sm cursor-pointer">
-              <Checkbox checked={form.ownership} onCheckedChange={(v) => setForm({ ...form, ownership: !!v })} />
-              <span>I confirm I own the rights to this content and it complies with DICE rules.</span>
-            </label>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => nav({ to: "/marketplace" })}>Cancel</Button>
-              <Button disabled={busy} className="glow-red flex-1">{busy ? "Submitting..." : "Submit for review"}</Button>
-            </div>
-            <p className="text-xs text-muted-foreground">Listings are reviewed by staff before going live.</p>
-          </section>
-        </form>
-      </Card>
-    </div>
+      <section className="space-y-3 pt-2 border-t border-border/40">
+        <div>
+          <Label>License / usage notes (optional)</Label>
+          <Textarea rows={2} value={form.license_notes} onChange={(e) => setForm({ ...form, license_notes: e.target.value })} maxLength={500} />
+        </div>
+        <label className="flex items-start gap-2 text-sm cursor-pointer">
+          <Checkbox checked={form.ownership} onCheckedChange={(v) => setForm({ ...form, ownership: !!v })} />
+          <span>I confirm I own the rights to this content and it complies with DICE rules.</span>
+        </label>
+        <Button disabled={busy} className="glow-red w-full">{busy ? "Publishing…" : "Publish listing"}</Button>
+      </section>
+    </form>
+  );
+}
+
+function TagForm({ profile, onDone }: { profile: any; onDone: () => void }) {
+  const [form, setForm] = useState({ sale_type: "fixed" as "fixed" | "auction", price: 1000, duration_hours: 24 });
+  const [busy, setBusy] = useState(false);
+  const list = useServerFn(listTagForSale);
+  const hasTag = !!profile?.tag;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await list({ data: { price: form.price, sale_type: form.sale_type, duration_hours: form.duration_hours } });
+      toast.success("Tag listed!");
+      onDone();
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+
+  if (!hasTag) {
+    return (
+      <div className="rounded-md border border-border/60 p-5 text-sm space-y-2">
+        <p className="text-muted-foreground">You don't own a tag yet. Claim one in <Link to="/settings" className="text-primary underline">Settings</Link> for 5,000 DICE before listing it.</p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="rounded-md bg-primary/5 border border-primary/30 p-4">
+        <div className="text-xs text-muted-foreground">Listing your tag</div>
+        <div className="text-3xl font-mono font-bold text-primary mt-1">#{profile.tag}</div>
+        <p className="text-xs text-muted-foreground mt-2">While listed, the tag is removed from your profile and held in escrow.</p>
+      </div>
+      <SaleControls form={form} setForm={setForm} />
+      <Button disabled={busy} className="glow-red w-full">{busy ? "Listing…" : "List tag"}</Button>
+    </form>
+  );
+}
+
+function UsernameForm({ profile, onDone }: { profile: any; onDone: () => void }) {
+  const [form, setForm] = useState({ sale_type: "fixed" as "fixed" | "auction", price: 2500, duration_hours: 24 });
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const list = useServerFn(listUsernameForSale);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!confirm) return toast.error("Please confirm you understand");
+    setBusy(true);
+    try {
+      await list({ data: { price: form.price, sale_type: form.sale_type, duration_hours: form.duration_hours } });
+      toast.success("Username listed!");
+      onDone();
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div className="rounded-md bg-primary/5 border border-primary/30 p-4">
+        <div className="text-xs text-muted-foreground">Listing your username</div>
+        <div className="text-3xl font-mono font-bold text-primary mt-1">@{profile?.username ?? "you"}</div>
+        <p className="text-xs text-amber-300 mt-2">
+          ⚠️ When sold, the buyer takes over <b>@{profile?.username}</b>. You'll be assigned an automatic placeholder username and can change it later (90-day cooldown applies).
+        </p>
+      </div>
+      <SaleControls form={form} setForm={setForm} />
+      <label className="flex items-start gap-2 text-sm cursor-pointer">
+        <Checkbox checked={confirm} onCheckedChange={(v) => setConfirm(!!v)} />
+        <span>I understand I will lose this username permanently when it sells.</span>
+      </label>
+      <Button disabled={busy || !confirm} className="glow-red w-full">{busy ? "Listing…" : "List username"}</Button>
+    </form>
   );
 }

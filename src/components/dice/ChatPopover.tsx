@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, Image as ImageIcon, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -45,38 +45,55 @@ export function ChatPopover() {
     },
   });
 
+  // Refs so the realtime handler always sees the latest values (no stale closure)
+  const openRef = useRef(open);
+  const lastSeenRef = useRef<string>(
+    typeof window !== "undefined" ? (localStorage.getItem(LAST_SEEN_KEY) ?? new Date(0).toISOString()) : new Date(0).toISOString(),
+  );
+  useEffect(() => { openRef.current = open; }, [open]);
+
+  const markRead = useCallback(() => {
+    const now = new Date().toISOString();
+    lastSeenRef.current = now;
+    localStorage.setItem(LAST_SEEN_KEY, now);
+    setUnread(0);
+  }, []);
+
   // Initial unread count from last-seen timestamp
   useEffect(() => {
-    const lastSeen = localStorage.getItem(LAST_SEEN_KEY) ?? new Date(0).toISOString();
     (async () => {
       const { count } = await supabase
         .from("chat_messages")
         .select("id", { count: "exact", head: true })
-        .gt("created_at", lastSeen);
+        .gt("created_at", lastSeenRef.current);
       setUnread(count ?? 0);
     })();
   }, []);
 
-  // Always-on realtime to track unread (and refresh open popover)
+  // Always-on realtime: only count messages newer than last-seen AND not while open
   useEffect(() => {
     const ch = supabase.channel("chat_messages_badge").on("postgres_changes",
       { event: "INSERT", schema: "public", table: "chat_messages" },
       (payload: any) => {
         const row = payload.new;
-        if (row?.user_id !== user?.id) setUnread((n) => n + 1);
-        if (open) qc.invalidateQueries({ queryKey: ["chat-popover"] });
+        if (!row) return;
+        if (openRef.current) {
+          // Popover visible: keep last-seen current and refresh list, don't badge
+          markRead();
+          qc.invalidateQueries({ queryKey: ["chat-popover"] });
+          return;
+        }
+        if (row.user_id === user?.id) return; // own message
+        if (row.created_at && row.created_at <= lastSeenRef.current) return; // already read
+        setUnread((n) => Math.min(n + 1, 99));
       },
     ).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [open, qc, user?.id]);
+  }, [qc, user?.id, markRead]);
 
-  // Mark as read when opening
-  useEffect(() => {
-    if (open) {
-      setUnread(0);
-      localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
-    }
-  }, [open]);
+  // Mark as read when opening AND when closing
+  useEffect(() => { if (open) markRead(); }, [open, markRead]);
+  useEffect(() => () => { markRead(); }, [markRead]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

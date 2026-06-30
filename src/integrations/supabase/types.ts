@@ -851,6 +851,7 @@ export type Database = {
           tags: string[]
           title: string
           updated_at: string
+          username_value: string | null
           winner_id: string | null
         }
         Insert: {
@@ -875,6 +876,7 @@ export type Database = {
           tags?: string[]
           title: string
           updated_at?: string
+          username_value?: string | null
           winner_id?: string | null
         }
         Update: {
@@ -899,6 +901,7 @@ export type Database = {
           tags?: string[]
           title?: string
           updated_at?: string
+          username_value?: string | null
           winner_id?: string | null
         }
         Relationships: []
@@ -1047,6 +1050,7 @@ export type Database = {
           level: number
           privacy_activity: string
           privacy_profile: string
+          profile_bg_url: string | null
           reputation: number
           streak_days: number
           tag: string | null
@@ -1072,6 +1076,7 @@ export type Database = {
           level?: number
           privacy_activity?: string
           privacy_profile?: string
+          profile_bg_url?: string | null
           reputation?: number
           streak_days?: number
           tag?: string | null
@@ -1097,6 +1102,7 @@ export type Database = {
           level?: number
           privacy_activity?: string
           privacy_profile?: string
+          profile_bg_url?: string | null
           reputation?: number
           streak_days?: number
           tag?: string | null

@@ -142,6 +142,8 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
       </Card>
 
       <BannerCard user={user} profile={profile} refetch={refetch} qc={qc} />
+      <ProfileBgCard user={user} profile={profile} refetch={refetch} qc={qc} />
+
 
 
       <Card className="glass p-6 space-y-4">
@@ -345,8 +347,8 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
                 </div>
               </div>
               {saleType === "auction" && (
-                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1–48)</Label>
-                  <input type="range" min={1} max={48} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
+                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1h–7d)</Label>
+                  <input type="range" min={1} max={168} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
                 </div>
               )}
               <div className="flex gap-2">
@@ -425,6 +427,63 @@ function BannerCard({ user, profile, refetch, qc }: any) {
         {vipActive
           ? "Wide image recommended (1500×400). Up to 8MB."
           : "Unlock VIP (5,000 DICE) in the Coins & VIP tab to upload a banner."}
+      </p>
+    </Card>
+  );
+}
+
+function ProfileBgCard({ user, profile, refetch, qc }: any) {
+  const vipUntil = profile?.vip_until ? new Date(profile.vip_until) : null;
+  const vipActive = !!(vipUntil && vipUntil > new Date());
+  const bgUrl: string | null = profile?.profile_bg_url ?? null;
+
+  async function upload(file: File) {
+    if (!user) return;
+    if (!vipActive) return toast.error("VIP only — unlock VIP first");
+    if (file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${user.id}/profile-bg-${Date.now()}.${ext}`;
+    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (up.error) return toast.error(up.error.message);
+    const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (signed.error || !signed.data) return toast.error("Could not load image");
+    const { error } = await supabase.from("profiles").update({ profile_bg_url: signed.data.signedUrl }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Profile background updated");
+    refetch();
+    qc.invalidateQueries({ queryKey: ["profile", user.id] });
+  }
+  async function clear() {
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({ profile_bg_url: null }).eq("id", user.id);
+    if (error) return toast.error(error.message);
+    toast.success("Background cleared");
+    refetch();
+  }
+
+  return (
+    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-amber-400/40" : ""}`}>
+      <div className="flex items-center gap-2">
+        <Crown className="size-4 text-amber-400" />
+        <h2 className="font-display text-lg font-semibold">Profile background</h2>
+        {!vipActive && <span className="text-xs text-amber-400/80 ml-auto">VIP only</span>}
+      </div>
+      {bgUrl ? (
+        <div className="rounded-md overflow-hidden border border-border/60 relative">
+          <img src={bgUrl} className="w-full h-40 object-cover" />
+        </div>
+      ) : (
+        <div className="rounded-md border border-dashed border-border/60 h-24 grid place-items-center text-xs text-muted-foreground">
+          No background image yet
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <Input type="file" accept="image/*" disabled={!vipActive}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} />
+        {bgUrl && <Button variant="outline" size="sm" onClick={clear}>Remove</Button>}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {vipActive ? "Used as a subtle background on your profile page. Up to 8MB." : "Unlock VIP to add a custom profile background."}
       </p>
     </Card>
   );

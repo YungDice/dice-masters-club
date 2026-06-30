@@ -462,7 +462,7 @@ export const listTagForSale = createServerFn({ method: "POST" })
     z.object({
       price: z.number().int().min(100).max(1_000_000),
       sale_type: z.enum(["fixed", "auction"]),
-      duration_hours: z.number().int().min(1).max(48).optional(),
+      duration_hours: z.number().int().min(1).max(168).optional(),
     }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -471,7 +471,6 @@ export const listTagForSale = createServerFn({ method: "POST" })
     const ends = data.sale_type === "auction"
       ? new Date(Date.now() + (data.duration_hours ?? 24) * 3600_000).toISOString()
       : null;
-    // Escrow: remove tag from profile while listed
     await supabaseAdmin.from("profiles").update({ tag: null }).eq("id", context.userId);
     const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
       seller_id: context.userId,
@@ -487,10 +486,46 @@ export const listTagForSale = createServerFn({ method: "POST" })
       status: "active",
     }).select().single();
     if (error) {
-      // Restore tag on failure
       await supabaseAdmin.from("profiles").update({ tag: me.tag }).eq("id", context.userId);
       throw error;
     }
+    return { ok: true, id: listing!.id };
+  });
+
+// ---------- List my username for sale (fixed or auction) ----------
+export const listUsernameForSale = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { price: number; sale_type: "fixed" | "auction"; duration_hours?: number }) =>
+    z.object({
+      price: z.number().int().min(100).max(1_000_000),
+      sale_type: z.enum(["fixed", "auction"]),
+      duration_hours: z.number().int().min(1).max(168).optional(),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: me } = await supabaseAdmin.from("profiles").select("username").eq("id", context.userId).single();
+    if (!me?.username) throw new Error("Profile not found");
+    // Prevent listing if already listed
+    const { data: existing } = await supabaseAdmin.from("marketplace_listings")
+      .select("id").eq("seller_id", context.userId).eq("category", "username").eq("status", "active").maybeSingle();
+    if (existing) throw new Error("You already have an active username listing");
+    const ends = data.sale_type === "auction"
+      ? new Date(Date.now() + (data.duration_hours ?? 24) * 3600_000).toISOString()
+      : null;
+    const { data: listing, error } = await supabaseAdmin.from("marketplace_listings").insert({
+      seller_id: context.userId,
+      title: `Username @${me.username}`,
+      description: `Take over the username @${me.username}.`,
+      category: "username",
+      price: data.price,
+      username_value: me.username,
+      sale_type: data.sale_type,
+      auction_ends_at: ends,
+      min_bid: data.sale_type === "auction" ? data.price : null,
+      ownership_confirmed: true,
+      status: "active",
+    }).select().single();
+    if (error) throw error;
     return { ok: true, id: listing!.id };
   });
 // ---------- Auctions: place bid (atomic) ----------

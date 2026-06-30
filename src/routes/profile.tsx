@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown, MapPin } from "lucide-react";
+import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown, MapPin, Swords } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile } from "@/hooks/use-profile";
@@ -12,6 +12,20 @@ import { DiceBadge } from "@/components/dice/DiceBadge";
 import { COUNTRIES } from "@/lib/countries";
 
 import { fmt, timeAgo } from "@/lib/format";
+
+const RANK_TIERS = [
+  { min: 100, name: "Legend",   color: "text-fuchsia-400", glow: "shadow-fuchsia-500/40" },
+  { min: 50,  name: "Diamond",  color: "text-cyan-300",    glow: "shadow-cyan-500/30" },
+  { min: 25,  name: "Platinum", color: "text-sky-300",     glow: "shadow-sky-500/30" },
+  { min: 10,  name: "Gold",     color: "text-amber-300",   glow: "shadow-amber-500/30" },
+  { min: 5,   name: "Silver",   color: "text-zinc-300",    glow: "shadow-zinc-400/20" },
+  { min: 1,   name: "Bronze",   color: "text-orange-300",  glow: "shadow-orange-500/20" },
+  { min: 0,   name: "Unranked", color: "text-muted-foreground", glow: "" },
+];
+function tierFor(wins: number, ratio: number) {
+  const score = wins * Math.max(ratio, 0.3); // wins weighted by ratio
+  return RANK_TIERS.find((t) => score >= t.min) ?? RANK_TIERS[RANK_TIERS.length - 1];
+}
 
 
 export const Route = createFileRoute("/profile")({
@@ -47,15 +61,40 @@ function MyProfile() {
     },
   });
 
+  const rank = useQuery({
+    queryKey: ["rank", user?.id],
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", user!.id).limit(1000);
+      const rows = data ?? [];
+      const wins = rows.filter((r: any) => r.outcome === "win").length;
+      const losses = rows.filter((r: any) => r.outcome === "loss").length;
+      const total = wins + losses;
+      const ratio = total > 0 ? wins / total : 0;
+      return { wins, losses, total, ratio };
+    },
+  });
+
   if (!p) return <div className="text-center text-muted-foreground py-10">Loading profile…</div>;
 
   const tag = (p as any).tag as string | null;
   const vipUntil = (p as any).vip_until ? new Date((p as any).vip_until) : null;
   const vipActive = vipUntil && vipUntil > new Date();
-
   const banner = (p as any).banner_url as string | null;
+  const profileBg = (p as any).profile_bg_url as string | null;
+  const tier = tierFor(rank.data?.wins ?? 0, rank.data?.ratio ?? 0);
+
   return (
-    <div className="space-y-4">
+    <div
+      className="space-y-4 relative"
+      style={profileBg && vipActive ? {
+        backgroundImage: `linear-gradient(to bottom, rgba(8,6,14,0.85), rgba(8,6,14,0.95)), url(${profileBg})`,
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+      } : undefined}
+    >
 
       <Card className="glass overflow-hidden border-white/10">
         <div className={`w-full ${banner && vipActive ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
@@ -92,6 +131,32 @@ function MyProfile() {
           </div>
         </div>
       </Card>
+
+      <Card className={`glass p-5 ${tier.glow ? `shadow-lg ${tier.glow}` : ""}`}>
+        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Swords className="size-4 text-primary" />Rank</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Tier</div>
+            <div className={`text-2xl font-display font-bold ${tier.color}`}>{tier.name}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Wins</div>
+            <div className="text-2xl font-display font-bold text-emerald-400">{rank.data?.wins ?? 0}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Losses</div>
+            <div className="text-2xl font-display font-bold text-rose-400">{rank.data?.losses ?? 0}</div>
+          </div>
+          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">W/L Ratio</div>
+            <div className="text-2xl font-display font-bold text-primary">
+              {rank.data?.total ? `${(rank.data.ratio * 100).toFixed(0)}%` : "—"}
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">Computed from your PvP &amp; casino game history ({rank.data?.total ?? 0} games tracked).</p>
+      </Card>
+
 
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
