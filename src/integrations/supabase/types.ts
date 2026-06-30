@@ -1414,6 +1414,7 @@ export type Database = {
       open_baddie_case_tx: {
         Args: never
         Returns: {
+          image_url: string
           income_per_hour: number
           name: string
           rarity: string
