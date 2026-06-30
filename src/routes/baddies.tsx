@@ -112,7 +112,7 @@ function Page() {
         icon={Sparkles}
         title="Baddie Cases"
         subtitle="Unbox a Baddie to earn passive DICE income. Collect manually whenever you like."
-        right={
+        actions={
           <Button variant="outline" onClick={() => setBaseOpen(true)}>
             <PackageOpen className="size-4 mr-1" />Baddie Base ({count}/{cap})
           </Button>

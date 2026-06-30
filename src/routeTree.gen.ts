@@ -17,6 +17,7 @@ import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as DikdokRouteImport } from './routes/dikdok'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as BaddiesRouteImport } from './routes/baddies'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -78,6 +79,11 @@ const DikdokRoute = DikdokRouteImport.update({
 const ChatRoute = ChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaddiesRoute = BaddiesRouteImport.update({
+  id: '/baddies',
+  path: '/baddies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/baddies'
     | '/chat'
     | '/dikdok'
     | '/friends'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/baddies'
     | '/chat'
     | '/dikdok'
     | '/friends'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/baddies'
     | '/chat'
     | '/dikdok'
     | '/friends'
@@ -392,6 +404,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  BaddiesRoute: typeof BaddiesRoute
   ChatRoute: typeof ChatRoute
   DikdokRoute: typeof DikdokRoute
   FriendsRoute: typeof FriendsRoute
@@ -476,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/baddies': {
+      id: '/baddies'
+      path: '/baddies'
+      fullPath: '/baddies'
+      preLoaderRoute: typeof BaddiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -651,6 +671,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  BaddiesRoute: BaddiesRoute,
   ChatRoute: ChatRoute,
   DikdokRoute: DikdokRoute,
   FriendsRoute: FriendsRoute,
