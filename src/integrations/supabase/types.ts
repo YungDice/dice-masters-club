@@ -1484,6 +1484,7 @@ export type Database = {
         }
         Returns: Json
       }
+      sell_baddie_tx: { Args: { _baddie_id: string }; Returns: Json }
       set_active_tag: { Args: { _tag: string }; Returns: Json }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
