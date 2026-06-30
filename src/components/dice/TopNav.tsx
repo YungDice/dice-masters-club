@@ -12,6 +12,7 @@ import {
   Menu,
   Images,
   Music2,
+  Sparkles,
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -44,6 +45,7 @@ const items: NavItem[] = [
   { to: "/play", label: "Play", icon: Gamepad2, group: "main" },
   { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
+  { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
   { to: "/friends", label: "Friends", icon: Users, group: "social" },

@@ -35,7 +35,7 @@ function Friends() {
       if (!data) return [];
       const ids = data.map((f) => (f.requester_id === user!.id ? f.addressee_id : f.requester_id));
       if (ids.length === 0) return [];
-      const { data: profs } = await supabase.from("profiles").select("*").in("id", ids);
+      const { data: profs } = await supabase.from("profiles").select("id,username,display_name,avatar_url,level,last_seen_at").in("id", ids);
       return profs ?? [];
     },
   });
@@ -136,12 +136,24 @@ function Friends() {
         <h2 className="font-display font-semibold mb-3">Your friends</h2>
         {(friends.data ?? []).length === 0
           ? <EmptyState icon={Users} title="No friends yet" description="Search above to find people on DICE." />
-          : <div className="grid gap-2 md:grid-cols-2">{(friends.data ?? []).map((p) => (
-              <Link key={p.id} to="/u/$username" params={{ username: p.username }} className="flex items-center gap-3 rounded-md bg-white/5 p-3 hover:bg-white/10">
-                <Avatar className="size-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name[0]}</AvatarFallback></Avatar>
-                <div><div className="text-sm font-medium">{p.display_name}</div><div className="text-xs text-muted-foreground">Lvl {p.level} · @{p.username}</div></div>
-              </Link>
-            ))}</div>}
+          : <div className="grid gap-2 md:grid-cols-2">{(friends.data ?? []).map((p: any) => {
+              const onlineMs = p.last_seen_at ? Date.now() - new Date(p.last_seen_at).getTime() : Infinity;
+              const online = onlineMs < 2 * 60 * 1000;
+              return (
+                <Link key={p.id} to="/u/$username" params={{ username: p.username }} className="flex items-center gap-3 rounded-md bg-white/5 p-3 hover:bg-white/10">
+                  <div className="relative">
+                    <Avatar className="size-9"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name[0]}</AvatarFallback></Avatar>
+                    <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full ring-2 ring-background ${online ? "bg-emerald-400" : "bg-zinc-500"}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{p.display_name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {online ? <span className="text-emerald-400">Online</span> : (p.last_seen_at ? `Active ${new Date(p.last_seen_at).toLocaleDateString()}` : "Offline")} · Lvl {p.level}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}</div>}
       </Card>
     </div>
   );

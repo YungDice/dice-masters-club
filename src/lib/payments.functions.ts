@@ -4,7 +4,8 @@ import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 
-// 1 unit of currency = 100 DICE. Min 1 unit = 100 DICE, max 500 units = 50,000 DICE per purchase.
+// 1 unit of currency = 1,000 DICE. Min 1 unit = 1,000 DICE, max 500 units = 500,000 DICE per purchase.
+export const DICE_PER_UNIT = 1000;
 export const createDiceCoinsCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: {
@@ -24,7 +25,7 @@ export const createDiceCoinsCheckout = createServerFn({ method: "POST" })
       const stripe = createStripeClient(data.environment);
       const { data: userData } = await context.supabase.auth.getUser();
       const email = userData.user?.email ?? undefined;
-      const diceAmount = data.amountUnits * 100;
+      const diceAmount = data.amountUnits * DICE_PER_UNIT;
 
       // Resolve or create customer with userId metadata
       const userId = context.userId;

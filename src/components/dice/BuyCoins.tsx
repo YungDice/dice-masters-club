@@ -47,20 +47,20 @@ export function BuyCoinsCard() {
     } finally { setBusy(false); }
   }
 
-  const dice = units * 100;
+  const dice = units * 1000;
 
   return (
     <Card className="glass p-6 space-y-4 border-amber-400/40">
       <div>
         <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Coins className="text-amber-400" /> Buy DICE coins</h2>
-        <p className="text-xs text-muted-foreground mt-1">1 {currency.toUpperCase()} = 100 DICE · purchases are non-refundable, non-transferable, and have no real-world value.</p>
+        <p className="text-xs text-muted-foreground mt-1">1 {currency.toUpperCase()} = 1,000 DICE · purchases are non-refundable, non-transferable, and have no real-world value.</p>
       </div>
       {!open ? (
         <>
           <div className="flex gap-2 flex-wrap">
             {PRESETS.map((p) => (
               <Button key={p} type="button" size="sm" variant={units === p ? "default" : "outline"} onClick={() => setUnits(p)}>
-                {p} {currency.toUpperCase()} <span className="ml-1 text-xs opacity-70">+{(p * 100).toLocaleString()} DICE</span>
+                {p} {currency.toUpperCase()} <span className="ml-1 text-xs opacity-70">+{(p * 1000).toLocaleString()} DICE</span>
               </Button>
             ))}
           </div>

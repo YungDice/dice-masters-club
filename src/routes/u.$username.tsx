@@ -1,15 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Trophy, Flame, Star, Calendar, Award, Swords, Shield } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Trophy, Flame, Star, Calendar, Award, Swords, Shield, Circle, Check, X, UserMinus, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/dice/TopNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DiceBadge } from "@/components/dice/DiceBadge";
+import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
 import { tierFor } from "@/lib/rank";
+import { isVipActive } from "@/lib/limits";
+import { respondFriendRequest, sendFriendRequest } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 
@@ -82,16 +85,39 @@ function UProfile() {
     : f.status === "blocked" ? "blocked"
     : "none";
 
+  const profileBg = (p as any).profile_bg_url as string | null;
+  const vipActive = isVipActive((p as any).vip_until);
+  const onlineMs = (p as any).last_seen_at ? Date.now() - new Date((p as any).last_seen_at).getTime() : Infinity;
+  const isOnline = onlineMs < 2 * 60 * 1000;
+  const qc = useQueryClient();
+  const sendReqFn = useServerFn(sendFriendRequest);
+  const respondFn = useServerFn(respondFriendRequest);
+
   async function addFriend() {
     if (!user) return;
-    const { error } = await supabase.from("friendships").insert({ requester_id: user.id, addressee_id: p.id });
-    if (error) toast.error(error.message); else { toast.success("Friend request sent"); friendship.refetch(); }
+    try { await sendReqFn({ data: { addresseeId: p.id } }); toast.success("Friend request sent"); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+    friendship.refetch();
+  }
+  async function cancelOrRemove() {
+    if (!f?.id) return;
+    await supabase.from("friendships").delete().eq("id", f.id);
+    toast.success(rel === "friends" ? "Removed friend" : "Cancelled");
+    friendship.refetch();
+    qc.invalidateQueries({ queryKey: ["friends"] });
+  }
+  async function respond(accept: boolean) {
+    if (!f?.id) return;
+    try { await respondFn({ data: { friendshipId: f.id, accept } }); toast.success(accept ? "Accepted" : "Declined"); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+    friendship.refetch();
   }
 
   return (
+    <ProfileBackdrop url={vipActive ? profileBg : null}>
     <div className="space-y-4">
       <Card className="glass overflow-hidden">
-        {p.banner_url && (
+        {p.banner_url && vipActive && (
           <div className="h-32 md:h-48 w-full bg-black/40">
             <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />
           </div>
@@ -100,7 +126,13 @@ function UProfile() {
           <div className="flex flex-wrap items-center gap-5">
             <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback></Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-bold">{p.display_name}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</h1>
+              <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+                <span>{p.display_name}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</span>
+                <span className={`inline-flex items-center gap-1 text-xs font-normal ${isOnline ? "text-emerald-400" : "text-muted-foreground"}`}>
+                  <Circle className={`size-2 ${isOnline ? "fill-emerald-400 text-emerald-400" : "fill-muted-foreground/50 text-muted-foreground/50"}`} />
+                  {isOnline ? "Online" : (p as any).last_seen_at ? `Last seen ${timeAgo((p as any).last_seen_at)}` : "Offline"}
+                </span>
+              </h1>
               <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
               {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
@@ -112,15 +144,17 @@ function UProfile() {
             {!isMe && (
               <div className="flex gap-2">
                 {rel === "friends" ? (
-                  <Button variant="outline" disabled>✓ Friends</Button>
+                  <Button variant="outline" onClick={cancelOrRemove}><UserMinus className="size-4 mr-1" />Remove friend</Button>
                 ) : rel === "sent" ? (
-                  <Button variant="outline" disabled>Request sent</Button>
+                  <Button variant="outline" onClick={cancelOrRemove}><X className="size-4 mr-1" />Cancel request</Button>
                 ) : rel === "incoming" ? (
-                  <Button variant="outline" disabled>Respond in Friends tab</Button>
+                  <>
+                    <Button onClick={() => respond(true)}><Check className="size-4 mr-1" />Accept</Button>
+                    <Button variant="outline" onClick={() => respond(false)}><X className="size-4 mr-1" />Decline</Button>
+                  </>
                 ) : rel === "blocked" ? null : (
-                  <Button onClick={addFriend}>Add friend</Button>
+                  <Button onClick={addFriend}><UserPlus className="size-4 mr-1" />Add friend</Button>
                 )}
-                <Button variant="outline">Message</Button>
               </div>
             )}
             {isMe && <Link to="/settings"><Button variant="outline">Edit profile</Button></Link>}
@@ -179,5 +213,6 @@ function UProfile() {
         </Card>
       </div>
     </div>
+    </ProfileBackdrop>
   );
 }

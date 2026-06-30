@@ -12,9 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { changeUsername, buyVip, claimTag, listTagForSale, buyLevelUp } from "@/lib/dice.functions";
+import { changeUsername, buyVip, claimTag, listTagForSale, buyLevelUp, setActiveTag } from "@/lib/dice.functions";
 import { Crown, Sparkles, Hash, User, Coins, ShieldAlert, Camera } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { BuyCoinsCard } from "@/components/dice/BuyCoins";
@@ -299,67 +299,112 @@ function AccountTab({ user, nav }: any) {
 function TagCard({ profile, wallet, refetch, qc }: any) {
   const [tag, setTag] = useState("");
   const [busy, setBusy] = useState(false);
-  const [sellOpen, setSellOpen] = useState(false);
+  const [sellFor, setSellFor] = useState<string | null>(null);
   const [sellPrice, setSellPrice] = useState(1000);
   const [saleType, setSaleType] = useState<"fixed" | "auction">("fixed");
   const [hours, setHours] = useState(24);
   const claim = useServerFn(claimTag);
   const listFn = useServerFn(listTagForSale);
+  const setActiveFn = useServerFn(setActiveTag);
   const currentTag: string | null = profile?.tag ?? null;
+
+  const ownedTags = useQuery({
+    queryKey: ["my-tags", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("profile_tags" as any).select("tag,acquired_at").eq("user_id", profile.id).order("acquired_at");
+      return ((data ?? []) as unknown) as Array<{ tag: string; acquired_at: string }>;
+    },
+  });
+
+  const owned = ownedTags.data ?? [];
+  const tagsForSale = useQuery({
+    queryKey: ["my-tag-listings", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("marketplace_listings").select("id,tag_value,status").eq("seller_id", profile.id).eq("category", "tag").eq("status", "active");
+      return Object.fromEntries((data ?? []).map((l: any) => [l.tag_value, l.id]));
+    },
+  });
+
   async function doClaim() {
     if ((wallet?.balance ?? 0) < 5000) { toast.error("Need 5,000 DICE"); return; }
     if (!/^[A-Za-z0-9]{2,6}$/.test(tag)) { toast.error("2–6 letters/numbers"); return; }
+    if (owned.length >= 3) { toast.error("Tag limit reached (3/3)"); return; }
     setBusy(true);
-    try { const r = await claim({ data: { tag } }); toast.success(`Tag #${r.tag} is yours!`); refetch(); qc.invalidateQueries({ queryKey: ["wallet"] }); }
+    try { const r = await claim({ data: { tag } }); toast.success(`Tag #${r.tag} is yours!`); refetch(); ownedTags.refetch(); qc.invalidateQueries({ queryKey: ["wallet"] }); }
     catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setBusy(false); }
   }
-  async function doList() {
+  async function doList(forTag: string) {
     setBusy(true);
     try {
-      await listFn({ data: { price: sellPrice, sale_type: saleType, duration_hours: hours } });
-      toast.success("Tag listed on marketplace");
-      refetch(); qc.invalidateQueries({ queryKey: ["listings"] });
-      setSellOpen(false);
+      await listFn({ data: { tag: forTag, price: sellPrice, sale_type: saleType, duration_hours: hours } as any });
+      toast.success("Tag listed on marketplace (still attached to you until sold)");
+      refetch(); ownedTags.refetch(); tagsForSale.refetch();
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      setSellFor(null);
     } catch (e: any) { toast.error(e.message ?? "Failed"); }
     finally { setBusy(false); }
   }
+  async function makeActive(t: string) {
+    try { await setActiveFn({ data: { tag: t } }); toast.success(`#${t} is now your active tag`); refetch(); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+  }
+
   return (
     <Card className="glass p-6 space-y-3 border-primary/40">
-      <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Hash className="text-primary" /> Your tag</h2>
-      <p className="text-xs text-muted-foreground">Discord-style identity: <b>@{profile?.username ?? "you"}#TAG</b>. Costs <b>5,000 DICE</b> to claim. Each tag is unique — if taken, buy it on the marketplace from its owner.</p>
-      {currentTag ? (
-        <div className="space-y-3">
-          <div className="text-2xl font-mono font-bold text-primary">@{profile?.username}#{currentTag}</div>
-          {!sellOpen ? (
-            <Button variant="outline" onClick={() => setSellOpen(true)}>Sell tag on marketplace</Button>
-          ) : (
-            <div className="rounded-md bg-white/5 p-3 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Sale type</Label>
-                  <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={saleType} onChange={(e) => setSaleType(e.target.value as any)}>
-                    <option value="fixed">Fixed price</option>
-                    <option value="auction">Auction</option>
-                  </select>
+      <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Hash className="text-primary" /> Your tags ({owned.length}/3)</h2>
+      <p className="text-xs text-muted-foreground">Discord-style identity: <b>@{profile?.username ?? "you"}#TAG</b>. Each tag costs <b>5,000 DICE</b>. You can own up to <b>3 tags</b> and switch any of them as your active tag. Listed tags stay attached to you until purchased.</p>
+
+      {owned.length > 0 && (
+        <div className="space-y-2">
+          {owned.map((row) => {
+            const t = row.tag;
+            const isActive = t === currentTag;
+            const listingId = tagsForSale.data?.[t];
+            return (
+              <div key={t} className="rounded-md bg-white/5 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="font-mono text-xl text-primary">@{profile?.username}#{t}</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {isActive ? <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">Active</span> : <Button size="sm" variant="outline" onClick={() => makeActive(t)}>Make active</Button>}
+                    {listingId ? <span className="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300">For sale</span>
+                      : <Button size="sm" variant="outline" onClick={() => { setSellFor(t); setSellPrice(1000); setSaleType("fixed"); setHours(24); }}>Sell</Button>}
+                  </div>
                 </div>
-                <div><Label>{saleType === "auction" ? "Starting bid (DICE)" : "Price (DICE)"}</Label>
-                  <Input type="number" min={100} max={1000000} value={sellPrice} onChange={(e) => setSellPrice(+e.target.value)} />
-                </div>
+                {sellFor === t && (
+                  <div className="mt-3 rounded-md bg-black/30 p-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div><Label>Sale type</Label>
+                        <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={saleType} onChange={(e) => setSaleType(e.target.value as any)}>
+                          <option value="fixed">Fixed price</option>
+                          <option value="auction">Auction</option>
+                        </select>
+                      </div>
+                      <div><Label>{saleType === "auction" ? "Starting bid (DICE)" : "Price (DICE)"}</Label>
+                        <Input type="number" min={100} max={1000000} value={sellPrice} onChange={(e) => setSellPrice(+e.target.value)} />
+                      </div>
+                    </div>
+                    {saleType === "auction" && (
+                      <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1h–7d)</Label>
+                        <input type="range" min={1} max={168} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Button onClick={() => doList(t)} disabled={busy} className="glow-red">{busy ? "Listing..." : "List for sale"}</Button>
+                      <Button variant="outline" onClick={() => setSellFor(null)}>Cancel</Button>
+                    </div>
+                  </div>
+                )}
               </div>
-              {saleType === "auction" && (
-                <div><Label>Duration: {hours} hour{hours !== 1 ? "s" : ""} (1h–7d)</Label>
-                  <input type="range" min={1} max={168} value={hours} onChange={(e) => setHours(+e.target.value)} className="w-full" />
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button onClick={doList} disabled={busy} className="glow-red">{busy ? "Listing..." : "List for sale"}</Button>
-                <Button variant="outline" onClick={() => setSellOpen(false)}>Cancel</Button>
-              </div>
-            </div>
-          )}
+            );
+          })}
         </div>
-      ) : (
-        <div className="flex items-center gap-2">
+      )}
+
+      {owned.length < 3 && (
+        <div className="flex items-center gap-2 pt-2 border-t border-white/10">
           <span className="text-muted-foreground text-lg">#</span>
           <Input value={tag} onChange={(e) => setTag(e.target.value.toUpperCase())} maxLength={6} placeholder="EG. WOLF" />
           <Button onClick={doClaim} disabled={busy || tag.length < 2} className="glow-red">{busy ? "Claiming..." : "Claim — 5,000 DICE"}</Button>

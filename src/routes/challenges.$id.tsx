@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { MessageSquare, Camera, ArrowLeft } from "lucide-react";
+import { MessageSquare, Camera, ArrowLeft, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useMyRoles } from "@/hooks/use-profile";
+import { adminDeleteChallenge } from "@/lib/dice.functions";
 import { AppShell } from "@/components/dice/TopNav";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,9 @@ async function fetchProfiles(ids: (string | null | undefined)[]) {
 function Detail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const roles = useMyRoles(user?.id);
+  const isMod = (roles.data ?? []).some((r) => r === "admin" || r === "owner");
+  const modDelete = useServerFn(adminDeleteChallenge);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [comment, setComment] = useState("");
@@ -133,8 +139,17 @@ function Detail() {
             <div className="text-xs text-muted-foreground">{c.xp_reward} XP</div>
           </div>
         </div>
+
         <div className="mt-5 flex gap-2 flex-wrap">
           <Button asChild className="glow-red"><Link to="/challenges/$id/submit" params={{ id }}><Camera className="size-4 mr-1" />Record proof</Link></Button>
+          {isMod && (
+            <Button variant="destructive" onClick={async () => {
+              const reason = window.prompt("Reason for removing this challenge? (creator will be refunded)") ?? "";
+              if (reason === null) return;
+              try { await modDelete({ data: { challengeId: id, reason } }); toast.success("Challenge removed and refunded"); navigate({ to: "/challenges" }); }
+              catch (e: any) { toast.error(e.message); }
+            }}><ShieldAlert className="size-4 mr-1" />Remove (mod)</Button>
+          )}
         </div>
 
         {c.creator && <div className="mt-4 text-xs text-muted-foreground">Created by @{c.creator.username}</div>}
