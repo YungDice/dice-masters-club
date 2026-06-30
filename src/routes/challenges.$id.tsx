@@ -32,6 +32,9 @@ async function fetchProfiles(ids: (string | null | undefined)[]) {
 function Detail() {
   const { id } = Route.useParams();
   const { user } = useAuth();
+  const roles = useMyRoles(user?.id);
+  const isMod = (roles.data ?? []).some((r) => r === "admin" || r === "owner");
+  const modDelete = useServerFn(adminDeleteChallenge);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [comment, setComment] = useState("");
