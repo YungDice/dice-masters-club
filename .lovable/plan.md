@@ -1,138 +1,48 @@
-## Goal
+## 1. Fix `open_baddie_case_tx` wallet call
 
-Ship a large fixes-and-features pass across Marketplace, Baddies, Profiles, Game Stats, Streaks, Roles, Limits, Currency, Friends, and Activity. Keep all existing functionality intact; only extend.
+Root cause: `open_baddie_case_tx` and `collect_baddie_tx` call `public.wallet_debit` / `public.wallet_credit`, which do not exist in this project. The canonical helper is `public.wallet_adjust_idem(_user, _delta, _type, _source, _ref_kind, _ref_id, _note, _op_id)`.
 
----
+Migration rewrites both functions to use `wallet_adjust_idem`:
+- Debit happens first inside the same transaction; if balance is insufficient `wallet_adjust_idem` raises `Insufficient DICE balance`, the transaction rolls back, no Baddie is created, and the client surfaces the error toast already wired in `baddies.tsx`.
+- Use idempotency keys `baddie_open:<uuid>` (generated inside the fn) and `baddie_collect:<baddie_id>:<epoch_minute>` so retries are safe.
+- Cap check (2 non-VIP / 4 VIP) runs before the debit.
 
-## 1. Marketplace & Tags
+No duplicate wallet helpers are created.
 
-- Listing a tag/username no longer detaches it from the seller. Seller keeps the tag/username and profile shows a "For Sale" badge while listing is active.
-- Transfer happens only inside `buy_listing_tx` / `settle_auction_tx` on successful completion. On cancel/expire, nothing transfers.
-- Add a `profile_tags` table (`user_id`, `tag`, `acquired_at`, unique on `tag`) so users can own up to **3 tags**. `profiles.tag` becomes the "active/displayed" tag chosen from owned tags.
-- DB trigger + RPC checks enforce max 3 owned tags per user. Buy/auction-settle RPCs reject when buyer already owns 3.
-- Settings/Profile UI: list owned tags, pick active one, "List for sale" action per tag.
-- Username listings: seller keeps username until sale; on completion, seller gets a temp username + one free change (already implemented) and buyer receives the username.
+## 2. New rarities + weighted drops
 
-## 2. Baddie Cases & Passive Income
+Migration:
+- Add 2 new templates: `unreal` (Unreal, 0.8%), `elias` (Elias, 0.2%).
+- Rebalance weights so totals match exact rates: weights out of 10000 → common 5000, uncommon 2500, rare 1400, epic 700, legendary 300, unreal 80, elias 20.
+- Income per hour: unreal 720, elias 1500 (Elias rarest + best).
+- `open_baddie_case_tx` already picks via weighted sum — no logic change needed beyond the new rows.
 
-Already partly built (`/cases`, `baddies` table, `openBaddieCase`, `collectBaddieIncome`). Audit and confirm:
+UI (`src/routes/baddies.tsx`):
+- Extend `RARITY_STYLE` map for `unreal` (violet/cyan holo gradient) and `elias` (gold/black mythic gradient with ring).
+- Show odds column on each rarity card (e.g. "0.2%") computed from `weight / sum(weight) * 100`.
+- Ensure 7 rarity cards lay out cleanly on mobile (2 cols) and desktop (responsive grid).
 
-- Move "Baddie Base" button to the right side of the page header (already done — verify).
-- Cap 2 (non-VIP) / 4 (VIP) enforced in `create_baddie_tx`.
-- Income strictly on-click via `collect_baddie_income_tx`, using `last_collected_at` with 48h max accrual cap.
-- No background cron grants income.
+## 3. Elias image
 
-No new schema unless audit shows gaps.
+- Save attached image to `src/assets/baddies/elias.jpg` (responsive object-cover usage).
+- Store `image_url` on the `elias` template row pointing at the imported asset URL (via Lovable assets pointer or static import path served by Vite).
+- Update `RARITY_STYLE` rendering and reveal/inventory cards to show `template.image_url` when present (square `object-cover` with rounded corners). Other Baddies keep the Sparkles icon fallback.
 
-## 3. Profile Background
+## 4. Activity feeds (Recent Results + Friend Activity)
 
-- Apply `profile_bg_url` as a fixed full-page background on `/u/$username` (and `/profile`), behind all sections, not just one card.
-- Add a subtle dark overlay for readability. VIP-only upload remains.
+The `activity_feed` table is already inserted into by `record_game_result`, `buy_listing_tx`, `settle_auction_tx`. Gaps: case open / Baddie collect / friend-side reads.
 
-## 4. Wins/Losses & Game Statistics
+Migration:
+- Insert into `activity_feed` from `open_baddie_case_tx` (`kind='baddie_unlocked'`) and `collect_baddie_tx` (`kind='baddie_income'`).
+- Insert into `activity_feed` from `grant_achievement_tx` (`kind='achievement'`).
 
-- `record_game_result` already exists. Audit every game route to confirm it's called on win **and** loss, including bot opponents and PvP both sides:
-  - Roulette, Blackjack (solo + multi), Dice (solo + PvP), Coinflip (+ bot), Slots, Video Poker, Split-or-Steal (+ bot), Flappy, Obby.
-- Extend `game_results` columns if missing: `wagered`, `payout`. Add migration if needed.
-- New SQL view `user_game_stats` aggregating: games_played, wins, losses, total_wagered, total_won, total_lost, net, by-kind breakdown.
-- Profile page reads from the view and shows combined + per-game stats.
+Frontend (home dashboard `src/routes/index.tsx`):
+- **Recent Results**: query `game_results` for current user ordered by `created_at desc limit 20`, render game kind, wagered, payout, outcome, relative time. Realtime subscribe to inserts on `game_results` filtered by `user_id`.
+- **Friend Activity**: query accepted friend ids from `friendships`, then `activity_feed` where `user_id in (friends)` order desc limit 30. Realtime subscribe to inserts on `activity_feed`; filter client-side by friend set.
+- Add loading skeleton, `EmptyState` for no rows, and error toast.
 
-## 5. Daily Streak
+## Technical notes
 
-- Add `profiles.last_streak_at` (date) if missing.
-- Rewrite `touch_presence` (or split into `touch_streak`) to:
-  - If `last_streak_at = today (UTC)` → no-op.
-  - If `last_streak_at = yesterday` → `streak_days += 1`.
-  - Else → `streak_days = 1`.
-  - Always update `last_streak_at = today`.
-- Frontend continues calling on heartbeat; DB enforces idempotency.
-
-## 6. Owner / Admin Permissions
-
-- Owner can grant `owner` role (already enforced in `protect_role_assignment`). Verify admin role UI in `/admin`.
-- New RPC `grant_achievement_tx(_user, _achievement)` — owner-only, inserts into `user_achievements`, logs to `moderation_actions`.
-- New RPC `admin_delete_listing_tx(_listing_id, _reason)`:
-  - Refund active bid escrow (auctions).
-  - Mark listing `removed`, do not transfer asset (seller keeps tag/username).
-  - Log `moderation_actions`.
-- New RPC `admin_delete_challenge_tx(_challenge_id, _reason)`:
-  - Refund the 500 DICE creation fee (and any stake) to creator.
-  - Cascade-delete proofs/participants/comments/likes.
-  - Log `moderation_actions`.
-- Admin UI buttons in `/marketplace/$id` and `/challenges/$id` visible to staff with confirm dialog + reason input.
-
-## 7. VIP Betting Limits
-
-- Central helper `maxBet(isVip)` → `isVip ? 10000 : 2000`. Replace ad-hoc limits in every game UI.
-- Server-side: every stake RPC (`solo_dice_tx`, coinflip, slots, blackjack, roulette, video poker, split-steal) validates stake ≤ user's max via `is_vip(_uid)`.
-
-## 8. Currency Conversion
-
-- Single constant `DICE_PER_UNIT = 1000` shared by `BuyCoins.tsx` and Stripe price calc in `payments.functions.ts`.
-- Update labels: "1 EUR / USD / CHF = 1000 DICE".
-- Stripe checkout amounts recalculated accordingly. Webhook credits 1000 DICE per currency unit regardless of EUR/USD/CHF.
-
-## 9. Friends & Online Status
-
-- `profiles.last_seen_at` (already touched by heartbeat). Define online = `last_seen_at > now() - 2 min`.
-- `/friends` shows green/grey dot + "Online" / "Last seen 5m ago".
-- `/u/$username` action button derives from `friendships` status:
-  - none → "Add Friend"
-  - pending (sent) → "Cancel request"
-  - pending (received) → "Accept" / "Decline"
-  - accepted → "Friends ▾" with "Remove Friend"
-- Chat message delete button only rendered when `msg.user_id === currentUserId` OR `is_staff(currentUserId)`. RLS already enforces — UI now matches.
-
-## 10. Recent Activity
-
-- `activity_feed` table exists. Add inserts at the source of every event:
-  - Game finished → `game_result`
-  - Challenge created/completed
-  - Marketplace purchase
-  - Baddie unlocked / case opened
-  - Achievement earned
-- Home dashboard "Recent Results" + "Recent Games" + "Friend Activity" tabs read live data via queries with realtime invalidation.
-
----
-
-## Technical Details
-
-### Migrations (single batch)
-1. `profile_tags` table + grants + RLS + trigger enforcing max 3.
-2. `game_results.wagered`, `payout` columns (nullable backfill).
-3. `user_game_stats` view (security_invoker).
-4. `profiles.last_streak_at date`.
-5. Rewrite `touch_presence` for streak logic; split out `touch_streak` if cleaner.
-6. New RPCs: `grant_achievement_tx`, `admin_delete_listing_tx`, `admin_delete_challenge_tx`, `set_active_tag_tx`, `list_owned_tag_tx`.
-7. Modify `buy_listing_tx` / `settle_auction_tx` to insert into `profile_tags` instead of mutating `profiles.tag`; enforce 3-tag cap.
-8. Add bet-limit check helper `assert_bet_within_limit(_uid, _amount)`; call from every staking RPC.
-9. Activity feed inserts inside existing RPCs (game results, purchases, baddies, achievements).
-
-### Frontend
-- New `/cases` audit (already exists).
-- `Settings` → Tags manager (owned tags, set active, list for sale).
-- `BuyCoins`, payments fn → 1000/unit.
-- Game pages → import `maxBet` helper.
-- `/friends`, `/u/$username` → presence + friendship state-aware buttons.
-- `ChatPopover` → conditional delete button.
-- `/admin` + listing/challenge detail → admin delete with reason modal.
-- Profile page → full-page bg with overlay.
-- Home dashboard activity tabs → live data.
-
-### Out of scope (not requested)
-- No new games, no payment provider changes beyond rate.
-- No redesign of unrelated pages.
-
----
-
-## Rollout order
-
-1. Migration batch (schema + RPCs).
-2. Marketplace tag/username retention + 3-tag system + UI.
-3. Admin moderation RPCs + UI.
-4. Streak + presence rewrite.
-5. Bet limits + currency rate.
-6. Game-result + activity-feed instrumentation audit.
-7. Profile background full-page + friendship-aware buttons + chat delete gating.
-8. Stats view + profile stats UI.
-9. QA pass per area.
+- Single migration covering: rewrite `open_baddie_case_tx`, rewrite `collect_baddie_tx`, insert new templates, update existing template weights, add activity_feed inserts to baddie + achievement RPCs.
+- Image stored via `lovable-assets` CLI from `/mnt/user-uploads/image-3.png` and referenced through generated `.asset.json`.
+- No new tables, no duplicate wallet helpers, no schema-breaking changes.
