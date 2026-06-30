@@ -437,7 +437,7 @@ function Page() {
       {/* Reveal modal */}
       <Dialog open={!!reveal} onOpenChange={(o) => !o && setReveal(null)}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>New Baddie!</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{reveal?.autosold ? "Autosold!" : "New Baddie!"}</DialogTitle></DialogHeader>
           {reveal && (
             <div className={`rounded-xl border bg-gradient-to-br p-6 text-center ${RARITY_STYLE[reveal.rarity] ?? RARITY_STYLE.common}`}>
               {templateImage({ id: reveal.template_id, image_url: reveal.image_url }) ? (
@@ -451,7 +451,11 @@ function Page() {
               )}
               <div className="font-display text-2xl font-bold">{reveal.name}</div>
               <div className="capitalize opacity-80 mb-2">{reveal.rarity}</div>
-              <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>
+              {reveal.autosold ? (
+                <div className="text-sm text-emerald-300 font-bold">+{fmt(reveal.sell_price ?? 0)} DICE (autosold)</div>
+              ) : (
+                <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>
+              )}
             </div>
           )}
         </DialogContent>
