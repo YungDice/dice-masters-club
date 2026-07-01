@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
-import { buyListing, placeBid, settleAuction, adminDeleteListing } from "@/lib/dice.functions";
+import { buyListing, placeBid, settleAuction, adminDeleteListing, cancelListing } from "@/lib/dice.functions";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
