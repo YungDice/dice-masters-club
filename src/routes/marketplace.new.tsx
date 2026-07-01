@@ -11,9 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ImagePlus, Gavel, Tag as TagIcon, ArrowLeft, X, Hash, AtSign, Package } from "lucide-react";
+import { ImagePlus, Gavel, Tag as TagIcon, ArrowLeft, X, Hash, AtSign, Package, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { listTagForSale, listUsernameForSale } from "@/lib/dice.functions";
+import { listTagForSale, listUsernameForSale, listBaddieForSale } from "@/lib/dice.functions";
+import { useQuery } from "@tanstack/react-query";
+import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 
 export const Route = createFileRoute("/marketplace/new")({
   head: () => ({ meta: [{ title: "List item — DICE" }] }),
