@@ -6,12 +6,23 @@ function callRpc(context: any, name: string, args?: Record<string, unknown>) {
   return (context.supabase as any).rpc(name, args);
 }
 
+function isMissingRpc(error: any, rpcName: string) {
+  const message = String(error?.message ?? "");
+  return error?.code === "PGRST202" || message.includes(`public.${rpcName}`) && message.includes("schema cache");
+}
+
 export const prepareClubDashboard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await callRpc(context, "ensure_club_progress_tx");
+    // A preview can receive the application bundle before PostgREST has reloaded
+    // the new database function. Avoid turning that brief deploy window into a
+    // server-function crash / blank screen; the page can retry normally.
+    if (isMissingRpc(error, "ensure_club_progress_tx")) {
+      return { ok: false, schemaReady: false, reason: "club_schema_pending" };
+    }
     if (error) throw new Error(error.message);
-    return data;
+    return { ...(data ?? {}), schemaReady: true };
   });
 
 export const claimDailyMission = createServerFn({ method: "POST" })
