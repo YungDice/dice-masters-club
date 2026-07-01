@@ -2,6 +2,7 @@
 // Server-side Supabase client with service role key - bypasses RLS.
 // Use this for admin operations in server functions and server routes only.
 // For user-authenticated queries (with RLS), use the auth middleware instead.
+import { getRequest } from '@tanstack/react-start/server';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -55,7 +56,48 @@ function createSupabaseAdminClient() {
   });
 }
 
+/**
+ * These functions authorize the acting player with auth.uid(). Their server
+ * handlers already verify the incoming bearer token, so preserve that token
+ * for the database call instead of using the service role, which has no user
+ * subject and would make auth.uid() null.
+ */
+const PLAYER_AUTH_RPC_FUNCTIONS = new Set([
+  'open_baddie_cases_tx',
+  'list_baddie_for_sale_tx',
+  'cancel_listing_tx',
+  'upgrade_baddies_tx',
+]);
+
+function createRequestUserClient() {
+  const request = getRequest();
+  const authorization = request?.headers.get('authorization');
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  if (!authorization?.startsWith('Bearer ') || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    return null;
+  }
+
+  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    global: {
+      fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
+      headers: { Authorization: authorization },
+    },
+    auth: {
+      storage: undefined,
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
+
 let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+
+function getSupabaseAdminClient() {
+  if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+  return _supabaseAdmin;
+}
 
 // Server-side Supabase client with service role - bypasses RLS
 // SECURITY: Only use this for trusted server-side operations, never expose to client code
@@ -63,7 +105,15 @@ let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
 // Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
   get(_, prop, receiver) {
-    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
-    return Reflect.get(_supabaseAdmin, prop, receiver);
+    if (prop === 'rpc') {
+      return (functionName: string, args?: unknown, options?: unknown) => {
+        const client = PLAYER_AUTH_RPC_FUNCTIONS.has(functionName)
+          ? createRequestUserClient() ?? getSupabaseAdminClient()
+          : getSupabaseAdminClient();
+        return (client.rpc as any)(functionName, args, options);
+      };
+    }
+
+    return Reflect.get(getSupabaseAdminClient(), prop, receiver);
   },
 });
