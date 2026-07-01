@@ -11,9 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ImagePlus, Gavel, Tag as TagIcon, ArrowLeft, X, Hash, AtSign, Package } from "lucide-react";
+import { ImagePlus, Gavel, Tag as TagIcon, ArrowLeft, X, Hash, AtSign, Package, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { listTagForSale, listUsernameForSale } from "@/lib/dice.functions";
+import { listTagForSale, listUsernameForSale, listBaddieForSale } from "@/lib/dice.functions";
+import { useQuery } from "@tanstack/react-query";
+import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 
 export const Route = createFileRoute("/marketplace/new")({
   head: () => ({ meta: [{ title: "List item — DICE" }] }),
@@ -33,7 +35,7 @@ const ITEM_CATEGORIES = [
   { value: "other", label: "📦 Other" },
 ];
 
-type Mode = "item" | "tag" | "username";
+type Mode = "item" | "tag" | "username" | "baddie";
 
 function CreateListing() {
   const { user } = useAuth();
@@ -50,22 +52,25 @@ function CreateListing() {
       <Card className="glass p-6 md:p-8">
         <div className="space-y-1 mb-5">
           <h1 className="font-display text-3xl font-bold">Create a listing</h1>
-          <p className="text-sm text-muted-foreground">Pick what you want to sell — a digital item, your tag, or your username.</p>
+          <p className="text-sm text-muted-foreground">Pick what you want to sell — an item, a Baddie, your tag, or your username.</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
           <ModeCard active={mode === "item"} onClick={() => setMode("item")} icon={<Package className="size-4" />} title="Item" sub="Art, GIF, avatar…" />
+          <ModeCard active={mode === "baddie"} onClick={() => setMode("baddie")} icon={<Sparkles className="size-4" />} title="Baddie" sub="Sell one of yours" />
           <ModeCard active={mode === "tag"} onClick={() => setMode("tag")} icon={<Hash className="size-4" />} title="Tag" sub={profile?.tag ? `#${profile.tag}` : "Need a tag"} />
           <ModeCard active={mode === "username"} onClick={() => setMode("username")} icon={<AtSign className="size-4" />} title="Username" sub={profile?.username ? `@${profile.username}` : "—"} />
         </div>
 
         {mode === "item" && <ItemForm user={user} onDone={() => nav({ to: "/marketplace" })} />}
+        {mode === "baddie" && <BaddieForm user={user} onDone={() => nav({ to: "/marketplace" })} />}
         {mode === "tag" && <TagForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
         {mode === "username" && <UsernameForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
       </Card>
     </div>
   );
 }
+
 
 function ModeCard({ active, onClick, icon, title, sub }: any) {
   return (
@@ -303,3 +308,90 @@ function UsernameForm({ profile, onDone }: { profile: any; onDone: () => void })
     </form>
   );
 }
+
+function BaddieForm({ user, onDone }: { user: any; onDone: () => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [price, setPrice] = useState<number>(2000);
+  const [busy, setBusy] = useState(false);
+  const list = useServerFn(listBaddieForSale);
+
+  const q = useQuery({
+    queryKey: ["my-baddies-listable", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_baddies" as any)
+        .select("*, template:baddie_templates(*)")
+        .eq("user_id", user!.id)
+        .is("listing_id", null)
+        .order("acquired_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const owned = (q.data ?? []) as any[];
+  const chosen = owned.find((b) => b.id === selected);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selected) return toast.error("Pick a Baddie");
+    if (!Number.isFinite(price) || price < 100) return toast.error("Price must be ≥ 100 DICE");
+    setBusy(true);
+    try {
+      await list({ data: { baddieId: selected, price: Math.round(price) } });
+      toast.success("Baddie listed!");
+      onDone();
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
+
+  if (owned.length === 0) {
+    return (
+      <div className="rounded-md border border-border/60 p-5 text-sm text-muted-foreground">
+        You don't own any unlisted Baddies. Open a case in <Link to="/baddies" className="text-primary underline">Baddies</Link>.
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <div>
+        <Label>Choose a Baddie to sell</Label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1 max-h-72 overflow-y-auto pr-1">
+          {owned.map((b) => {
+            const t = b.template;
+            const img = t.image_url ?? (t.id === "elias" ? eliasAsset.url : null);
+            const active = selected === b.id;
+            return (
+              <button key={b.id} type="button" onClick={() => setSelected(b.id)}
+                className={`text-left rounded-lg border p-2 transition ${active ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
+                <div className="aspect-square rounded-md overflow-hidden bg-black/30 mb-1.5 grid place-items-center">
+                  {img ? <img src={img} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-70" />}
+                </div>
+                <div className="text-xs font-semibold truncate">{b.name ?? t.name}</div>
+                <div className="text-[10px] capitalize text-muted-foreground">{t.rarity} · {t.income_per_hour}/h</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {chosen && (
+        <div className="rounded-md bg-primary/5 border border-primary/30 p-3 text-xs text-muted-foreground">
+          While listed, this Baddie stays visible in your inventory but can't be collected from, sold, upgraded, or listed twice.
+        </div>
+      )}
+
+      <div>
+        <Label>Price (DICE)</Label>
+        <Input type="number" min={100} value={price} onChange={(e) => setPrice(+e.target.value)} />
+      </div>
+
+      <Button disabled={busy || !selected} className="glow-red w-full">
+        {busy ? "Listing…" : `List for ${price.toLocaleString()} DICE`}
+      </Button>
+    </form>
+  );
+}
+

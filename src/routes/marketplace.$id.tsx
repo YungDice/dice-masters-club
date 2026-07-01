@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
-import { buyListing, placeBid, settleAuction, adminDeleteListing } from "@/lib/dice.functions";
+import { buyListing, placeBid, settleAuction, adminDeleteListing, cancelListing } from "@/lib/dice.functions";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
@@ -45,6 +45,7 @@ function Detail() {
   const bid = useServerFn(placeBid);
   const settle = useServerFn(settleAuction);
   const modDelete = useServerFn(adminDeleteListing);
+  const cancel = useServerFn(cancelListing);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [busy, setBusy] = useState(false);
 
@@ -186,6 +187,13 @@ function Detail() {
             <div className="text-xs text-muted-foreground">Sold by @{l.seller?.username}{l.seller?.tag ? `#${l.seller.tag}` : ""}</div>
             {(isTag || l.category === "username") && l.status === "active" && (
               <div className="text-xs text-amber-400">Still attached to seller until purchase.</div>
+            )}
+            {isOwn && l.status === "active" && (!isAuction || !l.current_bidder_id) && (
+              <Button variant="outline" className="w-full mt-1" onClick={async () => {
+                if (!window.confirm("Cancel this listing?")) return;
+                try { await cancel({ data: { listingId: id } }); toast.success("Listing cancelled"); nav({ to: "/marketplace" }); }
+                catch (e: any) { toast.error(e.message); }
+              }}>Cancel listing</Button>
             )}
             {isMod && l.status === "active" && (
               <Button variant="destructive" className="w-full mt-2" onClick={async () => {

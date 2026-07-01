@@ -164,6 +164,57 @@ export type Database = {
         }
         Relationships: []
       }
+      baddie_upgrades: {
+        Row: {
+          awarded_baddie_id: string | null
+          chance_pct: number
+          created_at: string
+          id: string
+          material_count: number
+          material_template_ids: string[]
+          success: boolean
+          target_template_id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_baddie_id?: string | null
+          chance_pct: number
+          created_at?: string
+          id?: string
+          material_count: number
+          material_template_ids: string[]
+          success: boolean
+          target_template_id: string
+          user_id: string
+        }
+        Update: {
+          awarded_baddie_id?: string | null
+          chance_pct?: number
+          created_at?: string
+          id?: string
+          material_count?: number
+          material_template_ids?: string[]
+          success?: boolean
+          target_template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "baddie_upgrades_awarded_baddie_id_fkey"
+            columns: ["awarded_baddie_id"]
+            isOneToOne: false
+            referencedRelation: "user_baddies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "baddie_upgrades_target_template_id_fkey"
+            columns: ["target_template_id"]
+            isOneToOne: false
+            referencedRelation: "baddie_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenge_comments: {
         Row: {
           body: string
@@ -870,6 +921,7 @@ export type Database = {
       marketplace_listings: {
         Row: {
           auction_ends_at: string | null
+          baddie_id: string | null
           category: string
           created_at: string
           current_bid: number | null
@@ -895,6 +947,7 @@ export type Database = {
         }
         Insert: {
           auction_ends_at?: string | null
+          baddie_id?: string | null
           category: string
           created_at?: string
           current_bid?: number | null
@@ -920,6 +973,7 @@ export type Database = {
         }
         Update: {
           auction_ends_at?: string | null
+          baddie_id?: string | null
           category?: string
           created_at?: string
           current_bid?: number | null
@@ -943,7 +997,15 @@ export type Database = {
           username_value?: string | null
           winner_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_baddie_id_fkey"
+            columns: ["baddie_id"]
+            isOneToOne: false
+            referencedRelation: "user_baddies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       marketplace_purchases: {
         Row: {
@@ -1275,6 +1337,7 @@ export type Database = {
           acquired_at: string
           id: string
           last_collected_at: string
+          listing_id: string | null
           name: string | null
           template_id: string
           user_id: string
@@ -1283,6 +1346,7 @@ export type Database = {
           acquired_at?: string
           id?: string
           last_collected_at?: string
+          listing_id?: string | null
           name?: string | null
           template_id: string
           user_id: string
@@ -1291,11 +1355,19 @@ export type Database = {
           acquired_at?: string
           id?: string
           last_collected_at?: string
+          listing_id?: string | null
           name?: string | null
           template_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_baddies_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "marketplace_listings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_baddies_template_id_fkey"
             columns: ["template_id"]
@@ -1391,6 +1463,14 @@ export type Database = {
       }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
+      baddie_upgrade_chance: {
+        Args: {
+          _material_value: number
+          _target_rarity: string
+          _target_value: number
+        }
+        Returns: number
+      }
       buy_baddie_slot_tx: {
         Args: never
         Returns: {
@@ -1402,6 +1482,7 @@ export type Database = {
         Args: { _buyer: string; _listing_id: string }
         Returns: Json
       }
+      cancel_listing_tx: { Args: { _listing_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
@@ -1427,8 +1508,25 @@ export type Database = {
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
+      list_baddie_for_sale_tx: {
+        Args: { _baddie_id: string; _price: number }
+        Returns: Json
+      }
       open_baddie_case_tx: {
         Args: never
+        Returns: {
+          autosold: boolean
+          image_url: string
+          income_per_hour: number
+          name: string
+          rarity: string
+          sell_price: number
+          template_id: string
+          user_baddie_id: string
+        }[]
+      }
+      open_baddie_cases_tx: {
+        Args: { _count: number }
         Returns: {
           autosold: boolean
           image_url: string
@@ -1507,6 +1605,10 @@ export type Database = {
       }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
+      upgrade_baddies_tx: {
+        Args: { _material_baddie_ids: string[]; _target_template_id: string }
+        Returns: Json
+      }
       wallet_adjust: {
         Args: {
           _delta: number

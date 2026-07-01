@@ -46,6 +46,7 @@ const items: NavItem[] = [
   { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
   { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
+  { to: "/upgrader", label: "Upgrader", icon: Sparkles, group: "market" },
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
   { to: "/friends", label: "Friends", icon: Users, group: "social" },

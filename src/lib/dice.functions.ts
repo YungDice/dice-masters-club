@@ -1172,3 +1172,61 @@ export const setActiveTag = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return res as any;
   });
+
+// ---------- Baddie Marketplace ----------
+export const listBaddieForSale = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { baddieId: string; price: number }) =>
+    z.object({ baddieId: z.string().uuid(), price: z.number().int().min(100).max(100_000_000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "list_baddie", 60, 10);
+    const { data: res, error } = await supabaseAdmin.rpc("list_baddie_for_sale_tx" as any, {
+      _baddie_id: data.baddieId, _price: data.price,
+    });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+export const cancelListing = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { listingId: string }) => z.object({ listingId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("cancel_listing_tx" as any, { _listing_id: data.listingId });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+// ---------- Baddie multi-open ----------
+export const openBaddieCases = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { count: number }) =>
+    z.object({ count: z.number().int().min(1).max(10) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "baddie_open", 10, 20);
+    const { data: res, error } = await supabaseAdmin.rpc("open_baddie_cases_tx" as any, { _count: data.count });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
+// ---------- Baddie Upgrader ----------
+export const upgradeBaddies = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { targetTemplateId: string; materialBaddieIds: string[] }) =>
+    z.object({
+      targetTemplateId: z.string().min(1),
+      materialBaddieIds: z.array(z.string().uuid()).min(1).max(20),
+    }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await rateLimit(supabaseAdmin, context.userId, "baddie_upgrade", 10, 10);
+    const { data: res, error } = await supabaseAdmin.rpc("upgrade_baddies_tx" as any, {
+      _target_template_id: data.targetTemplateId,
+      _material_baddie_ids: data.materialBaddieIds,
+    });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+

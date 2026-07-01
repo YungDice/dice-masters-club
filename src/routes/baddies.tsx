@@ -1,22 +1,26 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, PackageOpen, Coins, Lock, Crown } from "lucide-react";
+import { Sparkles, PackageOpen, Coins, Crown, Tag as TagIcon, Lock } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useMyProfile } from "@/hooks/use-profile";
+import { useMyProfile, useWallet } from "@/hooks/use-profile";
 import { isVipActive } from "@/lib/limits";
 import { AppShell } from "@/components/dice/TopNav";
 import { PageHeader } from "@/components/dice/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
+import { openBaddieCases, listBaddieForSale } from "@/lib/dice.functions";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const Route = createFileRoute("/baddies")({
   head: () => ({ meta: [{ title: "Baddie Cases — DICE" }] }),
@@ -24,6 +28,7 @@ export const Route = createFileRoute("/baddies")({
 });
 
 const CASE_COST = 1000;
+const MULTIS = [1, 2, 3, 5, 10];
 
 const RARITY_STYLE: Record<string, string> = {
   common:    "from-zinc-500/20 to-zinc-700/10 border-zinc-400/30 text-zinc-200",
@@ -34,7 +39,6 @@ const RARITY_STYLE: Record<string, string> = {
   unreal:    "from-violet-500/30 via-cyan-400/20 to-fuchsia-500/20 border-cyan-300/60 text-cyan-100 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]",
   elias:     "from-amber-300/40 via-black/40 to-amber-500/30 border-amber-200 text-amber-50 ring-2 ring-amber-300/70 shadow-[0_0_28px_-4px_rgba(252,211,77,0.75)]",
 };
-
 const RARITY_ORDER = ["common","uncommon","rare","epic","legendary","unreal","elias"];
 
 function useTickingNow(intervalMs = 1000) {
@@ -42,57 +46,35 @@ function useTickingNow(intervalMs = 1000) {
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), intervalMs); return () => clearInterval(t); }, [intervalMs]);
   return now;
 }
-
 function templateImage(t: { id?: string; image_url?: string | null }) {
   if (t.image_url) return t.image_url;
   if (t.id === "elias") return eliasAsset.url;
   return null;
 }
-
-function sellPriceFor(rate: number) {
-  return Math.max(Math.floor(rate / 2), 1);
-}
-
-// Build a long reel ending with the winning template at a known index.
-function buildReel(templates: any[], winning: any) {
-  const weighted: any[] = [];
-  for (const t of templates) {
-    const w = Math.max(1, Math.round((t.weight ?? 1) / 20));
-    for (let i = 0; i < w; i++) weighted.push(t);
-  }
-  if (weighted.length === 0) weighted.push(...templates);
-  const REEL = 80;
-  const out: any[] = [];
-  for (let i = 0; i < REEL; i++) out.push(weighted[Math.floor(Math.random() * weighted.length)]);
-  // Place the winning card well before the end so there's still reel to the right of the marker
-  const winIndex = REEL - 12;
-  out[winIndex] = winning;
-  (out as any).__winIndex = winIndex;
-  return out;
-}
-
-const CARD_W = 128; // px
-const CARD_GAP = 12;
-const CARD_TOTAL = CARD_W + CARD_GAP;
+const sellPriceFor = (rate: number) => Math.max(Math.floor(rate / 2), 1);
 
 function Page() {
   const { user } = useAuth();
   const prof = useMyProfile(user?.id);
+  const walletQ = useWallet(user?.id);
   const qc = useQueryClient();
+  const nav = useNavigate();
+  const openMulti = useServerFn(openBaddieCases);
+  const listOnMarket = useServerFn(listBaddieForSale);
+
   const isVip = isVipActive((prof.data as any)?.vip_until);
   const slotsBought = (prof.data as any)?.baddie_slots_bought ?? 0;
   const cap = Math.min(10, (isVip ? 4 : 2) + slotsBought);
+  const balance = Number((walletQ.data as any)?.balance ?? 0);
+
   const [baseOpen, setBaseOpen] = useState(false);
   const [rolling, setRolling] = useState(false);
-  const [reveal, setReveal] = useState<any>(null);
+  const [multi, setMulti] = useState<number>(1);
+  const [results, setResults] = useState<any[] | null>(null);
   const [sellTarget, setSellTarget] = useState<any>(null);
+  const [listTarget, setListTarget] = useState<any>(null);
+  const [listPrice, setListPrice] = useState<number>(2000);
   const now = useTickingNow(1000);
-
-  // Reel state
-  const [reel, setReel] = useState<any[] | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [transition, setTransition] = useState("none");
-  const reelViewportRef = useRef<HTMLDivElement>(null);
 
   const baddies = useQuery({
     queryKey: ["my-baddies", user?.id],
@@ -121,58 +103,30 @@ function Page() {
     () => (templates.data ?? []).reduce((s: number, t: any) => s + (t.weight ?? 0), 0) || 1,
     [templates.data]
   );
-  const count = (baddies.data ?? []).length;
 
   const autosellList: string[] = (prof.data as any)?.autosell_rarities ?? [];
+  const totalCost = CASE_COST * multi;
+  const canAfford = balance >= totalCost;
 
   async function openCase() {
     if (!user || rolling) return;
-    const baseFullNoAutosell = count >= cap && !(isVip && autosellList.length > 0);
-    if (baseFullNoAutosell) { toast.error(`Baddie Base full (${count}/${cap})`); return; }
+    if (!canAfford) { toast.error(`Not enough DICE (need ${fmt(totalCost)})`); return; }
     setRolling(true);
-    setReveal(null);
+    setResults(null);
     try {
-      const { data, error } = await supabase.rpc("open_baddie_case_tx" as any);
-      if (error) throw error;
-      const row: any = Array.isArray(data) ? data[0] : data;
-
-      const winningTpl = (templates.data ?? []).find((t: any) => t.id === row.template_id) ?? {
-        id: row.template_id, name: row.name, rarity: row.rarity,
-        income_per_hour: row.income_per_hour, image_url: row.image_url, weight: 1,
-      };
-      const newReel = buildReel(templates.data ?? [], winningTpl);
-      setReel(newReel);
-      setTransition("none");
-      setOffset(0);
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const viewport = reelViewportRef.current;
-          const vpW = viewport?.clientWidth ?? 600;
-          const centerOffset = vpW / 2 - CARD_W / 2;
-          const winIndex = (newReel as any).__winIndex ?? (newReel.length - 12);
-          const target = winIndex * CARD_TOTAL - centerOffset
-            + (Math.random() * 40 - 20);
-          setTransition("transform 5.2s cubic-bezier(0.08, 0.82, 0.17, 1)");
-          setOffset(-target);
-        });
-      });
-
-      setTimeout(() => {
-        setReveal(row);
-        if (row?.autosold) {
-          toast.success(`Autosold ${row.name} for +${fmt(row.sell_price ?? 0)} DICE`);
-        }
-        qc.invalidateQueries({ queryKey: ["my-baddies"] });
-        qc.invalidateQueries({ queryKey: ["wallet"] });
-        setRolling(false);
-      }, 5400);
+      const res: any = await openMulti({ data: { count: multi } });
+      const rows: any[] = Array.isArray(res) ? res : (res?.rows ?? []);
+      setResults(rows);
+      const autos = rows.filter((r) => r.autosold);
+      if (autos.length) toast.success(`Autosold ${autos.length} for +${fmt(autos.reduce((s, r) => s + (r.sell_price ?? 0), 0))} DICE`);
+      qc.invalidateQueries({ queryKey: ["my-baddies"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) {
       const msg = String(e?.message ?? "");
-      if (/insufficient/i.test(msg)) toast.error("Not enough DICE — case costs 1,000 DICE.");
-      else toast.error(msg || "Failed to open case");
+      if (/insufficient/i.test(msg)) toast.error("Not enough DICE.");
+      else toast.error(msg || "Failed to open");
+    } finally {
       setRolling(false);
-      setReel(null);
     }
   }
 
@@ -185,7 +139,6 @@ function Page() {
     } catch (e: any) { toast.error(e.message ?? "Failed to update autosell"); }
   }
 
-
   async function collect(id: string) {
     try {
       const { data, error } = await supabase.rpc("collect_baddie_tx" as any, { _baddie_id: id });
@@ -196,7 +149,6 @@ function Page() {
       qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) { toast.error(e.message); }
   }
-
   async function confirmSell() {
     if (!sellTarget) return;
     const id = sellTarget.id;
@@ -210,7 +162,20 @@ function Page() {
       qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
   }
-
+  async function confirmList() {
+    if (!listTarget) return;
+    const id = listTarget.id;
+    const price = Math.round(Number(listPrice));
+    if (!Number.isFinite(price) || price < 100) return toast.error("Price must be ≥ 100 DICE");
+    try {
+      const res: any = await listOnMarket({ data: { baddieId: id, price } });
+      toast.success("Listed on Marketplace!");
+      setListTarget(null);
+      qc.invalidateQueries({ queryKey: ["my-baddies"] });
+      qc.invalidateQueries({ queryKey: ["listings"] });
+      if (res?.listing_id) nav({ to: "/marketplace/$id", params: { id: res.listing_id } });
+    } catch (e: any) { toast.error(e.message ?? "Failed to list"); }
+  }
   async function buySlot() {
     try {
       const { error } = await supabase.rpc("buy_baddie_slot_tx" as any);
@@ -226,16 +191,23 @@ function Page() {
     }
   }
 
+  const activeBaddies = (baddies.data ?? []) as any[];
+  const listedCount = activeBaddies.filter((b) => b.listing_id).length;
+  const inventoryCount = activeBaddies.length;
+  const activeSlotUsage = Math.min(inventoryCount - listedCount, cap);
+
   return (
     <div className="space-y-5">
       <PageHeader
         icon={Sparkles}
         title="Baddie Cases"
-        subtitle="Unbox a Baddie to earn passive DICE income. Collect manually whenever you like."
+        subtitle="Unbox Baddies for passive DICE income. Sell them, list them on the Marketplace, or feed them into the Upgrader."
         actions={
-          <Button variant="outline" onClick={() => setBaseOpen(true)}>
-            <PackageOpen className="size-4 mr-1" />Baddie Base ({count}/{cap})
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setBaseOpen(true)}>
+              <PackageOpen className="size-4 mr-1" />My Baddies ({inventoryCount})
+            </Button>
+          </div>
         }
       />
 
@@ -245,8 +217,8 @@ function Page() {
           <div>
             <h2 className="font-display text-xl font-bold mb-2">Mystery Baddie Case</h2>
             <p className="text-sm text-muted-foreground mb-3">
-              Open a case to unbox a Baddie of random rarity. Higher rarities pay more DICE per hour.
-              Unclaimed income caps at 24 hours per Baddie to keep things fair.
+              Every unboxed Baddie goes to your <b>Inventory</b>. Move them into active Base slots to earn passive DICE,
+              sell them, list them on the Marketplace, or use them in the Upgrader.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 mb-4">
               {(templates.data ?? []).map((t: any) => {
@@ -268,114 +240,119 @@ function Page() {
                 );
               })}
             </div>
-            <div className="flex items-center gap-3">
-              <DiceBadge size="lg" amount={CASE_COST} />
-              {(() => {
-                const blocked = count >= cap && !(isVip && autosellList.length > 0);
-                return (
-                  <Button onClick={openCase} disabled={rolling || blocked} className="glow-red">
-                    {rolling ? "Rolling…" : blocked ? <><Lock className="size-4 mr-1" />Base full</> : "Open case"}
-                  </Button>
-                );
-              })()}
+
+            {/* Multiplier pills */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="text-xs text-muted-foreground mr-1">Open</span>
+              {MULTIS.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => !rolling && setMulti(m)}
+                  disabled={rolling}
+                  className={`px-3 py-1.5 rounded-lg border text-sm font-semibold transition ${
+                    multi === m
+                      ? "border-primary bg-primary/20 text-primary shadow-[0_0_12px_-4px_rgba(255,60,60,0.6)]"
+                      : "border-border/60 bg-white/5 hover:border-primary/40"
+                  }`}
+                >x{m}</button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <DiceBadge size="lg" amount={totalCost} />
+              <Button onClick={openCase} disabled={rolling || !canAfford} className="glow-red">
+                {rolling ? "Rolling…" : !canAfford ? <><Lock className="size-4 mr-1" />Not enough DICE</> : `Open x${multi}`}
+              </Button>
+              <div className="text-xs text-muted-foreground">
+                Balance: <b>{fmt(balance)} DICE</b>
+              </div>
             </div>
             <div className="mt-2 text-xs text-muted-foreground">
-              Base capacity: <b>{cap}</b> / 10 {isVip ? "(VIP base 4)" : "(non-VIP base 2 — upgrade to VIP for 4)"} · Buy more slots in your Base.
+              Active Base capacity: <b>{activeSlotUsage}</b> / {cap} {isVip ? "(VIP)" : ""} · Inventory is unlimited.
             </div>
           </div>
           <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-primary/30 to-fuchsia-700/20 border border-primary/40 grid place-items-center overflow-hidden">
             <div className={`absolute inset-0 ${rolling ? "animate-pulse" : ""} bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_60%)]`} />
             <PackageOpen className={`size-28 text-primary ${rolling ? "animate-bounce" : ""}`} />
+            {rolling && <div className="absolute bottom-3 text-xs uppercase tracking-widest text-primary">Rolling x{multi}…</div>}
           </div>
         </div>
+      </Card>
 
-        {/* CS-style reel */}
-        {(rolling || reel) && (
-          <div className="mt-6">
-            <div
-              ref={reelViewportRef}
-              className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-black/60 py-3"
-              style={{ height: CARD_W + 28 }}
-            >
-              {/* center marker */}
-              <div className="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
-                <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-amber-300" />
-                <div className="flex-1 w-[2px] bg-gradient-to-b from-amber-300/80 via-amber-300/30 to-amber-300/80" />
-                <div className="w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-amber-300" />
+      {/* Multi-reveal */}
+      <AnimatePresence>
+        {results && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <Card className="glass p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-display text-lg font-bold">
+                    You unboxed {results.length} Baddie{results.length > 1 ? "s" : ""}
+                  </h3>
+                  <div className="text-xs text-muted-foreground">
+                    New items are in your Inventory. Autosold rewards are already added to your wallet.
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setResults(null)}>Close</Button>
               </div>
-              {/* gradient edges */}
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-black to-transparent z-[5]" />
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-black to-transparent z-[5]" />
-
-              <div
-                className="flex h-full will-change-transform"
-                style={{
-                  gap: CARD_GAP,
-                  transform: `translate3d(${offset}px,0,0)`,
-                  transition,
-                }}
-              >
-                {(reel ?? []).map((t: any, i: number) => {
-                  const img = templateImage(t);
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {results.map((r, i) => {
+                  const img = templateImage({ id: r.template_id, image_url: r.image_url });
                   return (
-                    <div
+                    <motion.div
                       key={i}
-                      className={`shrink-0 rounded-lg border bg-gradient-to-br p-2 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common}`}
-                      style={{ width: CARD_W }}
+                      initial={{ scale: 0.6, opacity: 0, rotateY: 90 }}
+                      animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+                      transition={{ delay: i * 0.08, type: "spring", stiffness: 220, damping: 18 }}
+                      className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[r.rarity] ?? RARITY_STYLE.common}`}
                     >
-                      <div className="aspect-square w-full rounded-md overflow-hidden mb-1 ring-1 ring-white/10 bg-black/30">
-                        {img ? (
-                          <img src={img} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full grid place-items-center"><Sparkles className="size-7 opacity-80" /></div>
-                        )}
+                      <div className="aspect-square rounded-md overflow-hidden mb-2 bg-black/30 grid place-items-center ring-1 ring-white/10">
+                        {img
+                          ? <img src={img} alt={r.name} className="w-full h-full object-cover" />
+                          : <Sparkles className="size-8 opacity-80" />}
                       </div>
-                      <div className="text-xs font-semibold truncate">{t.name}</div>
-                      <div className="text-[10px] capitalize opacity-80">{t.rarity}</div>
-                    </div>
+                      <div className="font-semibold truncate">{r.name}</div>
+                      <div className="text-[11px] capitalize opacity-80">{r.rarity} · {r.income_per_hour}/h</div>
+                      {r.autosold ? (
+                        <div className="text-[11px] text-emerald-300 font-bold mt-1">Autosold +{fmt(r.sell_price ?? 0)}</div>
+                      ) : (
+                        <div className="text-[11px] text-muted-foreground mt-1">Added to Inventory</div>
+                      )}
+                    </motion.div>
                   );
                 })}
               </div>
-            </div>
-          </div>
+            </Card>
+          </motion.div>
         )}
-      </Card>
+      </AnimatePresence>
 
       {/* Baddie Base modal */}
       <Dialog open={baseOpen} onOpenChange={setBaseOpen}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Your Baddie Base ({count}/{cap})</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Your Baddie Inventory ({inventoryCount})</DialogTitle></DialogHeader>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-white/5 px-3 py-2">
             <div className="text-xs text-muted-foreground">
-              Base: <b>{isVip ? 4 : 2}</b> · Bought: <b>{slotsBought}</b> · Max <b>10</b>
+              Active Base cap: <b>{cap}</b> · Base: <b>{isVip ? 4 : 2}</b> · Bought: <b>{slotsBought}</b> · Max <b>10</b>
+              <div className="opacity-70">Only Baddies within your active cap earn income; extras stay safe in inventory.</div>
             </div>
             <Button size="sm" variant="outline" onClick={buySlot} disabled={cap >= 10}>
               {cap >= 10 ? "Max slots" : "Buy +1 slot · 25,000 DICE"}
             </Button>
           </div>
 
-          {/* VIP Autosell settings */}
+          {/* VIP Autosell */}
           <div className={`rounded-lg border px-3 py-2 ${isVip ? "border-amber-300/40 bg-amber-300/5" : "border-border/60 bg-white/5 opacity-70"}`}>
             <div className="flex items-center gap-2 mb-1.5">
               <Crown className="size-4 text-amber-300" />
               <div className="text-sm font-semibold">Auto-sell by rarity {isVip ? "" : "(VIP only)"}</div>
             </div>
-            <div className="text-[11px] text-muted-foreground mb-2">
-              Selected rarities are sold instantly when unboxed for half their hourly income.
-            </div>
             <div className="flex flex-wrap gap-2">
               {RARITY_ORDER.map((r) => {
                 const checked = autosellList.includes(r);
                 return (
-                  <label
-                    key={r}
-                    className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs capitalize cursor-pointer ${RARITY_STYLE[r]} ${!isVip ? "pointer-events-none" : ""}`}
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(v) => toggleAutosell(r, !!v)}
-                      disabled={!isVip}
-                    />
+                  <label key={r} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs capitalize cursor-pointer ${RARITY_STYLE[r]} ${!isVip ? "pointer-events-none" : ""}`}>
+                    <Checkbox checked={checked} onCheckedChange={(v) => toggleAutosell(r, !!v)} disabled={!isVip} />
                     {r}
                   </label>
                 );
@@ -383,18 +360,19 @@ function Page() {
             </div>
           </div>
 
-          {count === 0 ? (
-            <EmptyState icon={PackageOpen} title="Empty base" description="Open a case to recruit your first Baddie." />
+          {inventoryCount === 0 ? (
+            <EmptyState icon={PackageOpen} title="Empty inventory" description="Open a case to recruit your first Baddie." />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {(baddies.data ?? []).map((b: any) => {
+            <div className="grid gap-3 sm:grid-cols-2 max-h-[60vh] overflow-y-auto pr-1">
+              {activeBaddies.map((b: any) => {
                 const t = b.template;
+                const listed = !!b.listing_id;
                 const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 24 * 3600);
-                const pending = Math.floor((t.income_per_hour * secs) / 3600);
+                const pending = listed ? 0 : Math.floor((t.income_per_hour * secs) / 3600);
                 const img = templateImage(t);
                 const price = sellPriceFor(t.income_per_hour);
                 return (
-                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common}`}>
+                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common} ${listed ? "opacity-70" : ""}`}>
                     <div className="flex items-center gap-3 mb-2">
                       {img ? (
                         <img src={img} alt={t.name} className="size-14 rounded-md object-cover ring-1 ring-white/10" loading="lazy" />
@@ -404,14 +382,18 @@ function Page() {
                       <div className="flex-1 min-w-0">
                         <div className="font-display font-semibold truncate">{b.name ?? t.name}</div>
                         <div className="text-xs capitalize opacity-80">{t.rarity} · {t.income_per_hour}/h</div>
+                        {listed && <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/20 text-primary"><TagIcon className="size-3" />Listed on Marketplace</div>}
                       </div>
                       <Coins className="size-5 opacity-80" />
                     </div>
                     <div className="text-sm mb-2">Pending: <b>{fmt(pending)} DICE</b></div>
                     <div className="flex gap-2 flex-wrap">
-                      <Button size="sm" onClick={() => collect(b.id)} disabled={pending <= 0}>Collect</Button>
-                      <Button size="sm" variant="outline" onClick={() => setSellTarget({ ...b, template: t, price })}>
-                        Sell · {fmt(price)} DICE
+                      <Button size="sm" onClick={() => collect(b.id)} disabled={pending <= 0 || listed}>Collect</Button>
+                      <Button size="sm" variant="outline" onClick={() => setSellTarget({ ...b, template: t, price })} disabled={listed}>
+                        Sell · {fmt(price)}
+                      </Button>
+                      <Button size="sm" variant="secondary" onClick={() => { setListPrice(Math.max(price * 4, 500)); setListTarget({ ...b, template: t }); }} disabled={listed}>
+                        <TagIcon className="size-3 mr-1" />Sell on Market
                       </Button>
                     </div>
                   </div>
@@ -428,8 +410,7 @@ function Page() {
           <DialogHeader>
             <DialogTitle>Sell this Baddie?</DialogTitle>
             <DialogDescription>
-              This permanently removes <b>{sellTarget?.name ?? sellTarget?.template?.name}</b> from your Baddie Base.
-              Any uncollected income will be lost. You will receive <b>{fmt(sellTarget?.price ?? 0)} DICE</b>.
+              Removes <b>{sellTarget?.name ?? sellTarget?.template?.name}</b> permanently. You will receive <b>{fmt(sellTarget?.price ?? 0)} DICE</b>.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -439,30 +420,24 @@ function Page() {
         </DialogContent>
       </Dialog>
 
-      {/* Reveal modal */}
-      <Dialog open={!!reveal} onOpenChange={(o) => !o && setReveal(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>{reveal?.autosold ? "Autosold!" : "New Baddie!"}</DialogTitle></DialogHeader>
-          {reveal && (
-            <div className={`rounded-xl border bg-gradient-to-br p-6 text-center ${RARITY_STYLE[reveal.rarity] ?? RARITY_STYLE.common}`}>
-              {templateImage({ id: reveal.template_id, image_url: reveal.image_url }) ? (
-                <img
-                  src={templateImage({ id: reveal.template_id, image_url: reveal.image_url })!}
-                  alt={reveal.name}
-                  className="mx-auto mb-3 size-40 rounded-xl object-cover ring-2 ring-white/20"
-                />
-              ) : (
-                <Sparkles className="size-12 mx-auto mb-2" />
-              )}
-              <div className="font-display text-2xl font-bold">{reveal.name}</div>
-              <div className="capitalize opacity-80 mb-2">{reveal.rarity}</div>
-              {reveal.autosold ? (
-                <div className="text-sm text-emerald-300 font-bold">+{fmt(reveal.sell_price ?? 0)} DICE (autosold)</div>
-              ) : (
-                <div className="text-sm">{reveal.income_per_hour} DICE / hour</div>
-              )}
-            </div>
-          )}
+      {/* List on marketplace modal */}
+      <Dialog open={!!listTarget} onOpenChange={(o) => !o && setListTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>List on Marketplace</DialogTitle>
+            <DialogDescription>
+              Sell <b>{listTarget?.name ?? listTarget?.template?.name}</b> to other players. While listed the Baddie cannot be collected from, sold, or used in the Upgrader.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Price (DICE) · minimum 100</label>
+            <Input type="number" min={100} value={listPrice} onChange={(e) => setListPrice(+e.target.value)} />
+            <div className="text-[11px] text-muted-foreground">Instant-sell value: {fmt(sellPriceFor(listTarget?.template?.income_per_hour ?? 0))} DICE</div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setListTarget(null)}>Cancel</Button>
+            <Button onClick={confirmList}>List for {fmt(Math.round(Number(listPrice) || 0))} DICE</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
