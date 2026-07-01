@@ -45,6 +45,7 @@ function Detail() {
   const bid = useServerFn(placeBid);
   const settle = useServerFn(settleAuction);
   const modDelete = useServerFn(adminDeleteListing);
+  const cancel = useServerFn(cancelListing);
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [busy, setBusy] = useState(false);
 
