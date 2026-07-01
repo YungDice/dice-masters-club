@@ -14,6 +14,8 @@ import {
   Music2,
   Sparkles,
   Settings as SettingsIcon,
+  Crown,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -44,9 +46,11 @@ const items: NavItem[] = [
   { to: "/", label: "Home", icon: Home, exact: true, group: "main" },
   { to: "/play", label: "Play", icon: Gamepad2, group: "main" },
   { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
+  { to: "/club", label: "Club", icon: Crown, group: "main" },
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
   { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
   { to: "/upgrader", label: "Upgrader", icon: Sparkles, group: "market" },
+  { to: "/trades", label: "Trades", icon: ArrowLeftRight, group: "market" },
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
   { to: "/friends", label: "Friends", icon: Users, group: "social" },
@@ -58,163 +62,82 @@ export function TopNav() {
   const { data: wallet } = useWallet(user?.id);
   const { data: roles } = useMyRoles(user?.id);
   const { data: profile } = useMyProfile(user?.id);
-  const isStaff = roles?.some((r) => r === "owner" || r === "admin" || r === "moderator");
   const navigate = useNavigate();
-  const path = useRouterState({ select: (s) => s.location.pathname });
+  const path = useRouterState({ select: (state) => state.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isStaff = roles?.some((role) => role === "owner" || role === "admin" || role === "moderator");
 
-  // Idle XP heartbeat
   useIdleXp();
 
-  const initials =
-    profile?.display_name?.[0]?.toUpperCase() ??
-    profile?.username?.[0]?.toUpperCase() ??
-    user?.email?.[0]?.toUpperCase() ??
-    "?";
+  const initials = profile?.display_name?.[0]?.toUpperCase()
+    ?? profile?.username?.[0]?.toUpperCase()
+    ?? user?.email?.[0]?.toUpperCase()
+    ?? "?";
+  const isActive = (to: string, exact?: boolean) => exact ? path === to : path === to || path.startsWith(`${to}/`);
 
   async function signOut() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
 
-  const isActive = (to: string, exact?: boolean) =>
-    exact ? path === to : path === to || path.startsWith(to + "/");
+  const navigation = (mobile = false) => items.map((item) => {
+    const active = isActive(item.to, item.exact);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.to}
+        to={item.to as any}
+        onClick={() => mobile && setMobileOpen(false)}
+        className={mobile
+          ? `flex items-center gap-2 rounded-md px-2 py-2 text-sm ${active ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"}`
+          : `relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"}`}
+      >
+        {!mobile && active && <motion.span layoutId="nav-active-pill" className="absolute inset-0 rounded-full" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08))", border: "1px solid rgba(201,168,76,0.45)" }} transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
+        <span className="relative inline-flex items-center gap-1.5"><Icon className="size-3.5" />{item.label}</span>
+      </Link>
+    );
+  });
 
   return (
-    <header
-      className="sticky top-0 z-40 backdrop-blur-xl bg-background/70"
-      style={{ borderBottom: "1px solid rgba(201,168,76,0.18)" }}
-    >
+    <header className="sticky top-0 z-40 border-b border-amber-300/15 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4">
-        {/* Left: logo */}
-        <Link to="/" className="flex items-center shrink-0">
-          <DiceLogo />
-        </Link>
-
-        {/* Center: nav pills (desktop) */}
-        <nav className="hidden md:flex justify-center">
-          <div className="flex items-center gap-0.5 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/5">
-            {items.map((it) => {
-              const active = isActive(it.to, it.exact);
-              return (
-                <Link
-                  key={it.to}
-                  to={it.to}
-                  className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="nav-active-pill"
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08))",
-                        border: "1px solid rgba(201,168,76,0.45)",
-                      }}
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative inline-flex items-center gap-1.5">
-                    <it.icon className="size-3.5" /> {it.label}
-                  </span>
-                </Link>
-              );
-            })}
-            {isStaff && (
-              <Link
-                to="/admin"
-                className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  isActive("/admin") ? "text-neon" : "text-neon/80 hover:text-neon"
-                }`}
-              >
-                <Shield className="size-3.5" /> Admin
-              </Link>
-            )}
-          </div>
+        <Link to="/" className="flex shrink-0"><DiceLogo /></Link>
+        <nav className="hidden min-w-0 justify-center overflow-x-auto md:flex">
+          <div className="flex items-center gap-0.5 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/5">{navigation()}</div>
         </nav>
-
-        {/* Right: balance + chat + notifs + avatar */}
-        <div className="flex items-center gap-1.5 justify-end">
+        <div className="flex items-center justify-end gap-1.5">
           <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
           <ChatPopover />
           <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
-                <Avatar className="size-8 ring-1 ring-amber-400/40">
-                  <AvatarImage src={profile?.avatar_url ?? undefined} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <span className="hidden lg:inline text-sm font-medium max-w-[120px] truncate">
-                  {profile?.display_name ?? profile?.username ?? "Account"}
-                </span>
+              <button className="flex shrink-0 items-center gap-2 rounded-full py-1 pl-1 pr-2 transition hover:bg-white/5 sm:pr-3">
+                <Avatar className="size-8 ring-1 ring-amber-400/40"><AvatarImage src={profile?.avatar_url ?? undefined} /><AvatarFallback>{initials}</AvatarFallback></Avatar>
+                <span className="hidden max-w-[120px] truncate text-sm font-medium lg:inline">{profile?.display_name ?? profile?.username ?? "Account"}</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
-              <DropdownMenuLabel className="truncate">
-                <div className="font-semibold truncate">
-                  {profile?.display_name ?? "Account"}
-                  {profile?.tag && <span className="text-primary font-mono">#{profile.tag}</span>}
-                </div>
-                <div className="text-xs text-muted-foreground font-mono truncate">
-                  {profile ? handle(profile) : (user?.email ?? "")}
-                </div>
-              </DropdownMenuLabel>
+              <DropdownMenuLabel className="truncate"><div className="font-semibold truncate">{profile?.display_name ?? "Account"}{profile?.tag && <span className="font-mono text-primary">#{profile.tag}</span>}</div><div className="truncate font-mono text-xs text-muted-foreground">{profile ? handle(profile) : (user?.email ?? "")}</div></DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <div className="px-2 py-1.5 sm:hidden">
-                <DiceBadge amount={wallet?.balance ?? 0} />
-              </div>
+              <div className="px-2 py-1.5 sm:hidden"><DiceBadge amount={wallet?.balance ?? 0} /></div>
               <DropdownMenuSeparator className="sm:hidden" />
               <DropdownMenuItem asChild><Link to="/profile"><UserIcon className="mr-2 size-4" />Profile</Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link to="/settings"><SettingsIcon className="mr-2 size-4" />Settings</Link></DropdownMenuItem>
               {isStaff && <DropdownMenuItem asChild><Link to="/admin"><Shield className="mr-2 size-4" />Admin</Link></DropdownMenuItem>}
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="text-destructive">
-                <LogOut className="mr-2 size-4" />Sign out
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={signOut} className="text-destructive"><LogOut className="mr-2 size-4" />Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <button
-                className="grid size-9 place-items-center rounded-md hover:bg-white/5 md:hidden"
-                aria-label="Open menu"
-              >
-                <Menu className="size-5" />
-              </button>
-            </SheetTrigger>
+            <SheetTrigger asChild><button className="grid size-9 place-items-center rounded-md hover:bg-white/5 md:hidden" aria-label="Open menu"><Menu className="size-5" /></button></SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader><SheetTitle>Menu</SheetTitle></SheetHeader>
               <div className="mt-4 space-y-5">
-                {(["main", "social", "market"] as const).map((g) => (
-                  <div key={g}>
-                    <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5">
-                      {g === "main" ? "Play" : g === "social" ? "Social" : "Market"}
-                    </div>
-                    <div className="space-y-0.5">
-                      {items.filter((i) => i.group === g).map((it) => (
-                        <Link
-                          key={it.to}
-                          to={it.to}
-                          onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
-                            isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
-                          }`}
-                        >
-                          <it.icon className="size-4" /> {it.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {isStaff && (
-                  <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-neon hover:bg-neon/10">
-                    <Shield className="size-4" /> Admin
-                  </Link>
-                )}
+                {(["main", "social", "market"] as const).map((group) => <div key={group}><div className="mb-1.5 text-[10px] uppercase tracking-widest text-amber-200/60">{group === "main" ? "Play" : group === "social" ? "Social" : "Market"}</div><div className="space-y-0.5">{items.filter((item) => item.group === group).map((item) => {
+                  const Icon = item.icon;
+                  return <Link key={item.to} to={item.to as any} onClick={() => setMobileOpen(false)} className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${isActive(item.to, item.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"}`}><Icon className="size-4" />{item.label}</Link>;
+                })}</div></div>)}
+                {isStaff && <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-neon hover:bg-neon/10"><Shield className="size-4" />Admin</Link>}
               </div>
             </SheetContent>
           </Sheet>
@@ -231,12 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     navigate({ to: "/auth" });
     return null;
   }
-  return (
-    <div className="min-h-screen">
-      <TopNav />
-      <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
-    </div>
-  );
+  return <div className="min-h-screen"><TopNav /><main className="mx-auto max-w-7xl px-4 py-6">{children}</main></div>;
 }
 
 export function _useButton() { return Button; }
