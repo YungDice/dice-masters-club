@@ -79,11 +79,25 @@ function createRequestUserClient() {
     return null;
   }
 
+  // Supabase may add its default API-key Authorization header while preparing
+  // the request. Set the user's verified JWT last so PostgREST receives it and
+  // auth.uid() resolves to the current player inside the SQL function.
+  const playerAuthFetch: typeof fetch = (input, init) => {
+    const headers = new Headers(
+      typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
+    );
+
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+    }
+
+    headers.set('apikey', SUPABASE_PUBLISHABLE_KEY);
+    headers.set('Authorization', authorization);
+    return fetch(input, { ...init, headers });
+  };
+
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    global: {
-      fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
-      headers: { Authorization: authorization },
-    },
+    global: { fetch: playerAuthFetch },
     auth: {
       storage: undefined,
       persistSession: false,
@@ -107,10 +121,15 @@ export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdm
   get(_, prop, receiver) {
     if (prop === 'rpc') {
       return (functionName: string, args?: unknown, options?: unknown) => {
-        const client = PLAYER_AUTH_RPC_FUNCTIONS.has(functionName)
-          ? createRequestUserClient() ?? getSupabaseAdminClient()
-          : getSupabaseAdminClient();
-        return (client.rpc as any)(functionName, args, options);
+        if (PLAYER_AUTH_RPC_FUNCTIONS.has(functionName)) {
+          const playerClient = createRequestUserClient();
+          if (!playerClient) {
+            throw new Error('Authenticated RPC request is missing its bearer token');
+          }
+          return (playerClient.rpc as any)(functionName, args, options);
+        }
+
+        return (getSupabaseAdminClient().rpc as any)(functionName, args, options);
       };
     }
 
