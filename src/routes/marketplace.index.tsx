@@ -28,6 +28,7 @@ function Mkt() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"newest" | "price">("newest");
+  const [cat, setCat] = useState<"all" | "baddie" | "tag" | "username" | "item">("all");
   const buy = useServerFn(buyListing);
 
   const listings = useQuery({
@@ -40,7 +41,7 @@ function Mkt() {
         .eq("status", "active")
         .is("winner_id", null)
         .order(sort === "newest" ? "created_at" : "price", { ascending: sort !== "newest" })
-        .limit(40);
+        .limit(80);
       if (error) throw error;
       const rows = (data ?? []).filter((r: any) => r.status === "active" && !r.winner_id);
       const ids = Array.from(new Set(rows.map((r: any) => r.seller_id)));
@@ -48,10 +49,28 @@ function Mkt() {
         ? await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids)
         : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
-      return rows.map((r: any) => ({ ...r, seller: m[r.seller_id] }));
+      const baddieIds = rows.map((r: any) => r.baddie_id).filter(Boolean);
+      let bmap: Record<string, any> = {};
+      if (baddieIds.length) {
+        const { data: bs } = await supabase
+          .from("user_baddies" as any)
+          .select("id, name, template:baddie_templates(*)")
+          .in("id", baddieIds);
+        bmap = Object.fromEntries((bs ?? []).map((b: any) => [b.id, b]));
+      }
+      return rows.map((r: any) => ({ ...r, seller: m[r.seller_id], baddie: r.baddie_id ? bmap[r.baddie_id] : null }));
     },
   });
-  const filtered = (listings.data ?? []).filter((l: any) => !q || l.title.toLowerCase().includes(q.toLowerCase()));
+  const filtered = (listings.data ?? []).filter((l: any) => {
+    if (q && !l.title.toLowerCase().includes(q.toLowerCase())) return false;
+    if (cat === "all") return true;
+    if (cat === "baddie") return !!l.baddie_id || l.category === "baddie";
+    if (cat === "tag") return l.category === "tag";
+    if (cat === "username") return l.category === "username";
+    if (cat === "item") return !l.baddie_id && l.category !== "tag" && l.category !== "username";
+    return true;
+  });
+
 
   async function purchase(id: string) {
     try { await buy({ data: { listingId: id } }); toast.success("Purchased!"); qc.invalidateQueries(); }
