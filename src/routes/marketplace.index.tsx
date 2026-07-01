@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search, Plus, ShoppingBag, Gavel, Hash, AtSign } from "lucide-react";
+import { Search, Plus, ShoppingBag, Gavel, Hash, AtSign, Sparkles } from "lucide-react";
+import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
