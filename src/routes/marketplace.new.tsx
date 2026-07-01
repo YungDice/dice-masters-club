@@ -35,7 +35,7 @@ const ITEM_CATEGORIES = [
   { value: "other", label: "📦 Other" },
 ];
 
-type Mode = "item" | "tag" | "username";
+type Mode = "item" | "tag" | "username" | "baddie";
 
 function CreateListing() {
   const { user } = useAuth();
@@ -52,22 +52,25 @@ function CreateListing() {
       <Card className="glass p-6 md:p-8">
         <div className="space-y-1 mb-5">
           <h1 className="font-display text-3xl font-bold">Create a listing</h1>
-          <p className="text-sm text-muted-foreground">Pick what you want to sell — a digital item, your tag, or your username.</p>
+          <p className="text-sm text-muted-foreground">Pick what you want to sell — an item, a Baddie, your tag, or your username.</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
           <ModeCard active={mode === "item"} onClick={() => setMode("item")} icon={<Package className="size-4" />} title="Item" sub="Art, GIF, avatar…" />
+          <ModeCard active={mode === "baddie"} onClick={() => setMode("baddie")} icon={<Sparkles className="size-4" />} title="Baddie" sub="Sell one of yours" />
           <ModeCard active={mode === "tag"} onClick={() => setMode("tag")} icon={<Hash className="size-4" />} title="Tag" sub={profile?.tag ? `#${profile.tag}` : "Need a tag"} />
           <ModeCard active={mode === "username"} onClick={() => setMode("username")} icon={<AtSign className="size-4" />} title="Username" sub={profile?.username ? `@${profile.username}` : "—"} />
         </div>
 
         {mode === "item" && <ItemForm user={user} onDone={() => nav({ to: "/marketplace" })} />}
+        {mode === "baddie" && <BaddieForm user={user} onDone={() => nav({ to: "/marketplace" })} />}
         {mode === "tag" && <TagForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
         {mode === "username" && <UsernameForm profile={profile} onDone={() => nav({ to: "/marketplace" })} />}
       </Card>
     </div>
   );
 }
+
 
 function ModeCard({ active, onClick, icon, title, sub }: any) {
   return (
