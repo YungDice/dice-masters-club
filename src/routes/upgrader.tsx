@@ -31,6 +31,8 @@ export const Route = createFileRoute("/upgrader")({
 });
 
 const MAX_MATERIALS = 20;
+const WHEEL_SUCCESS_START_DEGREES = -90;
+const WHEEL_SUCCESS_START_ROTATION = (WHEEL_SUCCESS_START_DEGREES + 360) % 360;
 const RARITY_ORDER = ["common", "uncommon", "rare", "epic", "legendary", "unreal", "elias"];
 const RARITY_LABELS: Record<string, string> = {
   common: "Common",
@@ -96,23 +98,37 @@ function materialUnavailableReason(baddie: any) {
   return null;
 }
 
+/**
+ * The conic gradient starts at -90deg (the left edge of the wheel), whereas
+ * a rotated needle starts at 0deg (the top edge). Keep the two coordinate
+ * systems explicitly aligned so the visual landing zone always matches the
+ * already-secured server result.
+ */
 function calculateStopAngle(outcome: UpgradeOutcome) {
-  const successAngle = clamp(outcome.chancePct, 0, 100) * 3.6;
+  const successArc = clamp(outcome.chancePct, 0, 100) * 3.6;
+  const successStart = WHEEL_SUCCESS_START_ROTATION;
+  const successEnd = successStart + successArc;
   const roll = clamp(outcome.rollPct, 0, 100);
 
   if (outcome.success) {
-    if (successAngle <= 1) return successAngle / 2;
-    const progress = outcome.chancePct > 0
+    // Use the server roll to choose a stable position safely inside green.
+    if (successArc <= 0.75) return successStart + successArc / 2;
+    const rollProgress = outcome.chancePct > 0
       ? clamp(roll / outcome.chancePct, 0.08, 0.92)
       : 0.5;
-    return clamp(successAngle * progress, 3, Math.max(3, successAngle - 3));
+    const inset = Math.min(9, Math.max(1.25, successArc * 0.15));
+    const usableArc = Math.max(0, successArc - inset * 2);
+    return successStart + inset + usableArc * rollProgress;
   }
 
-  const failureAngle = 360 - successAngle;
-  const progress = outcome.chancePct < 100
+  // A failed server result must visibly land in the non-green segment.
+  const failureArc = 360 - successArc;
+  const rollProgress = outcome.chancePct < 100
     ? clamp((roll - outcome.chancePct) / (100 - outcome.chancePct), 0.03, 0.97)
     : 0.5;
-  return successAngle + failureAngle * progress;
+  const inset = Math.min(9, Math.max(1.25, failureArc * 0.035));
+  const usableArc = Math.max(0, failureArc - inset * 2);
+  return successEnd + inset + usableArc * rollProgress;
 }
 
 function chanceText(chance: number) {
@@ -195,7 +211,7 @@ function UpgradeWheel({
   const successDegrees = clamp(chancePct, 0, 100) * 3.6;
   const visibleSuccessDegrees = successDegrees > 0 ? Math.max(successDegrees, 1.25) : 0;
   const wheelBackground = visibleSuccessDegrees > 0
-    ? `conic-gradient(from -90deg, rgba(52,211,153,0.98) 0deg ${visibleSuccessDegrees}deg, rgba(255,255,255,0.075) ${visibleSuccessDegrees}deg 360deg)`
+    ? `conic-gradient(from ${WHEEL_SUCCESS_START_DEGREES}deg, rgba(52,211,153,0.98) 0deg ${visibleSuccessDegrees}deg, rgba(255,255,255,0.075) ${visibleSuccessDegrees}deg 360deg)`
     : "conic-gradient(from -90deg, rgba(255,255,255,0.075) 0deg 360deg)";
   const spinning = phase === "spinning";
   const success = phase === "success";
@@ -429,7 +445,6 @@ function Page() {
         </div>
 
         <div className="grid gap-5 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)_minmax(0,1fr)] lg:p-5">
-          {/* Materials */}
           <section className="flex min-w-0 flex-col rounded-2xl border border-white/10 bg-black/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="sticky top-0 z-10 flex items-start justify-between gap-3 rounded-t-2xl border-b border-white/[0.07] bg-[#121217]/95 px-4 py-3 backdrop-blur">
               <div>
@@ -491,7 +506,6 @@ function Page() {
             </div>
           </section>
 
-          {/* Upgrade wheel */}
           <section className="flex min-w-0 flex-col items-center justify-between rounded-2xl border border-amber-300/15 bg-[radial-gradient(circle_at_50%_20%,rgba(250,204,21,0.12),transparent_38%),rgba(0,0,0,0.2)] p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
             <div className="mb-2">
               <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-100/70">Secure upgrade roll</div>
@@ -501,11 +515,7 @@ function Page() {
             <UpgradeWheel chancePct={shownChancePct} needleAngle={needleAngle} phase={phase} onSpinComplete={finishWheel} />
 
             <div className="mt-3 w-full">
-              <Button
-                className="glow-red h-11 w-full text-sm font-bold"
-                disabled={!canUpgrade}
-                onClick={() => setConfirmOpen(true)}
-              >
+              <Button className="glow-red h-11 w-full text-sm font-bold" disabled={!canUpgrade} onClick={() => setConfirmOpen(true)}>
                 {phase === "securing" ? <><RotateCw className="mr-2 size-4 animate-spin" />Securing result…</> : phase === "spinning" ? <><RotateCw className="mr-2 size-4 animate-spin" />Wheel spinning…</> : "Upgrade Baddies"}
               </Button>
               <div className="mt-2.5 flex items-start justify-center gap-1.5 text-[11px] leading-relaxed text-amber-200/90">
@@ -518,7 +528,6 @@ function Page() {
             </div>
           </section>
 
-          {/* Target */}
           <section className="flex min-w-0 flex-col rounded-2xl border border-white/10 bg-black/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="sticky top-0 z-10 rounded-t-2xl border-b border-white/[0.07] bg-[#121217]/95 px-4 py-3 backdrop-blur">
               <div className="flex items-start justify-between gap-3">
@@ -530,25 +539,11 @@ function Page() {
               </div>
               <div className="relative mt-3">
                 <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={targetSearch}
-                  disabled={isLocked}
-                  onChange={(event) => setTargetSearch(event.target.value)}
-                  placeholder="Search Baddies"
-                  className="h-8 w-full rounded-lg border border-white/10 bg-black/25 pl-8 pr-3 text-xs outline-none transition placeholder:text-muted-foreground focus:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
-                />
+                <input value={targetSearch} disabled={isLocked} onChange={(event) => setTargetSearch(event.target.value)} placeholder="Search Baddies" className="h-8 w-full rounded-lg border border-white/10 bg-black/25 pl-8 pr-3 text-xs outline-none transition placeholder:text-muted-foreground focus:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50" />
               </div>
               <div className="mt-2 flex gap-1 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.18) transparent" }}>
                 {["all", ...RARITY_ORDER].map((rarity) => (
-                  <button
-                    key={rarity}
-                    type="button"
-                    disabled={isLocked}
-                    onClick={() => setRarityFilter(rarity)}
-                    className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold transition ${
-                      rarityFilter === rarity ? "border-primary/50 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.025] text-muted-foreground hover:border-white/20"
-                    } disabled:cursor-not-allowed disabled:opacity-50`}
-                  >
+                  <button key={rarity} type="button" disabled={isLocked} onClick={() => setRarityFilter(rarity)} className={`shrink-0 rounded-md border px-2 py-1 text-[10px] font-semibold transition ${rarityFilter === rarity ? "border-primary/50 bg-primary/15 text-primary" : "border-white/10 bg-white/[0.025] text-muted-foreground hover:border-white/20"} disabled:cursor-not-allowed disabled:opacity-50`}>
                     {rarity === "all" ? "All" : RARITY_LABELS[rarity]}
                   </button>
                 ))}
@@ -564,14 +559,7 @@ function Page() {
                 <div className="max-h-[31.75rem] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.18) transparent" }}>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
                     {filteredTargets.map((template) => (
-                      <BaddieCard
-                        key={template.id}
-                        baddie={template}
-                        kind="target"
-                        selected={target === template.id}
-                        disabled={isLocked}
-                        onClick={() => selectTarget(template.id)}
-                      />
+                      <BaddieCard key={template.id} baddie={template} kind="target" selected={target === template.id} disabled={isLocked} onClick={() => selectTarget(template.id)} />
                     ))}
                   </div>
                 </div>
@@ -583,25 +571,8 @@ function Page() {
 
       <AnimatePresence>
         {result && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-sm"
-            onClick={closeResult}
-          >
-            <motion.div
-              initial={result.success ? { opacity: 0, scale: 0.7, y: 20 } : { opacity: 0, scale: 0.92, x: -12 }}
-              animate={result.success ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1, x: [0, -5, 5, -2, 2, 0] }}
-              exit={{ opacity: 0, scale: 0.94 }}
-              transition={result.success ? { type: "spring", stiffness: 220, damping: 17 } : { duration: 0.38 }}
-              onClick={(event) => event.stopPropagation()}
-              className={`w-full max-w-sm rounded-2xl border-2 bg-[#121217] p-6 text-center ${
-                result.success
-                  ? "border-emerald-400 shadow-[0_0_55px_-8px_rgba(52,211,153,0.75)]"
-                  : "border-rose-500/90 shadow-[0_0_45px_-10px_rgba(244,63,94,0.7)]"
-              }`}
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-sm" onClick={closeResult}>
+            <motion.div initial={result.success ? { opacity: 0, scale: 0.7, y: 20 } : { opacity: 0, scale: 0.92, x: -12 }} animate={result.success ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1, x: [0, -5, 5, -2, 2, 0] }} exit={{ opacity: 0, scale: 0.94 }} transition={result.success ? { type: "spring", stiffness: 220, damping: 17 } : { duration: 0.38 }} onClick={(event) => event.stopPropagation()} className={`w-full max-w-sm rounded-2xl border-2 bg-[#121217] p-6 text-center ${result.success ? "border-emerald-400 shadow-[0_0_55px_-8px_rgba(52,211,153,0.75)]" : "border-rose-500/90 shadow-[0_0_45px_-10px_rgba(244,63,94,0.7)]"}`}>
               {result.success ? (
                 <>
                   <div className="mx-auto mb-3 grid size-14 place-items-center rounded-full border border-emerald-300/40 bg-emerald-400/10 text-emerald-300 shadow-[0_0_25px_-4px_rgba(52,211,153,0.9)]"><Check className="size-8 stroke-[3]" /></div>
