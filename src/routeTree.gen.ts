@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UpgraderRouteImport } from './routes/upgrader'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -41,6 +42,11 @@ import { Route as ChallengesIdRouteImport } from './routes/challenges.$id'
 import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
+const UpgraderRoute = UpgraderRouteImport.update({
+  id: '/upgrader',
+  path: '/upgrader',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
     | '/marketplace/$id'
@@ -346,6 +356,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
     | '/marketplace/$id'
@@ -379,6 +390,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
     | '/marketplace/$id'
@@ -413,6 +425,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
+  UpgraderRoute: typeof UpgraderRoute
   ChallengesIdRoute: typeof ChallengesIdRouteWithChildren
   ChallengesNewRoute: typeof ChallengesNewRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
@@ -435,6 +448,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upgrader': {
+      id: '/upgrader'
+      path: '/upgrader'
+      fullPath: '/upgrader'
+      preLoaderRoute: typeof UpgraderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -680,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
+  UpgraderRoute: UpgraderRoute,
   ChallengesIdRoute: ChallengesIdRouteWithChildren,
   ChallengesNewRoute: ChallengesNewRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
