@@ -1888,6 +1888,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      grant_achievement: {
+        Args: { _achievement_id: string; _user_id: string }
+        Returns: boolean
+      }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
         Returns: Json
