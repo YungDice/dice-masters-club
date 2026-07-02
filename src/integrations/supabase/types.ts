@@ -1637,6 +1637,138 @@ export type Database = {
         }
         Relationships: []
       }
+      season_claims: {
+        Row: {
+          claimed_at: string
+          season_id: string
+          tier: number
+          track: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          season_id: string
+          tier: number
+          track: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          season_id?: string
+          tier?: number
+          track?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_claims_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_progress: {
+        Row: {
+          baseline_xp: number
+          bonus_xp: number
+          created_at: string
+          season_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline_xp?: number
+          bonus_xp?: number
+          created_at?: string
+          season_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline_xp?: number
+          bonus_xp?: number
+          created_at?: string
+          season_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_progress_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_tiers: {
+        Row: {
+          free_reward: Json
+          id: string
+          season_id: string
+          tier: number
+          vip_reward: Json
+        }
+        Insert: {
+          free_reward?: Json
+          id?: string
+          season_id: string
+          tier: number
+          vip_reward?: Json
+        }
+        Update: {
+          free_reward?: Json
+          id?: string
+          season_id?: string
+          tier?: number
+          vip_reward?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_tiers_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          active: boolean
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          tier_count: number
+          xp_per_tier: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ends_at: string
+          id?: string
+          name: string
+          starts_at?: string
+          tier_count?: number
+          xp_per_tier?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ends_at?: string
+          id?: string
+          name?: string
+          starts_at?: string
+          tier_count?: number
+          xp_per_tier?: number
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           created_at: string
@@ -1905,6 +2037,7 @@ export type Database = {
       }
     }
     Functions: {
+      add_season_bonus_xp: { Args: { _amount: number }; Returns: undefined }
       admin_delete_challenge_tx: {
         Args: { _challenge_id: string; _reason: string }
         Returns: Json
@@ -1944,6 +2077,10 @@ export type Database = {
       cancel_trade_tx: { Args: { _trade_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
+      claim_season_reward_tx: {
+        Args: { _tier: number; _track: string }
+        Returns: Json
+      }
       claim_weekly_streak_tx: { Args: never; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
       collect_baddie_tx: {
@@ -1974,7 +2111,43 @@ export type Database = {
         }
         Returns: Json
       }
+      current_season: {
+        Args: never
+        Returns: {
+          active: boolean
+          created_at: string
+          ends_at: string
+          id: string
+          name: string
+          starts_at: string
+          tier_count: number
+          xp_per_tier: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "seasons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
+      ensure_season_progress: {
+        Args: never
+        Returns: {
+          baseline_xp: number
+          bonus_xp: number
+          created_at: string
+          season_id: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "season_progress"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       equip_cosmetic_tx: { Args: { _cosmetic_id: string }; Returns: Json }
       expire_auctions: { Args: never; Returns: number }
       expire_trades: { Args: never; Returns: number }

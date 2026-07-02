@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgraderRouteImport } from './routes/upgrader'
 import { Route as TradesRouteImport } from './routes/trades'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SeasonPassRouteImport } from './routes/season-pass'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MissionsRouteImport } from './routes/missions'
@@ -61,6 +62,11 @@ const TradesRoute = TradesRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SeasonPassRoute = SeasonPassRouteImport.update({
+  id: '/season-pass',
+  path: '/season-pass',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
@@ -294,6 +301,7 @@ export interface FileRoutesByTo {
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
@@ -335,6 +343,7 @@ export interface FileRoutesById {
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
+  '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/notifications'
     | '/profile'
+    | '/season-pass'
     | '/settings'
     | '/trades'
     | '/upgrader'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/notifications'
     | '/profile'
+    | '/season-pass'
     | '/settings'
     | '/trades'
     | '/upgrader'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/missions'
     | '/notifications'
     | '/profile'
+    | '/season-pass'
     | '/settings'
     | '/trades'
     | '/upgrader'
@@ -498,6 +510,7 @@ export interface RootRouteChildren {
   MissionsRoute: typeof MissionsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
+  SeasonPassRoute: typeof SeasonPassRoute
   SettingsRoute: typeof SettingsRoute
   TradesRoute: typeof TradesRoute
   UpgraderRoute: typeof UpgraderRoute
@@ -545,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/season-pass': {
+      id: '/season-pass'
+      path: '/season-pass'
+      fullPath: '/season-pass'
+      preLoaderRoute: typeof SeasonPassRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -821,6 +841,7 @@ const rootRouteChildren: RootRouteChildren = {
   MissionsRoute: MissionsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
+  SeasonPassRoute: SeasonPassRoute,
   SettingsRoute: SettingsRoute,
   TradesRoute: TradesRoute,
   UpgraderRoute: UpgraderRoute,
