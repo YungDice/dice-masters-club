@@ -84,7 +84,7 @@ function SeasonPassPage() {
     queryFn: async () => {
       const { data } = await supabase.from("season_claims" as any).select("tier,track")
         .eq("season_id", season.data!.id).eq("user_id", user!.id);
-      return (data ?? []) as { tier: number; track: "free" | "vip" }[];
+      return (data ?? []) as unknown as { tier: number; track: "free" | "vip" }[];
     },
   });
 
