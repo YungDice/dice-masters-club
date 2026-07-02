@@ -42,6 +42,10 @@ function CrewPage() {
   const [donateOpen, setDonateOpen] = useState(false);
   const [amount, setAmount] = useState(500);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [cAvatar, setCAvatar] = useState("");
+  const [cBanner, setCBanner] = useState("");
+  const [cDesc, setCDesc] = useState("");
 
   const crew = useQuery({
     queryKey: ["crew", id],
