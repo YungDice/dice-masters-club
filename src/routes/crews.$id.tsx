@@ -391,6 +391,45 @@ function CrewPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Customize */}
+      <Dialog open={customizeOpen} onOpenChange={setCustomizeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customize crew</DialogTitle>
+            <DialogDescription>Set your crew avatar, banner and description.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Avatar URL</div>
+              <Input value={cAvatar} onChange={(e) => setCAvatar(e.target.value)} placeholder="https://…/avatar.png" />
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Banner URL</div>
+              <Input value={cBanner} onChange={(e) => setCBanner(e.target.value)} placeholder="https://…/banner.png" />
+              {cBanner && <img src={cBanner} alt="" className="mt-2 w-full h-24 object-cover rounded" />}
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Description</div>
+              <Input value={cDesc} onChange={(e) => setCDesc(e.target.value)} placeholder="What's your crew about?" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCustomizeOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                const { error } = await supabase.rpc("update_crew_customization" as any, {
+                  _crew_id: id, _avatar_url: cAvatar || null, _banner_url: cBanner || null, _description: cDesc || null,
+                });
+                if (error) throw error;
+                toast.success("Crew updated");
+                setCustomizeOpen(false);
+                qc.invalidateQueries({ queryKey: ["crew", id] });
+              } catch (e: any) { toast.error(e.message); }
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
