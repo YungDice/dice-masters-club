@@ -537,6 +537,24 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Fusion confirm modal */}
+      <Dialog open={!!fuseTarget} onOpenChange={(o) => !o && setFuseTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Fuse 3 Baddies?</DialogTitle>
+            <DialogDescription>
+              This will consume 3× <b>{fuseTarget?.templateName}</b> ({fuseTarget?.tier}) and forge <b className="uppercase">{fuseTarget?.nextTier}</b> {fuseTarget?.templateName}.
+              Fusion is permanent — the source Baddies cannot be recovered.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFuseTarget(null)}>Cancel</Button>
+            <Button onClick={confirmFuse} className="glow-red">Fuse → {fuseTarget?.nextTier?.toUpperCase()}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
