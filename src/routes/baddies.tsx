@@ -403,6 +403,45 @@ function Page() {
             </div>
           </div>
 
+          {/* Fusion panel */}
+          {fusionGroups.length > 0 && (
+            <div className="rounded-lg border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/5 px-3 py-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <Flame className="size-4 text-fuchsia-300" />
+                <div className="text-sm font-semibold">Baddie Fusion — combine 3 identical to level up their tier</div>
+              </div>
+              <div className="text-[11px] text-muted-foreground -mt-1">Tiers: Base → Shiny (+10%) → Elite (+25%) → Prestige (+50%). Uses the 3 oldest matching Baddies.</div>
+              <div className="flex flex-wrap gap-2">
+                {fusionGroups.map(({ key, list }) => {
+                  const sample = list[0];
+                  const t = sample.template;
+                  const tier = sample.tier ?? "base";
+                  const nextTier = TIER_NEXT[tier]!;
+                  const meta = TIER_META[nextTier];
+                  const NextIcon = meta.icon;
+                  return (
+                    <Button
+                      key={key}
+                      size="sm"
+                      variant="outline"
+                      className="border-fuchsia-300/50 hover:bg-fuchsia-400/10"
+                      onClick={() => setFuseTarget({
+                        key,
+                        tier,
+                        templateName: t.name,
+                        ids: list.slice(0, 3).map((x: any) => x.id),
+                        nextTier,
+                      })}
+                    >
+                      <NextIcon className="size-3.5 mr-1" />
+                      Fuse 3× {t.name} <span className="opacity-60 mx-1">({tier})</span> → {meta.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {inventoryCount === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty inventory" description="Open a case to recruit your first Baddie." />
           ) : (
@@ -410,12 +449,16 @@ function Page() {
               {activeBaddies.map((b: any) => {
                 const t = b.template;
                 const listed = !!b.listing_id;
+                const tier: string = b.tier ?? "base";
+                const tierMeta = TIER_META[tier];
+                const TierIcon = tierMeta.icon;
+                const rateEff = effectiveRate(t.income_per_hour, tier);
                 const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 24 * 3600);
-                const pending = listed ? 0 : Math.floor((t.income_per_hour * secs) / 3600);
+                const pending = listed ? 0 : Math.floor((rateEff * secs) / 3600);
                 const img = templateImage(t);
-                const price = sellPriceFor(t.income_per_hour);
+                const price = sellPriceFor(t.income_per_hour, tier);
                 return (
-                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common} ${listed ? "opacity-70" : ""}`}>
+                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common} ${tierMeta.className} ${listed ? "opacity-70" : ""}`}>
                     <div className="flex items-center gap-3 mb-2">
                       {img ? (
                         <img src={img} alt={t.name} className="size-14 rounded-md object-cover ring-1 ring-white/10" loading="lazy" />
@@ -423,8 +466,18 @@ function Page() {
                         <div className="size-14 rounded-md grid place-items-center bg-white/5"><Sparkles className="size-6 opacity-80" /></div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-display font-semibold truncate">{b.name ?? t.name}</div>
-                        <div className="text-xs capitalize opacity-80">{t.rarity} · {t.income_per_hour}/h</div>
+                        <div className="font-display font-semibold truncate flex items-center gap-1.5">
+                          {b.name ?? t.name}
+                          {tier !== "base" && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/40 border border-white/20">
+                              <TierIcon className="size-3" />{tierMeta.label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs capitalize opacity-80">
+                          {t.rarity} · {rateEff}/h
+                          {tier !== "base" && <span className="opacity-60"> (base {t.income_per_hour})</span>}
+                        </div>
                         {listed && <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/20 text-primary"><TagIcon className="size-3" />Listed on Marketplace</div>}
                       </div>
                       <Coins className="size-5 opacity-80" />
@@ -444,6 +497,7 @@ function Page() {
               })}
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
