@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, PackageOpen, Coins, Crown, Tag as TagIcon, Lock } from "lucide-react";
+import { Sparkles, PackageOpen, Coins, Crown, Tag as TagIcon, Lock, Flame, Star, Zap } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -51,7 +51,18 @@ function templateImage(t: { id?: string; image_url?: string | null }) {
   if (t.id === "elias") return eliasAsset.url;
   return null;
 }
-const sellPriceFor = (rate: number) => Math.max(Math.floor(rate / 2), 1);
+const TIER_MULT: Record<string, number> = { base: 1, shiny: 1.1, elite: 1.25, prestige: 1.5 };
+const TIER_ORDER = ["base","shiny","elite","prestige"] as const;
+const TIER_NEXT: Record<string, string | null> = { base:"shiny", shiny:"elite", elite:"prestige", prestige:null };
+const TIER_META: Record<string, { label: string; icon: any; className: string }> = {
+  base:     { label: "Base",     icon: Sparkles, className: "" },
+  shiny:    { label: "Shiny",    icon: Star,     className: "ring-1 ring-cyan-300/60 shadow-[0_0_18px_-6px_rgba(103,232,249,0.6)]" },
+  elite:    { label: "Elite",    icon: Zap,      className: "ring-2 ring-fuchsia-300/70 shadow-[0_0_22px_-4px_rgba(232,121,249,0.7)]" },
+  prestige: { label: "Prestige", icon: Crown,    className: "ring-2 ring-amber-300 shadow-[0_0_28px_-4px_rgba(252,211,77,0.85)]" },
+};
+const effectiveRate = (rate: number, tier: string) => Math.floor((rate * (TIER_MULT[tier] ?? 1)));
+const sellPriceFor = (rate: number, tier = "base") => Math.max(Math.floor(effectiveRate(rate, tier) / 2), 1);
+
 
 function Page() {
   const { user } = useAuth();
@@ -74,6 +85,8 @@ function Page() {
   const [sellTarget, setSellTarget] = useState<any>(null);
   const [listTarget, setListTarget] = useState<any>(null);
   const [listPrice, setListPrice] = useState<number>(2000);
+  const [fuseTarget, setFuseTarget] = useState<{ key: string; tier: string; templateName: string; ids: string[]; nextTier: string } | null>(null);
+
   const now = useTickingNow(1000);
 
   const baddies = useQuery({
@@ -191,10 +204,40 @@ function Page() {
     }
   }
 
+  async function confirmFuse() {
+    if (!fuseTarget) return;
+    const ids = fuseTarget.ids;
+    const nextTier = fuseTarget.nextTier;
+    setFuseTarget(null);
+    try {
+      const { data, error } = await supabase.rpc("fuse_baddies_tx" as any, { _baddie_ids: ids });
+      if (error) throw error;
+      toast.success(`Fusion successful → ${nextTier.toUpperCase()} Baddie forged!`);
+      qc.invalidateQueries({ queryKey: ["my-baddies"] });
+    } catch (e: any) { toast.error(e.message ?? "Fusion failed"); }
+  }
+
   const activeBaddies = (baddies.data ?? []) as any[];
   const listedCount = activeBaddies.filter((b) => b.listing_id).length;
   const inventoryCount = activeBaddies.length;
   const activeSlotUsage = Math.min(inventoryCount - listedCount, cap);
+
+  // Fusion groups: template_id + tier -> available (unlisted, no trade) baddies
+  const fusionGroups = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const b of activeBaddies) {
+      if (b.listing_id || b.trade_id) continue;
+      if (b.tier === "prestige") continue;
+      const key = `${b.template_id}:${b.tier ?? "base"}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(b);
+    }
+    return Array.from(groups.entries())
+      .filter(([, list]) => list.length >= 3)
+      .map(([key, list]) => ({ key, list }));
+  }, [activeBaddies]);
+
+
 
   return (
     <div className="space-y-5">
@@ -360,6 +403,45 @@ function Page() {
             </div>
           </div>
 
+          {/* Fusion panel */}
+          {fusionGroups.length > 0 && (
+            <div className="rounded-lg border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/5 px-3 py-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <Flame className="size-4 text-fuchsia-300" />
+                <div className="text-sm font-semibold">Baddie Fusion — combine 3 identical to level up their tier</div>
+              </div>
+              <div className="text-[11px] text-muted-foreground -mt-1">Tiers: Base → Shiny (+10%) → Elite (+25%) → Prestige (+50%). Uses the 3 oldest matching Baddies.</div>
+              <div className="flex flex-wrap gap-2">
+                {fusionGroups.map(({ key, list }) => {
+                  const sample = list[0];
+                  const t = sample.template;
+                  const tier = sample.tier ?? "base";
+                  const nextTier = TIER_NEXT[tier]!;
+                  const meta = TIER_META[nextTier];
+                  const NextIcon = meta.icon;
+                  return (
+                    <Button
+                      key={key}
+                      size="sm"
+                      variant="outline"
+                      className="border-fuchsia-300/50 hover:bg-fuchsia-400/10"
+                      onClick={() => setFuseTarget({
+                        key,
+                        tier,
+                        templateName: t.name,
+                        ids: list.slice(0, 3).map((x: any) => x.id),
+                        nextTier,
+                      })}
+                    >
+                      <NextIcon className="size-3.5 mr-1" />
+                      Fuse 3× {t.name} <span className="opacity-60 mx-1">({tier})</span> → {meta.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {inventoryCount === 0 ? (
             <EmptyState icon={PackageOpen} title="Empty inventory" description="Open a case to recruit your first Baddie." />
           ) : (
@@ -367,12 +449,16 @@ function Page() {
               {activeBaddies.map((b: any) => {
                 const t = b.template;
                 const listed = !!b.listing_id;
+                const tier: string = b.tier ?? "base";
+                const tierMeta = TIER_META[tier];
+                const TierIcon = tierMeta.icon;
+                const rateEff = effectiveRate(t.income_per_hour, tier);
                 const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 24 * 3600);
-                const pending = listed ? 0 : Math.floor((t.income_per_hour * secs) / 3600);
+                const pending = listed ? 0 : Math.floor((rateEff * secs) / 3600);
                 const img = templateImage(t);
-                const price = sellPriceFor(t.income_per_hour);
+                const price = sellPriceFor(t.income_per_hour, tier);
                 return (
-                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common} ${listed ? "opacity-70" : ""}`}>
+                  <div key={b.id} className={`rounded-xl border bg-gradient-to-br p-3 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common} ${tierMeta.className} ${listed ? "opacity-70" : ""}`}>
                     <div className="flex items-center gap-3 mb-2">
                       {img ? (
                         <img src={img} alt={t.name} className="size-14 rounded-md object-cover ring-1 ring-white/10" loading="lazy" />
@@ -380,8 +466,18 @@ function Page() {
                         <div className="size-14 rounded-md grid place-items-center bg-white/5"><Sparkles className="size-6 opacity-80" /></div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-display font-semibold truncate">{b.name ?? t.name}</div>
-                        <div className="text-xs capitalize opacity-80">{t.rarity} · {t.income_per_hour}/h</div>
+                        <div className="font-display font-semibold truncate flex items-center gap-1.5">
+                          {b.name ?? t.name}
+                          {tier !== "base" && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/40 border border-white/20">
+                              <TierIcon className="size-3" />{tierMeta.label}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs capitalize opacity-80">
+                          {t.rarity} · {rateEff}/h
+                          {tier !== "base" && <span className="opacity-60"> (base {t.income_per_hour})</span>}
+                        </div>
                         {listed && <div className="text-[10px] mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/20 text-primary"><TagIcon className="size-3" />Listed on Marketplace</div>}
                       </div>
                       <Coins className="size-5 opacity-80" />
@@ -401,6 +497,7 @@ function Page() {
               })}
             </div>
           )}
+
         </DialogContent>
       </Dialog>
 
@@ -432,7 +529,7 @@ function Page() {
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Price (DICE) · minimum 100</label>
             <Input type="number" min={100} value={listPrice} onChange={(e) => setListPrice(+e.target.value)} />
-            <div className="text-[11px] text-muted-foreground">Instant-sell value: {fmt(sellPriceFor(listTarget?.template?.income_per_hour ?? 0))} DICE</div>
+            <div className="text-[11px] text-muted-foreground">Instant-sell value: {fmt(sellPriceFor(listTarget?.template?.income_per_hour ?? 0, listTarget?.tier ?? "base"))} DICE</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setListTarget(null)}>Cancel</Button>
@@ -440,6 +537,24 @@ function Page() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Fusion confirm modal */}
+      <Dialog open={!!fuseTarget} onOpenChange={(o) => !o && setFuseTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Fuse 3 Baddies?</DialogTitle>
+            <DialogDescription>
+              This will consume 3× <b>{fuseTarget?.templateName}</b> ({fuseTarget?.tier}) and forge <b className="uppercase">{fuseTarget?.nextTier}</b> {fuseTarget?.templateName}.
+              Fusion is permanent — the source Baddies cannot be recovered.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFuseTarget(null)}>Cancel</Button>
+            <Button onClick={confirmFuse} className="glow-red">Fuse → {fuseTarget?.nextTier?.toUpperCase()}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
