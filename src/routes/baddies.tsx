@@ -85,6 +85,8 @@ function Page() {
   const [sellTarget, setSellTarget] = useState<any>(null);
   const [listTarget, setListTarget] = useState<any>(null);
   const [listPrice, setListPrice] = useState<number>(2000);
+  const [fuseTarget, setFuseTarget] = useState<{ key: string; tier: string; templateName: string; ids: string[]; nextTier: string } | null>(null);
+
   const now = useTickingNow(1000);
 
   const baddies = useQuery({
