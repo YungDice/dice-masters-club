@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
+import { AchievementGrid } from "@/components/dice/AchievementGrid";
+
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
 import { tierFor } from "@/lib/rank";
