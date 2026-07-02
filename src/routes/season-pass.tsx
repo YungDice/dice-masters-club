@@ -141,9 +141,10 @@ function SeasonPassPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
       <PageHeader
+        icon={Crown}
+        accent="gold"
         title={season.data.name}
         subtitle={`XP verdienen · Tier hochleveln · Free & VIP Belohnungen claimen`}
-        icon={<Crown className="h-6 w-6 text-[color:var(--gold)]" />}
       />
 
       <Card className="p-5 space-y-4 border-[color:var(--gold)]/25">
