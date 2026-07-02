@@ -529,7 +529,7 @@ function Page() {
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Price (DICE) · minimum 100</label>
             <Input type="number" min={100} value={listPrice} onChange={(e) => setListPrice(+e.target.value)} />
-            <div className="text-[11px] text-muted-foreground">Instant-sell value: {fmt(sellPriceFor(listTarget?.template?.income_per_hour ?? 0))} DICE</div>
+            <div className="text-[11px] text-muted-foreground">Instant-sell value: {fmt(sellPriceFor(listTarget?.template?.income_per_hour ?? 0, listTarget?.tier ?? "base"))} DICE</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setListTarget(null)}>Cancel</Button>
