@@ -523,6 +523,13 @@ export type Database = {
             referencedRelation: "crews"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "crew_donations_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       crew_join_requests: {
@@ -558,6 +565,13 @@ export type Database = {
             referencedRelation: "crews"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "crew_join_requests_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       crew_members: {
@@ -591,6 +605,13 @@ export type Database = {
             columns: ["crew_id"]
             isOneToOne: false
             referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crew_members_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2177,10 +2198,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      grant_achievement: {
-        Args: { _achievement_id: string; _user_id: string }
-        Returns: boolean
-      }
+      grant_achievement:
+        | {
+            Args: { _achievement_id: string; _user_id: string }
+            Returns: boolean
+          }
+        | {
+            Args: { _achievement_id: string; _user_id: string }
+            Returns: boolean
+          }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
         Returns: Json
@@ -2341,6 +2367,15 @@ export type Database = {
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
       unequip_cosmetic_tx: { Args: { _kind: string }; Returns: Json }
+      update_crew_customization: {
+        Args: {
+          _avatar_url: string
+          _banner_url: string
+          _crew_id: string
+          _description: string
+        }
+        Returns: undefined
+      }
       upgrade_baddies_tx: {
         Args: { _material_baddie_ids: string[]; _target_template_id: string }
         Returns: Json
