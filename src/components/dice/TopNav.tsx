@@ -18,7 +18,7 @@ import {
   Settings as SettingsIcon,
   Palette,
   Crown,
-
+  ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -43,25 +43,51 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NavItem = { to: string; label: string; icon: typeof Home; exact?: boolean; group: "main" | "social" | "market" };
+type Leaf = { to: string; label: string; icon: typeof Home; exact?: boolean };
+type Group = { label: string; icon: typeof Home; children: Leaf[] };
+type Entry = ({ kind: "leaf" } & Leaf) | ({ kind: "group" } & Group);
 
-const items: NavItem[] = [
-  { to: "/", label: "Home", icon: Home, exact: true, group: "main" },
-  { to: "/play", label: "Play", icon: Gamepad2, group: "main" },
-  { to: "/missions", label: "Missions", icon: Target, group: "main" },
-  { to: "/season-pass", label: "Season", icon: Crown, group: "main" },
-  { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
-  { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
-  { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
-  { to: "/upgrader", label: "Upgrader", icon: Sparkles, group: "market" },
-  { to: "/cosmetics", label: "Cosmetics", icon: Palette, group: "market" },
-
-  { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
-  { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
-  { to: "/friends", label: "Friends", icon: Users, group: "social" },
-  { to: "/trades", label: "Trades", icon: ArrowLeftRight, group: "social" },
-  { to: "/crews", label: "Crews", icon: Shield, group: "social" },
-  { to: "/leaderboard", label: "Ranks", icon: BarChart3, group: "main" },
+const nav: Entry[] = [
+  { kind: "leaf", to: "/", label: "Home", icon: Home, exact: true },
+  { kind: "leaf", to: "/play", label: "Play", icon: Gamepad2 },
+  { kind: "leaf", to: "/season-pass", label: "Season", icon: Crown },
+  {
+    kind: "group", label: "Missions", icon: Target,
+    children: [
+      { to: "/missions", label: "Missions", icon: Target },
+      { to: "/challenges", label: "Challenges", icon: Trophy },
+    ],
+  },
+  {
+    kind: "group", label: "Market", icon: ShoppingBag,
+    children: [
+      { to: "/marketplace", label: "Market", icon: ShoppingBag },
+      { to: "/cosmetics", label: "Cosmetics", icon: Palette },
+    ],
+  },
+  {
+    kind: "group", label: "Baddies", icon: Sparkles,
+    children: [
+      { to: "/baddies", label: "Baddies", icon: Sparkles },
+      { to: "/upgrader", label: "Upgrader", icon: Sparkles },
+      { to: "/trades", label: "Trades", icon: ArrowLeftRight },
+    ],
+  },
+  {
+    kind: "group", label: "DikDok", icon: Music2,
+    children: [
+      { to: "/dikdok", label: "DikDok", icon: Music2 },
+      { to: "/gallery", label: "Gallery", icon: Images },
+    ],
+  },
+  {
+    kind: "group", label: "Social", icon: Users,
+    children: [
+      { to: "/friends", label: "Friends", icon: Users },
+      { to: "/crews", label: "Crews", icon: Shield },
+    ],
+  },
+  { kind: "leaf", to: "/leaderboard", label: "Ranks", icon: BarChart3 },
 ];
 
 export function TopNav() {
@@ -74,7 +100,6 @@ export function TopNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Idle XP heartbeat
   useIdleXp();
 
   const initials =
@@ -90,6 +115,7 @@ export function TopNav() {
 
   const isActive = (to: string, exact?: boolean) =>
     exact ? path === to : path === to || path.startsWith(to + "/");
+  const groupActive = (g: Group) => g.children.some((c) => isActive(c.to));
 
   return (
     <header
@@ -97,39 +123,76 @@ export function TopNav() {
       style={{ borderBottom: "1px solid rgba(201,168,76,0.18)" }}
     >
       <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4">
-        {/* Left: logo */}
         <Link to="/" className="flex items-center shrink-0">
           <DiceLogo />
         </Link>
 
-        {/* Center: nav pills (desktop) */}
         <nav className="hidden md:flex justify-center">
           <div className="flex items-center gap-0.5 rounded-full bg-white/[0.04] p-1 ring-1 ring-white/5">
-            {items.map((it) => {
-              const active = isActive(it.to, it.exact);
+            {nav.map((it) => {
+              if (it.kind === "leaf") {
+                const active = isActive(it.to, it.exact);
+                return (
+                  <Link
+                    key={it.to}
+                    to={it.to}
+                    className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                      active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="nav-active-pill"
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: "linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08))",
+                          border: "1px solid rgba(201,168,76,0.45)",
+                        }}
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative inline-flex items-center gap-1.5">
+                      <it.icon className="size-3.5" /> {it.label}
+                    </span>
+                  </Link>
+                );
+              }
+              const active = groupActive(it);
               return (
-                <Link
-                  key={it.to}
-                  to={it.to}
-                  className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {active && (
-                    <motion.span
-                      layoutId="nav-active-pill"
-                      className="absolute inset-0 rounded-full"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08))",
-                        border: "1px solid rgba(201,168,76,0.45)",
-                      }}
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <span className="relative inline-flex items-center gap-1.5">
-                    <it.icon className="size-3.5" /> {it.label}
-                  </span>
-                </Link>
+                <DropdownMenu key={it.label}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors outline-none ${
+                        active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="nav-active-pill"
+                          className="absolute inset-0 rounded-full"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(201,168,76,0.22), rgba(201,168,76,0.08))",
+                            border: "1px solid rgba(201,168,76,0.45)",
+                          }}
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                      <span className="relative inline-flex items-center gap-1">
+                        <it.icon className="size-3.5" /> {it.label}
+                        <ChevronDown className="size-3 opacity-70" />
+                      </span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="min-w-40">
+                    {it.children.map((c) => (
+                      <DropdownMenuItem key={c.to} asChild>
+                        <Link to={c.to}>
+                          <c.icon className="mr-2 size-4" /> {c.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               );
             })}
             {isStaff && (
@@ -145,7 +208,6 @@ export function TopNav() {
           </div>
         </nav>
 
-        {/* Right: balance + chat + notifs + avatar */}
         <div className="flex items-center gap-1.5 justify-end">
           <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
           <ChatPopover />
@@ -187,7 +249,6 @@ export function TopNav() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <button
@@ -199,28 +260,44 @@ export function TopNav() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader><SheetTitle>Menu</SheetTitle></SheetHeader>
-              <div className="mt-4 space-y-5">
-                {(["main", "social", "market"] as const).map((g) => (
-                  <div key={g}>
-                    <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5">
-                      {g === "main" ? "Play" : g === "social" ? "Social" : "Market"}
+              <div className="mt-4 space-y-4">
+                {nav.map((it) => {
+                  if (it.kind === "leaf") {
+                    return (
+                      <Link
+                        key={it.to}
+                        to={it.to}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
+                          isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
+                        }`}
+                      >
+                        <it.icon className="size-4" /> {it.label}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <div key={it.label}>
+                      <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5 flex items-center gap-1.5">
+                        <it.icon className="size-3" /> {it.label}
+                      </div>
+                      <div className="space-y-0.5">
+                        {it.children.map((c) => (
+                          <Link
+                            key={c.to}
+                            to={c.to}
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
+                              isActive(c.to) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
+                            }`}
+                          >
+                            <c.icon className="size-4" /> {c.label}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                    <div className="space-y-0.5">
-                      {items.filter((i) => i.group === g).map((it) => (
-                        <Link
-                          key={it.to}
-                          to={it.to}
-                          onClick={() => setMobileOpen(false)}
-                          className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
-                            isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
-                          }`}
-                        >
-                          <it.icon className="size-4" /> {it.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {isStaff && (
                   <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-neon hover:bg-neon/10">
                     <Shield className="size-4" /> Admin

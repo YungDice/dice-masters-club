@@ -42,6 +42,10 @@ function CrewPage() {
   const [donateOpen, setDonateOpen] = useState(false);
   const [amount, setAmount] = useState(500);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [cAvatar, setCAvatar] = useState("");
+  const [cBanner, setCBanner] = useState("");
+  const [cDesc, setCDesc] = useState("");
 
   const crew = useQuery({
     queryKey: ["crew", id],
@@ -153,12 +157,17 @@ function CrewPage() {
   return (
     <div className="space-y-6">
       <Card
-        className="p-6 relative overflow-hidden"
+        className="p-0 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))",
           borderColor: "rgba(201,168,76,0.35)",
         }}
       >
+        {c.banner_url && (
+          <div className="h-32 sm:h-40 w-full overflow-hidden">
+            <img src={c.banner_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-6" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))" }}>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <Avatar className="size-20 ring-2 ring-amber-400/50">
             <AvatarImage src={c.avatar_url ?? undefined} />
@@ -189,11 +198,20 @@ function CrewPage() {
                 <Button variant="outline" onClick={() => setLeaveOpen(true)}>
                   <LogOut className="size-4 mr-1.5" /> {isOwner ? "Disband" : "Leave"}
                 </Button>
+                {canManage && (
+                  <Button variant="outline" onClick={() => {
+                    setCAvatar(c.avatar_url ?? ""); setCBanner(c.banner_url ?? ""); setCDesc(c.description ?? "");
+                    setCustomizeOpen(true);
+                  }}>
+                    <Sparkles className="size-4 mr-1.5" /> Customize
+                  </Button>
+                )}
               </>
             ) : (
               <Button asChild variant="outline"><Link to="/crews">Back to crews</Link></Button>
             )}
           </div>
+        </div>
         </div>
       </Card>
 
@@ -370,6 +388,45 @@ function CrewPage() {
             <Button variant="destructive" onClick={onLeave}>
               {isOwner ? "Disband forever" : "Leave crew"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customize */}
+      <Dialog open={customizeOpen} onOpenChange={setCustomizeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Customize crew</DialogTitle>
+            <DialogDescription>Set your crew avatar, banner and description.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Avatar URL</div>
+              <Input value={cAvatar} onChange={(e) => setCAvatar(e.target.value)} placeholder="https://…/avatar.png" />
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Banner URL</div>
+              <Input value={cBanner} onChange={(e) => setCBanner(e.target.value)} placeholder="https://…/banner.png" />
+              {cBanner && <img src={cBanner} alt="" className="mt-2 w-full h-24 object-cover rounded" />}
+            </div>
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Description</div>
+              <Input value={cDesc} onChange={(e) => setCDesc(e.target.value)} placeholder="What's your crew about?" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCustomizeOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              try {
+                const { error } = await supabase.rpc("update_crew_customization" as any, {
+                  _crew_id: id, _avatar_url: cAvatar || null, _banner_url: cBanner || null, _description: cDesc || null,
+                });
+                if (error) throw error;
+                toast.success("Crew updated");
+                setCustomizeOpen(false);
+                qc.invalidateQueries({ queryKey: ["crew", id] });
+              } catch (e: any) { toast.error(e.message); }
+            }}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
