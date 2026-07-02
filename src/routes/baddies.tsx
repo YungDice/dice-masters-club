@@ -51,7 +51,18 @@ function templateImage(t: { id?: string; image_url?: string | null }) {
   if (t.id === "elias") return eliasAsset.url;
   return null;
 }
-const sellPriceFor = (rate: number) => Math.max(Math.floor(rate / 2), 1);
+const TIER_MULT: Record<string, number> = { base: 1, shiny: 1.1, elite: 1.25, prestige: 1.5 };
+const TIER_ORDER = ["base","shiny","elite","prestige"] as const;
+const TIER_NEXT: Record<string, string | null> = { base:"shiny", shiny:"elite", elite:"prestige", prestige:null };
+const TIER_META: Record<string, { label: string; icon: any; className: string }> = {
+  base:     { label: "Base",     icon: Sparkles, className: "" },
+  shiny:    { label: "Shiny",    icon: Star,     className: "ring-1 ring-cyan-300/60 shadow-[0_0_18px_-6px_rgba(103,232,249,0.6)]" },
+  elite:    { label: "Elite",    icon: Zap,      className: "ring-2 ring-fuchsia-300/70 shadow-[0_0_22px_-4px_rgba(232,121,249,0.7)]" },
+  prestige: { label: "Prestige", icon: Crown,    className: "ring-2 ring-amber-300 shadow-[0_0_28px_-4px_rgba(252,211,77,0.85)]" },
+};
+const effectiveRate = (rate: number, tier: string) => Math.floor((rate * (TIER_MULT[tier] ?? 1)));
+const sellPriceFor = (rate: number, tier = "base") => Math.max(Math.floor(effectiveRate(rate, tier) / 2), 1);
+
 
 function Page() {
   const { user } = useAuth();
