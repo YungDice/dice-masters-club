@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { COUNTRIES } from "@/lib/countries";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
+import { AchievementGrid } from "@/components/dice/AchievementGrid";
+
 
 import { fmt, timeAgo } from "@/lib/format";
 
