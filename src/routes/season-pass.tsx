@@ -131,7 +131,7 @@ function SeasonPassPage() {
   if (!season.data) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader title="Season Pass" subtitle="Momentan läuft keine Season." />
+        <PageHeader icon={Crown} accent="gold" title="Season Pass" subtitle="Momentan läuft keine Season." />
       </div>
     );
   }
