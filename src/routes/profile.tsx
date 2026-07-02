@@ -70,6 +70,8 @@ function MyProfile() {
     },
   });
 
+  const equipped = useEquippedFor(p).data;
+
   if (!p) return <div className="text-center text-muted-foreground py-10">Loading profile…</div>;
 
   const tag = (p as any).tag as string | null;
@@ -78,9 +80,9 @@ function MyProfile() {
   const banner = (p as any).banner_url as string | null;
   const profileBg = (p as any).profile_bg_url as string | null;
   const tier = tierFor(rank.data?.wins ?? 0, rank.data?.ratio ?? 0);
-  const equipped = useEquippedFor(p).data;
   const bannerCosmetic = equipped?.banner;
   const bannerCss = bannerStyle(bannerCosmetic);
+
 
 
   return (
