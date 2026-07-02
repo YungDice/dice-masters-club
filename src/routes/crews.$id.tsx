@@ -198,6 +198,14 @@ function CrewPage() {
                 <Button variant="outline" onClick={() => setLeaveOpen(true)}>
                   <LogOut className="size-4 mr-1.5" /> {isOwner ? "Disband" : "Leave"}
                 </Button>
+                {canManage && (
+                  <Button variant="outline" onClick={() => {
+                    setCAvatar(c.avatar_url ?? ""); setCBanner(c.banner_url ?? ""); setCDesc(c.description ?? "");
+                    setCustomizeOpen(true);
+                  }}>
+                    <Sparkles className="size-4 mr-1.5" /> Customize
+                  </Button>
+                )}
               </>
             ) : (
               <Button asChild variant="outline"><Link to="/crews">Back to crews</Link></Button>
