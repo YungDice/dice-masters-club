@@ -204,10 +204,40 @@ function Page() {
     }
   }
 
+  async function confirmFuse() {
+    if (!fuseTarget) return;
+    const ids = fuseTarget.ids;
+    const nextTier = fuseTarget.nextTier;
+    setFuseTarget(null);
+    try {
+      const { data, error } = await supabase.rpc("fuse_baddies_tx" as any, { _baddie_ids: ids });
+      if (error) throw error;
+      toast.success(`Fusion successful → ${nextTier.toUpperCase()} Baddie forged!`);
+      qc.invalidateQueries({ queryKey: ["my-baddies"] });
+    } catch (e: any) { toast.error(e.message ?? "Fusion failed"); }
+  }
+
   const activeBaddies = (baddies.data ?? []) as any[];
   const listedCount = activeBaddies.filter((b) => b.listing_id).length;
   const inventoryCount = activeBaddies.length;
   const activeSlotUsage = Math.min(inventoryCount - listedCount, cap);
+
+  // Fusion groups: template_id + tier -> available (unlisted, no trade) baddies
+  const fusionGroups = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const b of activeBaddies) {
+      if (b.listing_id || b.trade_id) continue;
+      if (b.tier === "prestige") continue;
+      const key = `${b.template_id}:${b.tier ?? "base"}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(b);
+    }
+    return Array.from(groups.entries())
+      .filter(([, list]) => list.length >= 3)
+      .map(([key, list]) => ({ key, list }));
+  }, [activeBaddies]);
+
+
 
   return (
     <div className="space-y-5">
