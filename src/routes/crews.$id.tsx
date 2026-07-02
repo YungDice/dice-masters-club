@@ -204,6 +204,7 @@ function CrewPage() {
             )}
           </div>
         </div>
+        </div>
       </Card>
 
       <Tabs defaultValue="members">
