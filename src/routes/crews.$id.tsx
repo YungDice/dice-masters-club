@@ -157,12 +157,17 @@ function CrewPage() {
   return (
     <div className="space-y-6">
       <Card
-        className="p-6 relative overflow-hidden"
+        className="p-0 relative overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))",
           borderColor: "rgba(201,168,76,0.35)",
         }}
       >
+        {c.banner_url && (
+          <div className="h-32 sm:h-40 w-full overflow-hidden">
+            <img src={c.banner_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="p-6" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))" }}>
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <Avatar className="size-20 ring-2 ring-amber-400/50">
             <AvatarImage src={c.avatar_url ?? undefined} />
