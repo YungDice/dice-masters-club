@@ -25,6 +25,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
+import { Route as CrewsIndexRouteImport } from './routes/crews.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlaySplitStealRouteImport } from './routes/play.split-steal'
@@ -38,6 +39,8 @@ import { Route as PlayCoinflipRouteImport } from './routes/play.coinflip'
 import { Route as PlayBlackjackRouteImport } from './routes/play.blackjack'
 import { Route as MarketplaceNewRouteImport } from './routes/marketplace.new'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
+import { Route as CrewsNewRouteImport } from './routes/crews.new'
+import { Route as CrewsIdRouteImport } from './routes/crews.$id'
 import { Route as ChallengesNewRouteImport } from './routes/challenges.new'
 import { Route as ChallengesIdRouteImport } from './routes/challenges.$id'
 import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
@@ -123,6 +126,11 @@ const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
   path: '/marketplace/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrewsIndexRoute = CrewsIndexRouteImport.update({
+  id: '/crews/',
+  path: '/crews/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
   id: '/challenges/',
   path: '/challenges/',
@@ -188,6 +196,16 @@ const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
   path: '/marketplace/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrewsNewRoute = CrewsNewRouteImport.update({
+  id: '/crews/new',
+  path: '/crews/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrewsIdRoute = CrewsIdRouteImport.update({
+  id: '/crews/$id',
+  path: '/crews/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChallengesNewRoute = ChallengesNewRouteImport.update({
   id: '/challenges/new',
   path: '/challenges/new',
@@ -227,6 +245,8 @@ export interface FileRoutesByFullPath {
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/crews/new': typeof CrewsNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -240,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges/': typeof ChallengesIndexRoute
+  '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
@@ -262,6 +283,8 @@ export interface FileRoutesByTo {
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/crews/new': typeof CrewsNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -275,6 +298,7 @@ export interface FileRoutesByTo {
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges': typeof ChallengesIndexRoute
+  '/crews': typeof CrewsIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/play': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
@@ -298,6 +322,8 @@ export interface FileRoutesById {
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
+  '/crews/$id': typeof CrewsIdRoute
+  '/crews/new': typeof CrewsNewRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -311,6 +337,7 @@ export interface FileRoutesById {
   '/play/split-steal': typeof PlaySplitStealRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges/': typeof ChallengesIndexRoute
+  '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
@@ -335,6 +362,8 @@ export interface FileRouteTypes {
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
+    | '/crews/$id'
+    | '/crews/new'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -348,6 +377,7 @@ export interface FileRouteTypes {
     | '/play/split-steal'
     | '/u/$username'
     | '/challenges/'
+    | '/crews/'
     | '/marketplace/'
     | '/play/'
     | '/challenges/$id/submit'
@@ -370,6 +400,8 @@ export interface FileRouteTypes {
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
+    | '/crews/$id'
+    | '/crews/new'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -383,6 +415,7 @@ export interface FileRouteTypes {
     | '/play/split-steal'
     | '/u/$username'
     | '/challenges'
+    | '/crews'
     | '/marketplace'
     | '/play'
     | '/challenges/$id/submit'
@@ -405,6 +438,8 @@ export interface FileRouteTypes {
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
+    | '/crews/$id'
+    | '/crews/new'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -418,6 +453,7 @@ export interface FileRouteTypes {
     | '/play/split-steal'
     | '/u/$username'
     | '/challenges/'
+    | '/crews/'
     | '/marketplace/'
     | '/play/'
     | '/challenges/$id/submit'
@@ -441,6 +477,8 @@ export interface RootRouteChildren {
   UpgraderRoute: typeof UpgraderRoute
   ChallengesIdRoute: typeof ChallengesIdRouteWithChildren
   ChallengesNewRoute: typeof ChallengesNewRoute
+  CrewsIdRoute: typeof CrewsIdRoute
+  CrewsNewRoute: typeof CrewsNewRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
   MarketplaceNewRoute: typeof MarketplaceNewRoute
   PlayBlackjackRoute: typeof PlayBlackjackRoute
@@ -454,6 +492,7 @@ export interface RootRouteChildren {
   PlaySplitStealRoute: typeof PlaySplitStealRoute
   UUsernameRoute: typeof UUsernameRoute
   ChallengesIndexRoute: typeof ChallengesIndexRoute
+  CrewsIndexRoute: typeof CrewsIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -573,6 +612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplaceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crews/': {
+      id: '/crews/'
+      path: '/crews'
+      fullPath: '/crews/'
+      preLoaderRoute: typeof CrewsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/challenges/': {
       id: '/challenges/'
       path: '/challenges'
@@ -664,6 +710,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplaceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crews/new': {
+      id: '/crews/new'
+      path: '/crews/new'
+      fullPath: '/crews/new'
+      preLoaderRoute: typeof CrewsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crews/$id': {
+      id: '/crews/$id'
+      path: '/crews/$id'
+      fullPath: '/crews/$id'
+      preLoaderRoute: typeof CrewsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/challenges/new': {
       id: '/challenges/new'
       path: '/challenges/new'
@@ -724,6 +784,8 @@ const rootRouteChildren: RootRouteChildren = {
   UpgraderRoute: UpgraderRoute,
   ChallengesIdRoute: ChallengesIdRouteWithChildren,
   ChallengesNewRoute: ChallengesNewRoute,
+  CrewsIdRoute: CrewsIdRoute,
+  CrewsNewRoute: CrewsNewRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
   MarketplaceNewRoute: MarketplaceNewRoute,
   PlayBlackjackRoute: PlayBlackjackRoute,
@@ -737,6 +799,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlaySplitStealRoute: PlaySplitStealRoute,
   UUsernameRoute: UUsernameRoute,
   ChallengesIndexRoute: ChallengesIndexRoute,
+  CrewsIndexRoute: CrewsIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
