@@ -19,6 +19,7 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as DikdokRouteImport } from './routes/dikdok'
+import { Route as CosmeticsRouteImport } from './routes/cosmetics'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as BaddiesRouteImport } from './routes/baddies'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -95,6 +96,11 @@ const FriendsRoute = FriendsRouteImport.update({
 const DikdokRoute = DikdokRouteImport.update({
   id: '/dikdok',
   path: '/dikdok',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CosmeticsRoute = CosmeticsRouteImport.update({
+  id: '/cosmetics',
+  path: '/cosmetics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChatRoute = ChatRouteImport.update({
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
+  '/cosmetics': typeof CosmeticsRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
+  '/cosmetics': typeof CosmeticsRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/baddies': typeof BaddiesRoute
   '/chat': typeof ChatRoute
+  '/cosmetics': typeof CosmeticsRoute
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/baddies'
     | '/chat'
+    | '/cosmetics'
     | '/dikdok'
     | '/friends'
     | '/gallery'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/baddies'
     | '/chat'
+    | '/cosmetics'
     | '/dikdok'
     | '/friends'
     | '/gallery'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/baddies'
     | '/chat'
+    | '/cosmetics'
     | '/dikdok'
     | '/friends'
     | '/gallery'
@@ -478,6 +490,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BaddiesRoute: typeof BaddiesRoute
   ChatRoute: typeof ChatRoute
+  CosmeticsRoute: typeof CosmeticsRoute
   DikdokRoute: typeof DikdokRoute
   FriendsRoute: typeof FriendsRoute
   GalleryRoute: typeof GalleryRoute
@@ -581,6 +594,13 @@ declare module '@tanstack/react-router' {
       path: '/dikdok'
       fullPath: '/dikdok'
       preLoaderRoute: typeof DikdokRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cosmetics': {
+      id: '/cosmetics'
+      path: '/cosmetics'
+      fullPath: '/cosmetics'
+      preLoaderRoute: typeof CosmeticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chat': {
@@ -793,6 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BaddiesRoute: BaddiesRoute,
   ChatRoute: ChatRoute,
+  CosmeticsRoute: CosmeticsRoute,
   DikdokRoute: DikdokRoute,
   FriendsRoute: FriendsRoute,
   GalleryRoute: GalleryRoute,

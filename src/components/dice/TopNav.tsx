@@ -16,6 +16,8 @@ import {
   ArrowLeftRight,
   Target,
   Settings as SettingsIcon,
+  Palette,
+
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -50,6 +52,8 @@ const items: NavItem[] = [
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
   { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
   { to: "/upgrader", label: "Upgrader", icon: Sparkles, group: "market" },
+  { to: "/cosmetics", label: "Cosmetics", icon: Palette, group: "market" },
+
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
   { to: "/friends", label: "Friends", icon: Users, group: "social" },

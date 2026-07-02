@@ -454,6 +454,45 @@ export type Database = {
         }
         Relationships: []
       }
+      cosmetics: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: string
+          meta: Json
+          name: string
+          price_dice: number
+          rarity: string
+          slug: string
+          vip_only: boolean
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          meta?: Json
+          name: string
+          price_dice?: number
+          rarity?: string
+          slug: string
+          vip_only?: boolean
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          meta?: Json
+          name?: string
+          price_dice?: number
+          rarity?: string
+          slug?: string
+          vip_only?: boolean
+        }
+        Relationships: []
+      }
       crew_donations: {
         Row: {
           amount: number
@@ -1418,6 +1457,10 @@ export type Database = {
           created_at: string
           display_name: string
           dob: string
+          equipped_banner_id: string | null
+          equipped_dice_skin_id: string | null
+          equipped_frame_id: string | null
+          equipped_title_id: string | null
           id: string
           is_18_plus: boolean
           last_login_at: string | null
@@ -1449,6 +1492,10 @@ export type Database = {
           created_at?: string
           display_name: string
           dob: string
+          equipped_banner_id?: string | null
+          equipped_dice_skin_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_title_id?: string | null
           id: string
           is_18_plus?: boolean
           last_login_at?: string | null
@@ -1480,6 +1527,10 @@ export type Database = {
           created_at?: string
           display_name?: string
           dob?: string
+          equipped_banner_id?: string | null
+          equipped_dice_skin_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_title_id?: string | null
           id?: string
           is_18_plus?: boolean
           last_login_at?: string | null
@@ -1501,7 +1552,36 @@ export type Database = {
           vip_until?: string | null
           xp?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_equipped_banner_id_fkey"
+            columns: ["equipped_banner_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_equipped_dice_skin_id_fkey"
+            columns: ["equipped_dice_skin_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_equipped_frame_id_fkey"
+            columns: ["equipped_frame_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_equipped_title_id_fkey"
+            columns: ["equipped_title_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limits: {
         Row: {
@@ -1697,6 +1777,35 @@ export type Database = {
           },
         ]
       }
+      user_cosmetics: {
+        Row: {
+          acquired_at: string
+          cosmetic_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          cosmetic_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          cosmetic_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cosmetics_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1826,6 +1935,7 @@ export type Database = {
           slots_bought: number
         }[]
       }
+      buy_cosmetic_tx: { Args: { _cosmetic_id: string }; Returns: Json }
       buy_listing_tx: {
         Args: { _buyer: string; _listing_id: string }
         Returns: Json
@@ -1865,6 +1975,7 @@ export type Database = {
         Returns: Json
       }
       donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
+      equip_cosmetic_tx: { Args: { _cosmetic_id: string }; Returns: Json }
       expire_auctions: { Args: never; Returns: number }
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
@@ -2056,6 +2167,7 @@ export type Database = {
       }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
+      unequip_cosmetic_tx: { Args: { _kind: string }; Returns: Json }
       upgrade_baddies_tx: {
         Args: { _material_baddie_ids: string[]; _target_template_id: string }
         Returns: Json

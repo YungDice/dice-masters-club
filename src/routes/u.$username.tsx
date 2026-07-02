@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
+import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+
 
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
@@ -86,6 +88,8 @@ function UProfile() {
     },
   });
 
+  const equipped = useEquippedFor(prof.data).data;
+
   if (prof.isLoading) return <div className="text-center text-muted-foreground py-20">Loading…</div>;
   if (!prof.data) return <div className="text-center text-muted-foreground py-20">User not found.</div>;
   const p: any = prof.data;
@@ -102,6 +106,8 @@ function UProfile() {
   const onlineMs = p.last_seen_at ? Date.now() - new Date(p.last_seen_at).getTime() : Infinity;
   const isOnline = onlineMs < 2 * 60 * 1000;
   const dn = p.display_name ?? p.username ?? "User";
+  const bannerCss = bannerStyle(equipped?.banner);
+
 
   async function addFriend() {
     if (!user) return;
@@ -128,23 +134,25 @@ function UProfile() {
     <ProfileBackdrop url={vipActive ? profileBg : null}>
     <div className="space-y-4">
       <Card className="glass overflow-hidden">
-        {p.banner_url && vipActive && (
-          <div className="h-32 md:h-48 w-full bg-black/40">
-            <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />
+        {(bannerCss || (p.banner_url && vipActive)) && (
+          <div className="h-32 md:h-48 w-full bg-black/40" style={bannerCss}>
+            {!bannerCss && p.banner_url && vipActive && <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />}
           </div>
         )}
         <div className="p-6">
           <div className="flex flex-wrap items-center gap-5">
-            <Avatar className="size-24 ring-2 ring-primary/40"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{dn[0]?.toUpperCase() ?? "?"}</AvatarFallback></Avatar>
+            <Avatar className={`size-24 ring-2 ring-primary/40 ${frameClasses(equipped?.frame)}`}><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{dn[0]?.toUpperCase() ?? "?"}</AvatarFallback></Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-bold flex items-center gap-2">
+              <h1 className="font-display text-3xl font-bold flex items-center gap-2 flex-wrap">
                 <span>{dn}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</span>
+                <TitleBadge title={equipped?.title} />
 
                 <span className={`inline-flex items-center gap-1 text-xs font-normal ${isOnline ? "text-emerald-400" : "text-muted-foreground"}`}>
                   <Circle className={`size-2 ${isOnline ? "fill-emerald-400 text-emerald-400" : "fill-muted-foreground/50 text-muted-foreground/50"}`} />
                   {isOnline ? "Online" : (p as any).last_seen_at ? `Last seen ${timeAgo((p as any).last_seen_at)}` : "Offline"}
                 </span>
               </h1>
+
               <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
               {p.bio && <p className="mt-2 text-sm">{p.bio}</p>}
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
