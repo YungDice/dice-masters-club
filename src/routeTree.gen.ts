@@ -14,6 +14,7 @@ import { Route as TradesRouteImport } from './routes/trades'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as MissionsRouteImport } from './routes/missions'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FriendsRouteImport } from './routes/friends'
@@ -69,6 +70,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MissionsRoute = MissionsRouteImport.update({
+  id: '/missions',
+  path: '/missions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
@@ -355,6 +364,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
+    | '/missions'
     | '/notifications'
     | '/profile'
     | '/settings'
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
+    | '/missions'
     | '/notifications'
     | '/profile'
     | '/settings'
@@ -431,6 +442,7 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
+    | '/missions'
     | '/notifications'
     | '/profile'
     | '/settings'
@@ -470,6 +482,7 @@ export interface RootRouteChildren {
   FriendsRoute: typeof FriendsRoute
   GalleryRoute: typeof GalleryRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  MissionsRoute: typeof MissionsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/missions': {
+      id: '/missions'
+      path: '/missions'
+      fullPath: '/missions'
+      preLoaderRoute: typeof MissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leaderboard': {
@@ -777,6 +797,7 @@ const rootRouteChildren: RootRouteChildren = {
   FriendsRoute: FriendsRoute,
   GalleryRoute: GalleryRoute,
   LeaderboardRoute: LeaderboardRoute,
+  MissionsRoute: MissionsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,

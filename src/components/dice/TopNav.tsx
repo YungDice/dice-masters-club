@@ -14,6 +14,7 @@ import {
   Music2,
   Sparkles,
   ArrowLeftRight,
+  Target,
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
