@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
+import { AchievementGrid } from "@/components/dice/AchievementGrid";
+
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
 import { tierFor } from "@/lib/rank";
@@ -206,16 +208,9 @@ function UProfile() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="glass p-5">
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
-          {achievements.data?.length === 0 && <p className="text-sm text-muted-foreground">No badges yet.</p>}
-          <div className="grid grid-cols-3 gap-2">
-            {(achievements.data ?? []).map((a: any) => (
-              <div key={a.achievement_id} className="rounded-md border border-border/60 p-3 text-center">
-                <Trophy className="mx-auto size-6 text-gold" />
-                <div className="text-xs mt-1 font-semibold">{a.achievements?.name}</div>
-              </div>
-            ))}
-          </div>
+          {pid && <AchievementGrid userId={pid} />}
         </Card>
+
         <Card className="glass p-5">
           <h2 className="font-display text-lg font-semibold mb-3">Recent games</h2>
           {games.data?.length === 0 && <p className="text-sm text-muted-foreground">No games yet.</p>}
