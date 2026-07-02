@@ -13,6 +13,7 @@ import {
   Images,
   Music2,
   Sparkles,
+  ArrowLeftRight,
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
