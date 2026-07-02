@@ -690,6 +690,51 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_missions: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          mission_date: string
+          mission_key: string
+          progress: number
+          reward_dice: number
+          reward_xp: number
+          slot: number
+          target: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_date: string
+          mission_key: string
+          progress?: number
+          reward_dice?: number
+          reward_xp?: number
+          slot: number
+          target: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_date?: string
+          mission_key?: string
+          progress?: number
+          reward_dice?: number
+          reward_xp?: number
+          slot?: number
+          target?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_xp_snapshots: {
         Row: {
           updated_at: string
@@ -1583,6 +1628,24 @@ export type Database = {
           },
         ]
       }
+      user_baddie_case_tokens: {
+        Row: {
+          tokens: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          tokens?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          tokens?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_baddies: {
         Row: {
           acquired_at: string
@@ -1685,6 +1748,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          best_streak: number
+          current_streak: number
+          last_completion_date: string | null
+          last_weekly_claim_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_streak?: number
+          current_streak?: number
+          last_completion_date?: string | null
+          last_weekly_claim_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_streak?: number
+          current_streak?: number
+          last_completion_date?: string | null
+          last_weekly_claim_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_game_stats: {
@@ -1740,6 +1830,7 @@ export type Database = {
       cancel_trade_tx: { Args: { _trade_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
+      claim_weekly_streak_tx: { Args: never; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
       collect_baddie_tx: {
         Args: { _baddie_id: string }
@@ -1774,6 +1865,29 @@ export type Database = {
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
       finalize_weekly_crew_rankings: { Args: never; Returns: Json }
+      get_today_missions: {
+        Args: never
+        Returns: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          mission_date: string
+          mission_key: string
+          progress: number
+          reward_dice: number
+          reward_xp: number
+          slot: number
+          target: number
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "daily_missions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
         Returns: Json
@@ -1797,6 +1911,10 @@ export type Database = {
       list_baddie_for_sale_tx: {
         Args: { _baddie_id: string; _price: number }
         Returns: Json
+      }
+      mission_tick: {
+        Args: { _delta: number; _key: string; _user: string }
+        Returns: undefined
       }
       open_baddie_case_tx: {
         Args: never
@@ -1890,6 +2008,29 @@ export type Database = {
           _reviewer: string
         }
         Returns: Json
+      }
+      seed_daily_missions: {
+        Args: { _user: string }
+        Returns: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          mission_date: string
+          mission_key: string
+          progress: number
+          reward_dice: number
+          reward_xp: number
+          slot: number
+          target: number
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "daily_missions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       sell_baddie_tx: { Args: { _baddie_id: string }; Returns: Json }
       set_active_tag: { Args: { _tag: string }; Returns: Json }
