@@ -17,6 +17,7 @@ import {
   Target,
   Settings as SettingsIcon,
   Palette,
+  Crown,
 
 } from "lucide-react";
 import { useState } from "react";
