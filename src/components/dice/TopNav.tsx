@@ -44,6 +44,7 @@ type NavItem = { to: string; label: string; icon: typeof Home; exact?: boolean; 
 const items: NavItem[] = [
   { to: "/", label: "Home", icon: Home, exact: true, group: "main" },
   { to: "/play", label: "Play", icon: Gamepad2, group: "main" },
+  { to: "/missions", label: "Missions", icon: Target, group: "main" },
   { to: "/challenges", label: "Challenges", icon: Trophy, group: "main" },
   { to: "/marketplace", label: "Market", icon: ShoppingBag, group: "market" },
   { to: "/baddies", label: "Baddies", icon: Sparkles, group: "market" },
