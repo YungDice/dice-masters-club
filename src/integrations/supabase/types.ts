@@ -1797,6 +1797,7 @@ export type Database = {
         | "auction_won"
         | "auction_outbid"
         | "expired"
+        | "trade"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2027,6 +2028,7 @@ export const Constants = {
         "auction_won",
         "auction_outbid",
         "expired",
+        "trade",
       ],
     },
   },
