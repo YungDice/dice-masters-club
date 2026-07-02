@@ -13,6 +13,7 @@ import {
   Images,
   Music2,
   Sparkles,
+  ArrowLeftRight,
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useState } from "react";
@@ -50,6 +51,7 @@ const items: NavItem[] = [
   { to: "/dikdok", label: "DikDok", icon: Music2, group: "social" },
   { to: "/gallery", label: "Gallery", icon: Images, group: "social" },
   { to: "/friends", label: "Friends", icon: Users, group: "social" },
+  { to: "/trades", label: "Trades", icon: ArrowLeftRight, group: "social" },
   { to: "/leaderboard", label: "Ranks", icon: BarChart3, group: "main" },
 ];
 

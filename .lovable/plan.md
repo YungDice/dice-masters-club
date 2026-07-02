@@ -1,48 +1,59 @@
-## 1. Fix `open_baddie_case_tx` wallet call
+# Roadmap: Trading, Clans, Season Pass, Cosmetics
 
-Root cause: `open_baddie_case_tx` and `collect_baddie_tx` call `public.wallet_debit` / `public.wallet_credit`, which do not exist in this project. The canonical helper is `public.wallet_adjust_idem(_user, _delta, _type, _source, _ref_kind, _ref_id, _note, _op_id)`.
+Vier große Systeme in **vier separaten Phasen** — jede Phase ist ein eigener Build (Migration + Server-Fns + UI). Nach Genehmigung dieses Plans baue ich **Phase 1 zuerst**; die anderen Phasen bestätigst du dann einzeln.
 
-Migration rewrites both functions to use `wallet_adjust_idem`:
-- Debit happens first inside the same transaction; if balance is insufficient `wallet_adjust_idem` raises `Insufficient DICE balance`, the transaction rolls back, no Baddie is created, and the client surfaces the error toast already wired in `baddies.tsx`.
-- Use idempotency keys `baddie_open:<uuid>` (generated inside the fn) and `baddie_collect:<baddie_id>:<epoch_minute>` so retries are safe.
-- Cap check (2 non-VIP / 4 VIP) runs before the debit.
+---
 
-No duplicate wallet helpers are created.
+## Phase 1 — Trading System (Baddie ↔ Baddie / Baddie ↔ DICE)
 
-## 2. New rarities + weighted drops
+**Ziel:** Sichere P2P-Trades zwischen Freunden mit Bestätigungsfenster und History.
 
-Migration:
-- Add 2 new templates: `unreal` (Unreal, 0.8%), `elias` (Elias, 0.2%).
-- Rebalance weights so totals match exact rates: weights out of 10000 → common 5000, uncommon 2500, rare 1400, epic 700, legendary 300, unreal 80, elias 20.
-- Income per hour: unreal 720, elias 1500 (Elias rarest + best).
-- `open_baddie_case_tx` already picks via weighted sum — no logic change needed beyond the new rows.
+- Neue Tabelle `trades`: `id, from_user, to_user, status (pending/accepted/declined/cancelled/completed), from_baddies uuid[], to_baddies uuid[], from_dice bigint, to_dice bigint, created_at, resolved_at`.
+- RPC `create_trade_tx` — lockt angebotene Baddies (`listing_id`-artiges Feld `trade_id`), zieht DICE-Anteil in Escrow.
+- RPC `respond_trade_tx(_id, _accept)` — atomarer Swap: Baddie-Ownership + DICE-Balance in einer Transaktion, Escrow-Refund bei Decline/Cancel.
+- Auto-Expire nach 24 h (pg_cron).
+- **UI:** neue Route `/trades` mit Inbox / Sent / History; „Trade anbieten"-Button auf Freundes-Profil und in Baddie-Inventar.
+- Nur zwischen bestätigten Freunden (verhindert Scams).
 
-UI (`src/routes/baddies.tsx`):
-- Extend `RARITY_STYLE` map for `unreal` (violet/cyan holo gradient) and `elias` (gold/black mythic gradient with ring).
-- Show odds column on each rarity card (e.g. "0.2%") computed from `weight / sum(weight) * 100`.
-- Ensure 7 rarity cards lay out cleanly on mobile (2 cols) and desktop (responsive grid).
+## Phase 2 — Clans / Crews
 
-## 3. Elias image
+- Tabellen: `clans` (name, tag, banner, owner_id, created_at, total_dice_donated, weekly_score), `clan_members` (clan_id, user_id, role: owner/officer/member, joined_at), `clan_donations` (clan_id, user_id, amount, created_at), `clan_weekly_scores` (clan_id, week_start, xp/wins/dice_earned).
+- RPCs: `create_clan_tx` (kostet 10 000 DICE), `join_clan_tx`, `leave_clan_tx`, `kick_member_tx`, `donate_to_clan_tx`, `promote_member_tx`.
+- pg_cron wöchentlich: aggregiert `game_results` + Case-Opens pro Clan → `clan_weekly_scores`, Top-3-Clans bekommen DICE-Prämien.
+- **UI:** `/clans` (Browser + Leaderboard), `/clans/$id` (Detail, Mitglieder, Spenden, Wochenscore).
+- Clan-Tag optional neben Displayname.
 
-- Save attached image to `src/assets/baddies/elias.jpg` (responsive object-cover usage).
-- Store `image_url` on the `elias` template row pointing at the imported asset URL (via Lovable assets pointer or static import path served by Vite).
-- Update `RARITY_STYLE` rendering and reveal/inventory cards to show `template.image_url` when present (square `object-cover` with rounded corners). Other Baddies keep the Sparkles icon fallback.
+## Phase 3 — Season Pass / Battle Pass
 
-## 4. Activity feeds (Recent Results + Friend Activity)
+- Tabellen: `seasons` (id, name, starts_at, ends_at, tiers jsonb), `season_progress` (user_id, season_id, xp, claimed_free int[], claimed_vip int[]), `season_rewards` (tier, track free/vip, kind: dice/case/cosmetic/baddie/frame, value).
+- Season-XP wird von Games/Cases/Missions gefarmt (separater Zähler, nicht Level-XP).
+- Kostenlose Spur für alle, VIP-Spur nur `is_vip`.
+- `claim_season_tier_tx(_tier, _track)` — atomar, prüft XP-Schwelle.
+- **UI:** `/season` mit horizontaler Tier-Leiste, Progress-Bar, Claim-Buttons; VIP-Track visuell hervorgehoben.
+- Erste Season = 30 Tage, 30 Tiers.
 
-The `activity_feed` table is already inserted into by `record_game_result`, `buy_listing_tx`, `settle_auction_tx`. Gaps: case open / Baddie collect / friend-side reads.
+## Phase 4 — Skins & Cosmetics
 
-Migration:
-- Insert into `activity_feed` from `open_baddie_case_tx` (`kind='baddie_unlocked'`) and `collect_baddie_tx` (`kind='baddie_income'`).
-- Insert into `activity_feed` from `grant_achievement_tx` (`kind='achievement'`).
+- Tabelle `cosmetics` (id, kind: dice_skin/banner/avatar_frame/chat_emote/title, name, rarity, source: shop/pass/achievement, price, asset_url).
+- `user_cosmetics` (user_id, cosmetic_id, acquired_at, equipped bool).
+- Erweitert `profiles`: `equipped_dice_skin`, `equipped_frame`, `equipped_title`.
+- Cosmetic-Shop: Route `/shop/cosmetics` — kaufen mit DICE.
+- Chat-Emotes werden im Global Chat gerendert (`:emote_name:`).
+- Dice-Skin ersetzt die Würfel-Textur in `play.dice` / Coinflip.
+- Avatar-Frame wird um Profilbilder gerendert (Component `<AvatarFrame />`).
+- Titles erscheinen unter Displayname.
+- Cosmetics werden zusätzlich als Season-Pass- und Achievement-Belohnungen ausgegeben.
 
-Frontend (home dashboard `src/routes/index.tsx`):
-- **Recent Results**: query `game_results` for current user ordered by `created_at desc limit 20`, render game kind, wagered, payout, outcome, relative time. Realtime subscribe to inserts on `game_results` filtered by `user_id`.
-- **Friend Activity**: query accepted friend ids from `friendships`, then `activity_feed` where `user_id in (friends)` order desc limit 30. Realtime subscribe to inserts on `activity_feed`; filter client-side by friend set.
-- Add loading skeleton, `EmptyState` for no rows, and error toast.
+---
 
-## Technical notes
+## Technische Notizen (technisch)
 
-- Single migration covering: rewrite `open_baddie_case_tx`, rewrite `collect_baddie_tx`, insert new templates, update existing template weights, add activity_feed inserts to baddie + achievement RPCs.
-- Image stored via `lovable-assets` CLI from `/mnt/user-uploads/image-3.png` and referenced through generated `.asset.json`.
-- No new tables, no duplicate wallet helpers, no schema-breaking changes.
+- Alle neuen Tabellen: `GRANT` + RLS mit `auth.uid()`-Policies, `service_role` für pg_cron.
+- Alle Wertetransfers gehen über `wallet_adjust_idem` (idempotent, verhindert Doppel-Payout).
+- Neue Server-Fns unter `src/lib/*.functions.ts` mit `requireSupabaseAuth`.
+- Neue Routes unter `src/routes/` (public read-Teile: Clan-Browser, geschützt: Trades/eigene Clan-Aktionen).
+- Activity-Feed-Events: `trade_completed`, `clan_joined`, `clan_donation`, `season_tier_claimed`, `cosmetic_equipped`.
+
+---
+
+**Nächster Schritt:** Approve → ich baue **Phase 1 (Trading)** komplett. Die anderen Phasen bestätigst du dann einzeln, damit jede sauber getestet werden kann.

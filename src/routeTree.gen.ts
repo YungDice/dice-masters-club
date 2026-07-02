@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgraderRouteImport } from './routes/upgrader'
+import { Route as TradesRouteImport } from './routes/trades'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -45,6 +46,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 const UpgraderRoute = UpgraderRouteImport.update({
   id: '/upgrader',
   path: '/upgrader',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TradesRoute = TradesRouteImport.update({
+  id: '/trades',
+  path: '/trades',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/settings': typeof SettingsRoute
+  '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/trades'
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/trades'
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/settings'
+    | '/trades'
     | '/upgrader'
     | '/challenges/$id'
     | '/challenges/new'
@@ -425,6 +437,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   SettingsRoute: typeof SettingsRoute
+  TradesRoute: typeof TradesRoute
   UpgraderRoute: typeof UpgraderRoute
   ChallengesIdRoute: typeof ChallengesIdRouteWithChildren
   ChallengesNewRoute: typeof ChallengesNewRoute
@@ -453,6 +466,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrader'
       fullPath: '/upgrader'
       preLoaderRoute: typeof UpgraderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trades': {
+      id: '/trades'
+      path: '/trades'
+      fullPath: '/trades'
+      preLoaderRoute: typeof TradesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -700,6 +720,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   SettingsRoute: SettingsRoute,
+  TradesRoute: TradesRoute,
   UpgraderRoute: UpgraderRoute,
   ChallengesIdRoute: ChallengesIdRouteWithChildren,
   ChallengesNewRoute: ChallengesNewRoute,
@@ -723,13 +744,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

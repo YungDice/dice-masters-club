@@ -1306,6 +1306,51 @@ export type Database = {
         }
         Relationships: []
       }
+      trades: {
+        Row: {
+          created_at: string
+          expires_at: string
+          from_baddies: string[]
+          from_dice: number
+          from_user: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["trade_status"]
+          to_baddies: string[]
+          to_dice: number
+          to_user: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          from_baddies?: string[]
+          from_dice?: number
+          from_user: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          to_baddies?: string[]
+          to_dice?: number
+          to_user: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          from_baddies?: string[]
+          from_dice?: number
+          from_user?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["trade_status"]
+          to_baddies?: string[]
+          to_dice?: number
+          to_user?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -1340,6 +1385,7 @@ export type Database = {
           listing_id: string | null
           name: string | null
           template_id: string
+          trade_id: string | null
           user_id: string
         }
         Insert: {
@@ -1349,6 +1395,7 @@ export type Database = {
           listing_id?: string | null
           name?: string | null
           template_id: string
+          trade_id?: string | null
           user_id: string
         }
         Update: {
@@ -1358,6 +1405,7 @@ export type Database = {
           listing_id?: string | null
           name?: string | null
           template_id?: string
+          trade_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1483,6 +1531,7 @@ export type Database = {
         Returns: Json
       }
       cancel_listing_tx: { Args: { _listing_id: string }; Returns: Json }
+      cancel_trade_tx: { Args: { _trade_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
       cleanup_stale_data: { Args: never; Returns: undefined }
@@ -1493,7 +1542,19 @@ export type Database = {
           last_collected_at: string
         }[]
       }
+      create_trade_tx: {
+        Args: {
+          _from_baddies: string[]
+          _from_dice: number
+          _note: string
+          _to: string
+          _to_baddies: string[]
+          _to_dice: number
+        }
+        Returns: Json
+      }
       expire_auctions: { Args: never; Returns: number }
+      expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
@@ -1588,6 +1649,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      respond_trade_tx: {
+        Args: { _accept: boolean; _trade_id: string }
+        Returns: Json
+      }
       review_proof_tx: {
         Args: {
           _approve: boolean
@@ -1705,6 +1770,13 @@ export type Database = {
         | "auto_timer"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       room_status: "waiting" | "active" | "finished" | "cancelled"
+      trade_status:
+        | "pending"
+        | "accepted"
+        | "declined"
+        | "cancelled"
+        | "expired"
+        | "completed"
       tx_type:
         | "challenge_reward"
         | "game_win"
@@ -1725,6 +1797,7 @@ export type Database = {
         | "auction_won"
         | "auction_outbid"
         | "expired"
+        | "trade"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1927,6 +2000,14 @@ export const Constants = {
       ],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       room_status: ["waiting", "active", "finished", "cancelled"],
+      trade_status: [
+        "pending",
+        "accepted",
+        "declined",
+        "cancelled",
+        "expired",
+        "completed",
+      ],
       tx_type: [
         "challenge_reward",
         "game_win",
@@ -1947,6 +2028,7 @@ export const Constants = {
         "auction_won",
         "auction_outbid",
         "expired",
+        "trade",
       ],
     },
   },
