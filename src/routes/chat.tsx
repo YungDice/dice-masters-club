@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
+import { useEmoteMap, renderWithEmotes } from "@/lib/cosmetics";
+
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "Chat — DICE" }] }),
@@ -24,6 +26,8 @@ function Chat() {
   const qc = useQueryClient();
   const [body, setBody] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { data: emoteMap } = useEmoteMap();
+
 
   const q = useQuery({
     queryKey: ["chat"],
@@ -71,7 +75,7 @@ function Chat() {
                 {!mine && <Avatar className="size-7 shrink-0"><AvatarImage src={m.user?.avatar_url} /><AvatarFallback>{m.user?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>}
                 <div className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-white/5"}`}>
                   {!mine && <div className="text-[10px] opacity-70 mb-0.5">@{m.user?.username ?? "user"}</div>}
-                  <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                  <div className="whitespace-pre-wrap break-words">{renderWithEmotes(m.body, emoteMap)}</div>
                 </div>
                 {(mine || isStaff) && (
                   <button onClick={() => remove(m.id)} className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"><Trash2 className="size-3" /></button>
