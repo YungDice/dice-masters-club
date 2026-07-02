@@ -1654,6 +1654,7 @@ export type Database = {
           listing_id: string | null
           name: string | null
           template_id: string
+          tier: string
           trade_id: string | null
           user_id: string
         }
@@ -1664,6 +1665,7 @@ export type Database = {
           listing_id?: string | null
           name?: string | null
           template_id: string
+          tier?: string
           trade_id?: string | null
           user_id: string
         }
@@ -1674,6 +1676,7 @@ export type Database = {
           listing_id?: string | null
           name?: string | null
           template_id?: string
+          tier?: string
           trade_id?: string | null
           user_id?: string
         }
@@ -1807,6 +1810,7 @@ export type Database = {
       }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
+      baddie_tier_mult_bp: { Args: { _tier: string }; Returns: number }
       baddie_upgrade_chance: {
         Args: {
           _material_value: number
@@ -1865,6 +1869,7 @@ export type Database = {
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
       finalize_weekly_crew_rankings: { Args: never; Returns: Json }
+      fuse_baddies_tx: { Args: { _baddie_ids: string[] }; Returns: Json }
       get_today_missions: {
         Args: never
         Returns: {
