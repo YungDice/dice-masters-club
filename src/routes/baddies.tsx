@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Sparkles, PackageOpen, Coins, Crown, Tag as TagIcon, Lock } from "lucide-react";
+import { Sparkles, PackageOpen, Coins, Crown, Tag as TagIcon, Lock, Flame, Star, Zap } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
