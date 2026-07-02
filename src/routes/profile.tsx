@@ -144,16 +144,9 @@ function MyProfile() {
 
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
-        {myAchievements.data?.length === 0 && <p className="text-sm text-muted-foreground">No badges yet.</p>}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-          {(myAchievements.data ?? []).map((a: any) => (
-            <div key={a.achievement_id} className="rounded-md border border-border/60 p-3 text-center">
-              <Trophy className="mx-auto size-6 text-gold" />
-              <div className="text-xs mt-1 font-semibold">{a.achievements?.name}</div>
-            </div>
-          ))}
-        </div>
+        {user?.id && <AchievementGrid userId={user.id} />}
       </Card>
+
 
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="size-4 text-primary" />Items I sold</h2>
