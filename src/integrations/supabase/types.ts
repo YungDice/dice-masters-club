@@ -454,6 +454,212 @@ export type Database = {
         }
         Relationships: []
       }
+      crew_donations: {
+        Row: {
+          amount: number
+          created_at: string
+          crew_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          crew_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          crew_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_donations_crew_id_fkey"
+            columns: ["crew_id"]
+            isOneToOne: false
+            referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crew_join_requests: {
+        Row: {
+          created_at: string
+          crew_id: string
+          id: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["crew_join_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          crew_id: string
+          id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["crew_join_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          crew_id?: string
+          id?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["crew_join_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_join_requests_crew_id_fkey"
+            columns: ["crew_id"]
+            isOneToOne: false
+            referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crew_members: {
+        Row: {
+          contribution_total: number
+          contribution_weekly: number
+          crew_id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["crew_role"]
+          user_id: string
+        }
+        Insert: {
+          contribution_total?: number
+          contribution_weekly?: number
+          crew_id: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["crew_role"]
+          user_id: string
+        }
+        Update: {
+          contribution_total?: number
+          contribution_weekly?: number
+          crew_id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["crew_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_members_crew_id_fkey"
+            columns: ["crew_id"]
+            isOneToOne: false
+            referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crew_weekly_rankings: {
+        Row: {
+          created_at: string
+          crew_id: string
+          crew_name: string
+          crew_tag: string
+          id: string
+          rank: number
+          reward_dice: number
+          score: number
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          crew_id: string
+          crew_name: string
+          crew_tag: string
+          id?: string
+          rank: number
+          reward_dice?: number
+          score: number
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          crew_id?: string
+          crew_name?: string
+          crew_tag?: string
+          id?: string
+          rank?: number
+          reward_dice?: number
+          score?: number
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_weekly_rankings_crew_id_fkey"
+            columns: ["crew_id"]
+            isOneToOne: false
+            referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crews: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_open: boolean
+          level: number
+          max_members: number
+          member_count: number
+          min_level: number
+          name: string
+          owner_id: string
+          tag: string
+          total_score: number
+          updated_at: string
+          weekly_score: number
+          xp: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_open?: boolean
+          level?: number
+          max_members?: number
+          member_count?: number
+          min_level?: number
+          name: string
+          owner_id: string
+          tag: string
+          total_score?: number
+          updated_at?: string
+          weekly_score?: number
+          xp?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_open?: boolean
+          level?: number
+          max_members?: number
+          member_count?: number
+          min_level?: number
+          name?: string
+          owner_id?: string
+          tag?: string
+          total_score?: number
+          updated_at?: string
+          weekly_score?: number
+          xp?: number
+        }
+        Relationships: []
+      }
       daily_leaderboard_rewards: {
         Row: {
           created_at: string
@@ -1542,6 +1748,16 @@ export type Database = {
           last_collected_at: string
         }[]
       }
+      create_crew_tx: {
+        Args: {
+          _description: string
+          _is_open: boolean
+          _min_level: number
+          _name: string
+          _tag: string
+        }
+        Returns: Json
+      }
       create_trade_tx: {
         Args: {
           _from_baddies: string[]
@@ -1553,9 +1769,11 @@ export type Database = {
         }
         Returns: Json
       }
+      donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
       expire_auctions: { Args: never; Returns: number }
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
+      finalize_weekly_crew_rankings: { Args: never; Returns: Json }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
         Returns: Json
@@ -1567,8 +1785,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_crew_officer: {
+        Args: { _crew: string; _user: string }
+        Returns: boolean
+      }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
+      join_crew_tx: { Args: { _crew_id: string }; Returns: Json }
+      kick_crew_member_tx: { Args: { _target: string }; Returns: Json }
+      leave_crew_tx: { Args: never; Returns: Json }
       list_baddie_for_sale_tx: {
         Args: { _baddie_id: string; _price: number }
         Returns: Json
@@ -1649,6 +1874,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      respond_crew_join_tx: {
+        Args: { _accept: boolean; _request_id: string }
+        Returns: Json
+      }
       respond_trade_tx: {
         Args: { _accept: boolean; _trade_id: string }
         Returns: Json
@@ -1667,6 +1896,13 @@ export type Database = {
       set_autosell_rarities: {
         Args: { _rarities: string[] }
         Returns: string[]
+      }
+      set_crew_role_tx: {
+        Args: {
+          _role: Database["public"]["Enums"]["crew_role"]
+          _target: string
+        }
+        Returns: Json
       }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       touch_presence: { Args: never; Returns: Json }
@@ -1722,6 +1958,8 @@ export type Database = {
         | "active"
         | "closed"
         | "archived"
+      crew_join_status: "pending" | "accepted" | "rejected" | "cancelled"
+      crew_role: "owner" | "officer" | "member"
       difficulty: "easy" | "medium" | "hard" | "extreme"
       friend_status: "pending" | "accepted" | "blocked"
       game_kind:
@@ -1948,6 +2186,8 @@ export const Constants = {
         "closed",
         "archived",
       ],
+      crew_join_status: ["pending", "accepted", "rejected", "cancelled"],
+      crew_role: ["owner", "officer", "member"],
       difficulty: ["easy", "medium", "hard", "extreme"],
       friend_status: ["pending", "accepted", "blocked"],
       game_kind: [
