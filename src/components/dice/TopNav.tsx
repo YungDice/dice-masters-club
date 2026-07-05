@@ -19,10 +19,14 @@ import {
   Palette,
   Crown,
   ChevronDown,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useFx } from "@/lib/fx";
+
 import { DiceLogo } from "./Logo";
 import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
@@ -210,8 +214,10 @@ export function TopNav() {
 
         <div className="flex items-center gap-1.5 justify-end">
           <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
+          <SoundToggle />
           <ChatPopover />
           <NotificationsPopover />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
@@ -328,3 +334,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function _useButton() { return Button; }
+
+function SoundToggle() {
+  const { enabled, toggleSound } = useFx();
+  return (
+    <button
+      onClick={toggleSound}
+      aria-label={enabled ? "Mute sound" : "Enable sound"}
+      title={enabled ? "Sound on" : "Sound off"}
+      className="grid size-9 place-items-center rounded-md hover:bg-white/5 text-muted-foreground hover:text-amber-200 transition"
+    >
+      {enabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+    </button>
+  );
+}
+
