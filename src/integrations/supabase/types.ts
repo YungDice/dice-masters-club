@@ -454,6 +454,65 @@ export type Database = {
         }
         Relationships: []
       }
+      cosmetic_submissions: {
+        Row: {
+          cosmetic_id: string | null
+          created_at: string
+          fee_paid: number
+          id: string
+          kind: string
+          meta: Json
+          name: string
+          price_dice: number
+          rarity: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: string
+          submitter_id: string
+        }
+        Insert: {
+          cosmetic_id?: string | null
+          created_at?: string
+          fee_paid?: number
+          id?: string
+          kind: string
+          meta?: Json
+          name: string
+          price_dice?: number
+          rarity?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          submitter_id: string
+        }
+        Update: {
+          cosmetic_id?: string | null
+          created_at?: string
+          fee_paid?: number
+          id?: string
+          kind?: string
+          meta?: Json
+          name?: string
+          price_dice?: number
+          rarity?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: string
+          submitter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cosmetic_submissions_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cosmetics: {
         Row: {
           active: boolean
@@ -2342,6 +2401,10 @@ export type Database = {
         Args: { _accept: boolean; _trade_id: string }
         Returns: Json
       }
+      review_cosmetic_submission: {
+        Args: { _approve: boolean; _notes?: string; _submission_id: string }
+        Returns: string
+      }
       review_proof_tx: {
         Args: {
           _approve: boolean
@@ -2388,6 +2451,16 @@ export type Database = {
         Returns: Json
       }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
+      submit_cosmetic: {
+        Args: {
+          _kind: string
+          _meta: Json
+          _name: string
+          _price_dice: number
+          _rarity: string
+        }
+        Returns: string
+      }
       touch_presence: { Args: never; Returns: Json }
       unequip_cosmetic_tx: { Args: { _kind: string }; Returns: Json }
       update_crew_customization: {
