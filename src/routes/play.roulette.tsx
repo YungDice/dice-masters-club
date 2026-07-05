@@ -294,6 +294,7 @@ function RoulettePage() {
                     );
                   })}
                 </div>
+               </div>
               </div>
             </div>
           </CasinoFrame>
