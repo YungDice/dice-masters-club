@@ -110,6 +110,8 @@ function Slots() {
   const [payout, setPayout] = useState<number | null>(null);
   const audioRef = useRef<{ ctx?: AudioContext }>({});
   const play = useServerFn(playSlots);
+  const fx = useFx();
+
 
   function blip(frequency = 220, duration = 0.08) {
     try {
