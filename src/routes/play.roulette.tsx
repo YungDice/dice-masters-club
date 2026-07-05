@@ -201,7 +201,7 @@ function RoulettePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
+    <div className="max-w-[1400px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2"><CircleDot className="text-amber-400" />Roulette <span className="text-sm font-normal text-muted-foreground">— American (0 / 00)</span></h1>
         <div className="flex gap-1 text-xs">
