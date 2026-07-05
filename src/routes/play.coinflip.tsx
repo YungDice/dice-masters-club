@@ -18,6 +18,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { Coin3D } from "@/components/dice/casino/Coin3D";
+import { useFx } from "@/lib/fx";
+
 
 export const Route = createFileRoute("/play/coinflip")({
   head: () => ({ meta: [{ title: "Coin Flip — DICE" }] }),
