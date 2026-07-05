@@ -14,8 +14,6 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
-import { useFx } from "@/lib/fx";
-
 
 export const Route = createFileRoute("/play/roulette")({
   head: () => ({ meta: [
@@ -135,8 +133,6 @@ function RoulettePage() {
   const { data: wallet } = useWallet(user?.id);
   const qc = useQueryClient();
   const spinFn = useServerFn(rouletteSpin);
-  const fx = useFx();
-
 
   const [chip, setChip] = useState(25);
   const [bets, setBets] = useState<BetMap>({});
@@ -176,8 +172,6 @@ function RoulettePage() {
       return { type, value, amount };
     });
     setSpinning(true);
-    fx.play("spin");
-
     try {
       const r = await spinFn({ data: { bets: list } });
       // Animate wheel so pocketIndex lands at top (angle 0)
@@ -196,14 +190,9 @@ function RoulettePage() {
         setSpinning(false);
         setBets({});
         qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.payout > 0) {
-          const big = r.net >= total * 5;
-          fx.celebrate({ amount: r.net, big, shake: big, label: `${r.pocket} ${r.color.toUpperCase()} · +${fmt(r.net)} DICE` });
-        } else {
-          fx.celebrate({ amount: r.net, shake: true, label: `${r.pocket} ${r.color.toUpperCase()} · ${fmt(r.net)} DICE` });
-        }
+        if (r.payout > 0) toast.success(`${r.pocket} ${r.color.toUpperCase()} — +${fmt(r.payout)} DICE`);
+        else toast(`${r.pocket} ${r.color.toUpperCase()} — no win`);
       }, 4600);
-
     } catch (e: any) { toast.error(e.message); setSpinning(false); }
   }
 

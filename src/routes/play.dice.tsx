@@ -17,8 +17,6 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { Die3D } from "@/components/dice/casino/Die3D";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
-import { useFx } from "@/lib/fx";
-
 
 export const Route = createFileRoute("/play/dice")({
   head: () => ({ meta: [{ title: "Dice — DICE" }] }),
@@ -58,24 +56,15 @@ function Solo() {
   const [result, setResult] = useState<{ me: number; house: number; delta: number; outcome: string } | null>(null);
   const [rolling, setRolling] = useState(false);
   const play = useServerFn(playDiceSolo);
-  const fx = useFx();
 
   async function roll() {
     if (!wallet || wallet.balance < stake) return toast.error("Not enough DICE");
     setRolling(true); setResult(null);
-    fx.play("dice");
     try {
       const r = await play({ data: { stake } });
-      setTimeout(() => {
-        setResult(r);
-        setRolling(false);
-        qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.outcome === "win") fx.celebrate({ amount: r.delta });
-        else if (r.delta < 0) fx.celebrate({ amount: r.delta, shake: true });
-      }, 700);
+      setTimeout(() => { setResult(r); setRolling(false); qc.invalidateQueries({ queryKey: ["wallet"] }); }, 700);
     } catch (e: any) { toast.error(e.message); setRolling(false); }
   }
-
 
   return (
     <div className="space-y-4">

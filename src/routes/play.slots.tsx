@@ -13,8 +13,6 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { toast } from "sonner";
-import { useFx } from "@/lib/fx";
-
 
 export const Route = createFileRoute("/play/slots")({
   head: () => ({ meta: [{ title: "Slots — DICE" }] }),
@@ -110,8 +108,6 @@ function Slots() {
   const [payout, setPayout] = useState<number | null>(null);
   const audioRef = useRef<{ ctx?: AudioContext }>({});
   const play = useServerFn(playSlots);
-  const fx = useFx();
-
 
   function blip(frequency = 220, duration = 0.08) {
     try {
@@ -158,14 +154,8 @@ function Slots() {
         setSpinPhase("idle");
         setPayout(r.payout);
         qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.payout > 0) {
-          const big = r.payout >= bet * 10;
-          fx.celebrate({ amount: r.payout, big, shake: big });
-        } else {
-          fx.celebrate({ amount: -bet });
-        }
+        if (r.payout > 0) toast.success(`+${fmt(r.payout)} DICE!`);
       }, total);
-
     } catch (e: any) {
       toast.error(e.message); setSpinPhase("idle");
     }

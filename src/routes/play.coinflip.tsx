@@ -18,8 +18,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { Coin3D } from "@/components/dice/casino/Coin3D";
-import { useFx } from "@/lib/fx";
-
 
 export const Route = createFileRoute("/play/coinflip")({
   head: () => ({ meta: [{ title: "Coin Flip — DICE" }] }),
@@ -168,24 +166,20 @@ function BotPanel() {
   const [flipping, setFlipping] = useState(false);
   const [result, setResult] = useState<{ flip: "heads" | "tails"; won: boolean; delta: number } | null>(null);
   const flipFn = useServerFn(coinFlipBot);
-  const fx = useFx();
 
   async function play() {
     if (!wallet || wallet.balance < stake) return toast.error("Not enough DICE");
     setFlipping(true); setResult(null);
-    fx.play("coin");
     try {
       const r = await flipFn({ data: { stake, side } });
       setTimeout(() => {
         setResult(r);
         setFlipping(false);
         qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.won) fx.celebrate({ amount: r.delta, big: r.delta >= stake * 2 });
-        else fx.celebrate({ amount: r.delta, shake: true });
+        toast(`${r.flip.toUpperCase()} — ${r.won ? "You won!" : "You lost."}`);
       }, 1400);
     } catch (e: any) { toast.error(e.message); setFlipping(false); }
   }
-
 
   return (
     <CasinoFrame title="Coin Flip vs Bot" subtitle="50/50 · pure luck" icon={<Coins className="size-6 text-amber-400" />}>

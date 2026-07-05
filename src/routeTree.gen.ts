@@ -16,7 +16,6 @@ import { Route as SeasonPassRouteImport } from './routes/season-pass'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MissionsRouteImport } from './routes/missions'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FriendsRouteImport } from './routes/friends'
@@ -47,11 +46,7 @@ import { Route as CrewsNewRouteImport } from './routes/crews.new'
 import { Route as CrewsIdRouteImport } from './routes/crews.$id'
 import { Route as ChallengesNewRouteImport } from './routes/challenges.new'
 import { Route as ChallengesIdRouteImport } from './routes/challenges.$id'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const UpgraderRoute = UpgraderRouteImport.update({
@@ -87,11 +82,6 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const MissionsRoute = MissionsRouteImport.update({
   id: '/missions',
   path: '/missions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
@@ -244,33 +234,10 @@ const ChallengesIdRoute = ChallengesIdRouteImport.update({
   path: '/challenges/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ChallengesIdSubmitRoute = ChallengesIdSubmitRouteImport.update({
   id: '/submit',
   path: '/submit',
   getParentRoute: () => ChallengesIdRoute,
-} as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -290,7 +257,6 @@ export interface FileRoutesByFullPath {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -298,8 +264,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -320,8 +284,6 @@ export interface FileRoutesByFullPath {
   '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -336,7 +298,6 @@ export interface FileRoutesByTo {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -344,8 +305,6 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -366,8 +325,6 @@ export interface FileRoutesByTo {
   '/crews': typeof CrewsIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/play': typeof PlayIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -383,7 +340,6 @@ export interface FileRoutesById {
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
   '/leaderboard': typeof LeaderboardRoute
-  '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
@@ -391,8 +347,6 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/challenges/$id': typeof ChallengesIdRouteWithChildren
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
@@ -413,8 +367,6 @@ export interface FileRoutesById {
   '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -431,7 +383,6 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
-    | '/mcp'
     | '/missions'
     | '/notifications'
     | '/profile'
@@ -439,8 +390,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trades'
     | '/upgrader'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/challenges/$id'
     | '/challenges/new'
     | '/crews/$id'
@@ -461,8 +410,6 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/marketplace/'
     | '/play/'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -477,7 +424,6 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
-    | '/mcp'
     | '/missions'
     | '/notifications'
     | '/profile'
@@ -485,8 +431,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trades'
     | '/upgrader'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/challenges/$id'
     | '/challenges/new'
     | '/crews/$id'
@@ -507,8 +451,6 @@ export interface FileRouteTypes {
     | '/crews'
     | '/marketplace'
     | '/play'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
   id:
@@ -523,7 +465,6 @@ export interface FileRouteTypes {
     | '/friends'
     | '/gallery'
     | '/leaderboard'
-    | '/mcp'
     | '/missions'
     | '/notifications'
     | '/profile'
@@ -531,8 +472,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/trades'
     | '/upgrader'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/challenges/$id'
     | '/challenges/new'
     | '/crews/$id'
@@ -553,8 +492,6 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/marketplace/'
     | '/play/'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -570,7 +507,6 @@ export interface RootRouteChildren {
   FriendsRoute: typeof FriendsRoute
   GalleryRoute: typeof GalleryRoute
   LeaderboardRoute: typeof LeaderboardRoute
-  McpRoute: typeof McpRoute
   MissionsRoute: typeof MissionsRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
@@ -578,8 +514,6 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TradesRoute: typeof TradesRoute
   UpgraderRoute: typeof UpgraderRoute
-  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ChallengesIdRoute: typeof ChallengesIdRouteWithChildren
   ChallengesNewRoute: typeof ChallengesNewRoute
   CrewsIdRoute: typeof CrewsIdRoute
@@ -600,8 +534,6 @@ export interface RootRouteChildren {
   CrewsIndexRoute: typeof CrewsIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
-  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -654,13 +586,6 @@ declare module '@tanstack/react-router' {
       path: '/missions'
       fullPath: '/missions'
       preLoaderRoute: typeof MissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leaderboard': {
@@ -873,40 +798,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChallengesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/challenges/$id/submit': {
       id: '/challenges/$id/submit'
       path: '/submit'
       fullPath: '/challenges/$id/submit'
       preLoaderRoute: typeof ChallengesIdSubmitRouteImport
       parentRoute: typeof ChallengesIdRoute
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -941,7 +838,6 @@ const rootRouteChildren: RootRouteChildren = {
   FriendsRoute: FriendsRoute,
   GalleryRoute: GalleryRoute,
   LeaderboardRoute: LeaderboardRoute,
-  McpRoute: McpRoute,
   MissionsRoute: MissionsRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
@@ -949,9 +845,6 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TradesRoute: TradesRoute,
   UpgraderRoute: UpgraderRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ChallengesIdRoute: ChallengesIdRouteWithChildren,
   ChallengesNewRoute: ChallengesNewRoute,
   CrewsIdRoute: CrewsIdRoute,
@@ -972,20 +865,8 @@ const rootRouteChildren: RootRouteChildren = {
   CrewsIndexRoute: CrewsIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
