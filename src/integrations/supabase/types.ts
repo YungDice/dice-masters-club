@@ -530,6 +530,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "crew_donations_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_game_stats"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       crew_join_requests: {
@@ -572,6 +579,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "crew_join_requests_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_game_stats"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       crew_members: {
@@ -613,6 +627,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crew_members_user_id_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_game_stats"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -2044,14 +2065,15 @@ export type Database = {
     Views: {
       user_game_stats: {
         Row: {
+          draws: number | null
           games_played: number | null
           losses: number | null
           net: number | null
-          ties: number | null
-          total_lost: number | null
-          total_wagered: number | null
-          total_won: number | null
+          payout: number | null
+          rank_score: number | null
           user_id: string | null
+          wagered: number | null
+          win_loss_ratio: number | null
           wins: number | null
         }
         Relationships: []
@@ -2170,6 +2192,7 @@ export type Database = {
         }
       }
       equip_cosmetic_tx: { Args: { _cosmetic_id: string }; Returns: Json }
+      evaluate_user_achievements: { Args: { _uid: string }; Returns: undefined }
       expire_auctions: { Args: never; Returns: number }
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
