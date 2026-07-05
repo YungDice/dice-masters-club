@@ -18,21 +18,21 @@ export const Route = createFileRoute("/missions")({
   head: () => ({
     meta: [
       { title: "Daily Missions — DICE" },
-      { name: "description", content: "Erfülle täglich 3 Aufgaben, halte deinen Streak und claime am 7. Tag den Bonus-Case." },
+      { name: "description", content: "Complete 3 daily missions, keep your streak, and claim the bonus case on day 7." },
     ],
   }),
   component: () => <AppShell><MissionsPage /></AppShell>,
 });
 
 const LABELS: Record<string, { title: string; desc: string; unit: string }> = {
-  win_dice_games: { title: "Dice-Gewinner", desc: "Gewinne Dice-Spiele", unit: "Wins" },
-  open_case: { title: "Case-Öffner", desc: "Öffne einen Baddie Case", unit: "Case" },
-  earn_dice: { title: "DICE verdienen", desc: "Verdiene DICE durch Spiele oder Rewards", unit: "DICE" },
-  play_games: { title: "Aktiver Spieler", desc: "Spiele beliebige Games", unit: "Games" },
-  win_any_game: { title: "Serial Winner", desc: "Gewinne beliebige Games", unit: "Wins" },
-  collect_baddie: { title: "Kassierer", desc: "Kassiere Baddie-Einkommen", unit: "×" },
-  donate_crew: { title: "Team Player", desc: "Spende an deinen Crew-Topf", unit: "DICE" },
-  chat_message: { title: "Community", desc: "Sende Nachrichten im Global Chat", unit: "Msgs" },
+  win_dice_games: { title: "Dice Winner", desc: "Win dice games", unit: "wins" },
+  open_case: { title: "Case Opener", desc: "Open a Baddie case", unit: "case" },
+  earn_dice: { title: "Earn DICE", desc: "Earn DICE from games or rewards", unit: "DICE" },
+  play_games: { title: "Active Player", desc: "Play any games", unit: "games" },
+  win_any_game: { title: "Serial Winner", desc: "Win any games", unit: "wins" },
+  collect_baddie: { title: "Collector", desc: "Collect Baddie income", unit: "×" },
+  donate_crew: { title: "Team Player", desc: "Donate to your crew treasury", unit: "DICE" },
+  chat_message: { title: "Community", desc: "Send messages in global chat", unit: "msgs" },
 };
 
 function MissionsPage() {
