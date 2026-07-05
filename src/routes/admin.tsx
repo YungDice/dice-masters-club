@@ -41,16 +41,18 @@ function Admin() {
       <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Shield className="text-primary" />Admin {isAdmin ? "(admin)" : "(moderator)"}</h1>
       <Stats />
       <Tabs defaultValue="proofs">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="proofs">Proof queue</TabsTrigger>
           <TabsTrigger value="challenges">Challenge queue</TabsTrigger>
           <TabsTrigger value="listings">Listings queue</TabsTrigger>
+          <TabsTrigger value="cosmetics">Cosmetics queue</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           {isAdmin && <TabsTrigger value="users">Users</TabsTrigger>}
         </TabsList>
         <TabsContent value="proofs"><ProofQueue /></TabsContent>
         <TabsContent value="challenges"><ChallengeQueue /></TabsContent>
         <TabsContent value="listings"><ListingsQueue /></TabsContent>
+        <TabsContent value="cosmetics"><CosmeticsQueue /></TabsContent>
         <TabsContent value="reports"><ReportsQueue /></TabsContent>
         {isAdmin && <TabsContent value="users"><UsersAdmin /></TabsContent>}
       </Tabs>
