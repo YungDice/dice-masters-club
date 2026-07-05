@@ -232,7 +232,7 @@ function LB() {
         <span><span className="text-orange-400 font-bold">#3</span> 500 DICE</span>
       </div>
       <Tabs defaultValue="xp">
-        <TabsList className="mx-auto flex w-full max-w-xl h-14 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <TabsList className="mx-auto flex w-full max-w-2xl h-14 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <TabsTrigger
             value="xp"
             className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
@@ -246,6 +246,12 @@ function LB() {
             <Coins className="size-5 mr-2" /> DICE
           </TabsTrigger>
           <TabsTrigger
+            value="wins"
+            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
+          >
+            <Trophy className="size-5 mr-2" /> Wins
+          </TabsTrigger>
+          <TabsTrigger
             value="level"
             className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
           >
@@ -254,6 +260,7 @@ function LB() {
         </TabsList>
         <TabsContent value="xp" className="mt-4"><ProfileBoard orderBy="xp" unit="XP" /></TabsContent>
         <TabsContent value="dice" className="mt-4"><DiceBoard /></TabsContent>
+        <TabsContent value="wins" className="mt-4"><WinsBoard /></TabsContent>
         <TabsContent value="level" className="mt-4"><ProfileBoard orderBy="level" unit="LVL" /></TabsContent>
       </Tabs>
     </div>
