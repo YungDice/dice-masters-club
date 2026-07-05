@@ -196,9 +196,14 @@ function RoulettePage() {
         setSpinning(false);
         setBets({});
         qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.payout > 0) toast.success(`${r.pocket} ${r.color.toUpperCase()} — +${fmt(r.payout)} DICE`);
-        else toast(`${r.pocket} ${r.color.toUpperCase()} — no win`);
+        if (r.payout > 0) {
+          const big = r.net >= total * 5;
+          fx.celebrate({ amount: r.net, big, shake: big, label: `${r.pocket} ${r.color.toUpperCase()} · +${fmt(r.net)} DICE` });
+        } else {
+          fx.celebrate({ amount: r.net, shake: true, label: `${r.pocket} ${r.color.toUpperCase()} · ${fmt(r.net)} DICE` });
+        }
       }, 4600);
+
     } catch (e: any) { toast.error(e.message); setSpinning(false); }
   }
 
