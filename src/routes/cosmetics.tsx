@@ -198,25 +198,29 @@ function CosmeticsPage() {
 }
 
 function CosmeticPreview({ c }: { c: Cosmetic }) {
+  const img = (c.meta as any)?.image_url as string | undefined;
   if (c.kind === "title") return <div className="flex items-center gap-2"><TitleBadge title={c} /><span className="text-xs text-muted-foreground">appears next to your name</span></div>;
-  if (c.kind === "banner") return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
+  if (c.kind === "banner") {
+    if (img) return <div className="h-16 rounded-md border border-white/10 overflow-hidden"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
+    return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
+  }
   if (c.kind === "frame") return (
-    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center ${frameClasses(c)}`}>
-      <Sparkles className="size-6 opacity-80" />
+    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
+      {img ? <img src={img} alt={c.name} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-80" />}
     </div>
   );
   if (c.kind === "emote") return (
     <div className="flex items-center gap-2">
-      <span className="text-3xl">{c.meta?.emoji}</span>
+      {img ? <img src={img} alt={c.name} className="size-8 object-contain" /> : <span className="text-3xl">{c.meta?.emoji}</span>}
       <code className="text-xs bg-white/5 px-1.5 py-0.5 rounded">{c.meta?.code}</code>
     </div>
   );
   if (c.kind === "dice_skin") {
     const color = String(c.meta?.color ?? "#ef4444");
     const pip = String(c.meta?.pip ?? "#fff");
-    const bg = color.startsWith("linear-gradient") ? color : color;
+    if (img) return <div className="size-16 rounded-lg overflow-hidden border border-white/10"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
     return (
-      <div className="size-16 rounded-lg grid place-items-center shadow-inner" style={{ background: bg }}>
+      <div className="size-16 rounded-lg grid place-items-center shadow-inner" style={{ background: color }}>
         <span className="size-3 rounded-full" style={{ background: pip }} />
       </div>
     );
