@@ -214,8 +214,10 @@ export function TopNav() {
 
         <div className="flex items-center gap-1.5 justify-end">
           <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
+          <SoundToggle />
           <ChatPopover />
           <NotificationsPopover />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
