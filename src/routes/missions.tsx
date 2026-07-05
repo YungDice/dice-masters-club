@@ -18,21 +18,21 @@ export const Route = createFileRoute("/missions")({
   head: () => ({
     meta: [
       { title: "Daily Missions — DICE" },
-      { name: "description", content: "Erfülle täglich 3 Aufgaben, halte deinen Streak und claime am 7. Tag den Bonus-Case." },
+      { name: "description", content: "Complete 3 daily missions, keep your streak, and claim the bonus case on day 7." },
     ],
   }),
   component: () => <AppShell><MissionsPage /></AppShell>,
 });
 
 const LABELS: Record<string, { title: string; desc: string; unit: string }> = {
-  win_dice_games: { title: "Dice-Gewinner", desc: "Gewinne Dice-Spiele", unit: "Wins" },
-  open_case: { title: "Case-Öffner", desc: "Öffne einen Baddie Case", unit: "Case" },
-  earn_dice: { title: "DICE verdienen", desc: "Verdiene DICE durch Spiele oder Rewards", unit: "DICE" },
-  play_games: { title: "Aktiver Spieler", desc: "Spiele beliebige Games", unit: "Games" },
-  win_any_game: { title: "Serial Winner", desc: "Gewinne beliebige Games", unit: "Wins" },
-  collect_baddie: { title: "Kassierer", desc: "Kassiere Baddie-Einkommen", unit: "×" },
-  donate_crew: { title: "Team Player", desc: "Spende an deinen Crew-Topf", unit: "DICE" },
-  chat_message: { title: "Community", desc: "Sende Nachrichten im Global Chat", unit: "Msgs" },
+  win_dice_games: { title: "Dice Winner", desc: "Win dice games", unit: "wins" },
+  open_case: { title: "Case Opener", desc: "Open a Baddie case", unit: "case" },
+  earn_dice: { title: "Earn DICE", desc: "Earn DICE from games or rewards", unit: "DICE" },
+  play_games: { title: "Active Player", desc: "Play any games", unit: "games" },
+  win_any_game: { title: "Serial Winner", desc: "Win any games", unit: "wins" },
+  collect_baddie: { title: "Collector", desc: "Collect Baddie income", unit: "×" },
+  donate_crew: { title: "Team Player", desc: "Donate to your crew treasury", unit: "DICE" },
+  chat_message: { title: "Community", desc: "Send messages in global chat", unit: "msgs" },
 };
 
 function MissionsPage() {
@@ -99,7 +99,7 @@ function MissionsPage() {
       <PageHeader
         icon={Target}
         title="Daily Missions"
-        subtitle="Drei tägliche Aufgaben. Mindestens eine erledigen, um deinen Streak zu halten."
+        subtitle="Three daily tasks. Complete at least one to keep your streak alive."
         actions={tokens.data ? (
           <Button asChild variant="outline"><Link to="/baddies"><Sparkles className="size-4 mr-1.5" /> {tokens.data} free case token{tokens.data > 1 ? "s" : ""}</Link></Button>
         ) : undefined}
@@ -113,15 +113,15 @@ function MissionsPage() {
             <Flame className="size-7" />
           </div>
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground">Aktueller Streak</div>
+            <div className="text-sm text-muted-foreground">Current streak</div>
             <div className="text-3xl font-bold">
-              {current} <span className="text-lg font-normal text-muted-foreground">Tag{current === 1 ? "" : "e"}</span>
+              {current} <span className="text-lg font-normal text-muted-foreground">day{current === 1 ? "" : "s"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">Best: {s?.best_streak ?? 0} · Bonus bei Tag 7</div>
+            <div className="text-xs text-muted-foreground">Best: {s?.best_streak ?? 0} · Bonus at day 7</div>
           </div>
           <Button onClick={onClaim} disabled={!canClaim} size="lg" className={canClaim ? "" : "opacity-60"}>
             <Gift className="size-4 mr-1.5" />
-            {canClaim ? "Claim +2,500 DICE + Free Case" : `${Math.max(0, 7 - current)} Tage bis Bonus`}
+            {canClaim ? "Claim +2,500 DICE + Free Case" : `${Math.max(0, 7 - current)} days until bonus`}
           </Button>
         </div>
         {/* 7-day dots */}
@@ -168,13 +168,13 @@ function MissionsPage() {
         })}
         {(missions.data ?? []).length === 0 && (
           <Card className="p-6 text-center text-muted-foreground md:col-span-3">
-            Deine Missions werden erstellt … öffne beliebige Seite oder spiele ein Game.
+            Your missions are being generated… open any page or play a game.
           </Card>
         )}
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Missions resetten täglich um 00:00 UTC · Fortschritt wird automatisch getrackt.
+        Missions reset daily at 00:00 UTC · Progress is tracked automatically.
       </div>
     </div>
   );

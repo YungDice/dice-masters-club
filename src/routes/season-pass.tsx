@@ -252,85 +252,80 @@ function SeasonPassPage() {
         <span className="ml-auto inline-flex items-center gap-1"><Crown className="h-3 w-3 text-[color:var(--gold)]" /> VIP reward</span>
       </div>
 
-      {/* Progression track */}
+      {/* Progression track — horizontal scroll of tier columns */}
       {tiers.isLoading ? (
         <Card className="p-10 text-center text-sm text-muted-foreground">Loading tiers…</Card>
       ) : (tiers.data ?? []).length === 0 ? (
         <Card className="p-10 text-center text-sm text-muted-foreground">No tiers configured for this season yet.</Card>
       ) : (
-        <div className="space-y-2">
-          {(tiers.data ?? []).map((t) => {
-            const unlocked = currentTier >= t.tier;
-            const upcoming = !unlocked && t.tier <= currentTier + 2;
-            const freeClaimed = claimedSet.has(`${t.tier}:free`);
-            const vipClaimed = claimedSet.has(`${t.tier}:vip`);
-            return (
-              <TierRow
-                key={t.tier}
-                tier={t}
-                unlocked={unlocked}
-                upcoming={upcoming}
-                isVip={isVip}
-                freeClaimed={freeClaimed}
-                vipClaimed={vipClaimed}
-                onClaim={(track) => claim.mutate({ tier: t.tier, track })}
-                pending={claim.isPending}
-              />
-            );
-          })}
-        </div>
+        <Card className="p-4 overflow-hidden">
+          <div className="overflow-x-auto pb-2">
+            {/* Row labels + tier columns as a single grid */}
+            <div className="min-w-max">
+              {/* Tier headers */}
+              <div className="grid grid-flow-col auto-cols-[minmax(120px,1fr)] gap-3 items-end pl-24 mb-3">
+                {(tiers.data ?? []).map((t) => {
+                  const unlocked = currentTier >= t.tier;
+                  return (
+                    <div key={`h-${t.tier}`} className="text-center">
+                      <div className={cn(
+                        "mx-auto grid h-10 w-10 place-items-center rounded-full border-2 font-display font-black",
+                        unlocked
+                          ? "border-[color:var(--gold)] bg-[color:var(--gold)]/20 text-[color:var(--gold)]"
+                          : "border-white/15 bg-white/[0.03] text-muted-foreground",
+                      )}>{t.tier}</div>
+                      <div className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Tier</div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Free row */}
+              <div className="grid grid-flow-col auto-cols-[minmax(120px,1fr)] gap-3 items-stretch mb-2">
+                <div className="sticky left-0 z-10 w-24 -ml-0 pr-3 flex items-center justify-end text-[11px] uppercase tracking-widest font-bold text-muted-foreground bg-background/80 backdrop-blur">
+                  <Gift className="h-3.5 w-3.5 mr-1" /> Free
+                </div>
+                {(tiers.data ?? []).map((t) => (
+                  <RewardTile
+                    key={`f-${t.tier}`}
+                    track="free"
+                    reward={t.free_reward}
+                    unlocked={currentTier >= t.tier}
+                    claimed={claimedSet.has(`${t.tier}:free`)}
+                    onClaim={() => claim.mutate({ tier: t.tier, track: "free" })}
+                    pending={claim.isPending}
+                  />
+                ))}
+              </div>
+
+              {/* VIP row */}
+              <div className="grid grid-flow-col auto-cols-[minmax(120px,1fr)] gap-3 items-stretch">
+                <div className="sticky left-0 z-10 w-24 pr-3 flex items-center justify-end text-[11px] uppercase tracking-widest font-bold text-[color:var(--gold)] bg-background/80 backdrop-blur">
+                  <Crown className="h-3.5 w-3.5 mr-1" /> VIP
+                </div>
+                {(tiers.data ?? []).map((t) => (
+                  <RewardTile
+                    key={`v-${t.tier}`}
+                    track="vip"
+                    reward={t.vip_reward}
+                    unlocked={currentTier >= t.tier}
+                    vipUnlocked={isVip}
+                    claimed={claimedSet.has(`${t.tier}:vip`)}
+                    onClaim={() => claim.mutate({ tier: t.tier, track: "vip" })}
+                    pending={claim.isPending}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-3 text-center">Scroll horizontally to see all tiers →</p>
+        </Card>
       )}
     </div>
   );
 }
 
-function TierRow({
-  tier: t, unlocked, upcoming, isVip, freeClaimed, vipClaimed, onClaim, pending,
-}: {
-  tier: Tier; unlocked: boolean; upcoming: boolean; isVip: boolean;
-  freeClaimed: boolean; vipClaimed: boolean;
-  onClaim: (track: "free" | "vip") => void; pending: boolean;
-}) {
-  return (
-    <Card className={cn(
-      "grid grid-cols-[64px_1fr_1fr] items-stretch overflow-hidden transition",
-      unlocked && "border-[color:var(--gold)]/40",
-      !unlocked && !upcoming && "opacity-70",
-    )}>
-      {/* Tier badge */}
-      <div className={cn(
-        "flex flex-col items-center justify-center gap-1 py-3 border-r",
-        unlocked ? "bg-[color:var(--gold)]/15 border-[color:var(--gold)]/30" : "bg-white/[0.02] border-white/5",
-      )}>
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Tier</div>
-        <div className={cn("font-display text-2xl font-black leading-none", unlocked ? "text-[color:var(--gold)]" : "text-muted-foreground")}>
-          {t.tier}
-        </div>
-        {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
-      </div>
-
-      <RewardCell
-        track="free"
-        reward={t.free_reward}
-        unlocked={unlocked}
-        claimed={freeClaimed}
-        onClaim={() => onClaim("free")}
-        pending={pending}
-      />
-      <RewardCell
-        track="vip"
-        reward={t.vip_reward}
-        unlocked={unlocked}
-        vipUnlocked={isVip}
-        claimed={vipClaimed}
-        onClaim={() => onClaim("vip")}
-        pending={pending}
-      />
-    </Card>
-  );
-}
-
-function RewardCell({
+function RewardTile({
   track, reward, unlocked, claimed, onClaim, pending, vipUnlocked,
 }: {
   track: "free" | "vip"; reward: Reward; unlocked: boolean;
@@ -342,32 +337,36 @@ function RewardCell({
 
   return (
     <div className={cn(
-      "flex items-center gap-3 px-4 py-3 border-l first:border-l-0",
-      isVip ? "bg-[color:var(--gold)]/[0.06] border-[color:var(--gold)]/20" : "border-white/5",
+      "relative flex flex-col items-center gap-2 rounded-lg border p-3 transition min-h-[160px]",
+      claimed
+        ? "border-emerald-400/40 bg-emerald-500/10"
+        : canClaim
+          ? isVip
+            ? "border-[color:var(--gold)]/60 bg-[color:var(--gold)]/10 shadow-[0_0_20px_-8px_var(--gold)]"
+            : "border-[color:var(--gold)]/40 bg-[color:var(--gold)]/5"
+          : isVip
+            ? "border-[color:var(--gold)]/20 bg-[color:var(--gold)]/[0.04] opacity-70"
+            : "border-white/10 bg-white/[0.03] opacity-70",
     )}>
       <div className={cn(
-        "grid h-11 w-11 shrink-0 place-items-center rounded-lg",
-        claimed ? "bg-emerald-500/15 text-emerald-300"
-          : canClaim ? "bg-[color:var(--gold)]/20 text-[color:var(--gold)]"
+        "grid h-14 w-14 place-items-center rounded-md",
+        claimed ? "bg-emerald-500/20 text-emerald-300"
+          : canClaim ? "bg-[color:var(--gold)]/25 text-[color:var(--gold)]"
           : "bg-white/5 text-muted-foreground",
       )}>
-        {claimed ? <Check className="h-5 w-5" /> : <RewardIcon r={reward} />}
+        {claimed ? <Check className="h-6 w-6" /> : <RewardIcon r={reward} className="h-7 w-7" />}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-          {isVip ? <><Crown className="h-3 w-3 text-[color:var(--gold)]" /> VIP</> : <><Gift className="h-3 w-3" /> Free</>}
-        </div>
-        <div className="font-semibold truncate">{rewardLabel(reward)}</div>
-      </div>
-      <div className="shrink-0">
+      <div className="text-xs font-semibold text-center leading-tight">{rewardLabel(reward)}</div>
+      <div className="mt-auto w-full">
         {claimed ? (
-          <Badge variant="outline" className="gap-1 border-emerald-400/40 text-emerald-300"><Check className="h-3 w-3" /> Claimed</Badge>
+          <Badge variant="outline" className="w-full justify-center gap-1 border-emerald-400/40 text-emerald-300"><Check className="h-3 w-3" /> Claimed</Badge>
         ) : canClaim ? (
-          <Button size="sm" onClick={onClaim} disabled={pending} className={isVip ? "bg-[color:var(--gold)] text-black hover:bg-[color:var(--gold)]/90" : ""}>
+          <Button size="sm" onClick={onClaim} disabled={pending}
+            className={cn("w-full", isVip && "bg-[color:var(--gold)] text-black hover:bg-[color:var(--gold)]/90")}>
             Claim
           </Button>
         ) : (
-          <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> {blockedReason}</Badge>
+          <Badge variant="outline" className="w-full justify-center gap-1"><Lock className="h-3 w-3" /> {blockedReason}</Badge>
         )}
       </div>
     </div>

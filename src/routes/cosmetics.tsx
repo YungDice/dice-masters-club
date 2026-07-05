@@ -115,6 +115,22 @@ function CosmeticsPage() {
         </div>
       </Card>
 
+      {/* Submission fee banner */}
+      <Card className={`p-4 border-2 ${balance >= SUBMISSION_FEE ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Sparkles className={`size-6 shrink-0 ${balance >= SUBMISSION_FEE ? "text-emerald-300" : "text-amber-300"}`} />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold">Create your own cosmetic</div>
+            <div className="text-sm text-muted-foreground">
+              You need <b className="text-foreground">{fmt(SUBMISSION_FEE)} DICE</b> to submit a custom title, avatar frame, banner, chat emote or dice skin.
+              Upload your own image for frames, emotes and dice skins. If rejected the fee is refunded.
+              {balance < SUBMISSION_FEE && <> You currently have <b className="text-foreground">{fmt(balance)}</b> DICE — earn <b className="text-foreground">{fmt(SUBMISSION_FEE - balance)}</b> more to unlock this.</>}
+            </div>
+          </div>
+          <SubmitCosmeticButton balance={balance} />
+        </div>
+      </Card>
+
       {user?.id && <MySubmissions userId={user.id} />}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Cosmetic["kind"])}>
@@ -182,25 +198,29 @@ function CosmeticsPage() {
 }
 
 function CosmeticPreview({ c }: { c: Cosmetic }) {
+  const img = (c.meta as any)?.image_url as string | undefined;
   if (c.kind === "title") return <div className="flex items-center gap-2"><TitleBadge title={c} /><span className="text-xs text-muted-foreground">appears next to your name</span></div>;
-  if (c.kind === "banner") return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
+  if (c.kind === "banner") {
+    if (img) return <div className="h-16 rounded-md border border-white/10 overflow-hidden"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
+    return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
+  }
   if (c.kind === "frame") return (
-    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center ${frameClasses(c)}`}>
-      <Sparkles className="size-6 opacity-80" />
+    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
+      {img ? <img src={img} alt={c.name} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-80" />}
     </div>
   );
   if (c.kind === "emote") return (
     <div className="flex items-center gap-2">
-      <span className="text-3xl">{c.meta?.emoji}</span>
+      {img ? <img src={img} alt={c.name} className="size-8 object-contain" /> : <span className="text-3xl">{c.meta?.emoji}</span>}
       <code className="text-xs bg-white/5 px-1.5 py-0.5 rounded">{c.meta?.code}</code>
     </div>
   );
   if (c.kind === "dice_skin") {
     const color = String(c.meta?.color ?? "#ef4444");
     const pip = String(c.meta?.pip ?? "#fff");
-    const bg = color.startsWith("linear-gradient") ? color : color;
+    if (img) return <div className="size-16 rounded-lg overflow-hidden border border-white/10"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
     return (
-      <div className="size-16 rounded-lg grid place-items-center shadow-inner" style={{ background: bg }}>
+      <div className="size-16 rounded-lg grid place-items-center shadow-inner" style={{ background: color }}>
         <span className="size-3 rounded-full" style={{ background: pip }} />
       </div>
     );
@@ -226,6 +246,7 @@ function SubmitCosmeticButton({ balance }: { balance: number }) {
 
 function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [kind, setKind] = useState<Cosmetic["kind"]>("title");
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState<Cosmetic["rarity"]>("rare");
@@ -235,22 +256,50 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [gradient, setGradient] = useState("linear-gradient(135deg,#f472b6,#8b5cf6)");
   const [emoji, setEmoji] = useState("🎲");
   const [code, setCode] = useState(":dice:");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function reset() {
     setKind("title"); setName(""); setRarity("rare"); setPrice(0);
     setText(""); setColor("#f472b6"); setGradient("linear-gradient(135deg,#f472b6,#8b5cf6)");
-    setEmoji("🎲"); setCode(":dice:");
+    setEmoji("🎲"); setCode(":dice:"); setImageUrl("");
+  }
+
+  async function uploadImage(file: File) {
+    if (!user?.id) return toast.error("Sign in first");
+    if (file.size > 3 * 1024 * 1024) return toast.error("Max 3 MB");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `${user.id}/cosmetic-${Date.now()}.${ext}`;
+      const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setImageUrl(signed.data?.signedUrl ?? "");
+      toast.success("Image uploaded");
+    } catch (e: any) { toast.error(e.message ?? "Upload failed"); }
+    finally { setUploading(false); }
   }
 
   async function submit() {
     if (name.trim().length < 2) return toast.error("Name is too short");
     let meta: any = {};
     if (kind === "title") meta = { text: text || name, color };
-    else if (kind === "banner") meta = { gradient };
-    else if (kind === "frame") meta = { ring: "ring-2 ring-primary/50", glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]" };
-    else if (kind === "emote") meta = { emoji, code: code.startsWith(":") ? code : `:${code}:` };
-    else if (kind === "dice_skin") meta = { color, pip: "#ffffff" };
+    else if (kind === "banner") meta = imageUrl ? { image_url: imageUrl } : { gradient };
+    else if (kind === "frame") meta = {
+      ring: "ring-2 ring-primary/50",
+      glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]",
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
+    else if (kind === "emote") meta = {
+      emoji, code: code.startsWith(":") ? code : `:${code}:`,
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
+    else if (kind === "dice_skin") meta = {
+      color, pip: "#ffffff",
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
 
     setSubmitting(true);
     try {
@@ -338,6 +387,28 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           )}
           {kind === "dice_skin" && (
             <div><Label>Base color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
+          )}
+
+          {(kind === "frame" || kind === "emote" || kind === "dice_skin" || kind === "banner") && (
+            <div className="rounded-lg border border-dashed border-white/15 p-3 space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : kind === "dice_skin" ? "(dice skin face)" : "(banner)"}
+              </Label>
+              <Input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                disabled={uploading}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadImage(f); }}
+              />
+              {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+              {imageUrl && (
+                <div className="flex items-center gap-3">
+                  <img src={imageUrl} alt="preview" className="size-16 object-cover rounded border border-white/10" />
+                  <Button size="sm" variant="ghost" onClick={() => setImageUrl("")}>Remove</Button>
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">PNG/JPG/WebP/GIF · max 3 MB. Optional but recommended.</p>
+            </div>
           )}
         </div>
 

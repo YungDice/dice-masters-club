@@ -201,7 +201,7 @@ function RoulettePage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
+    <div className="max-w-[1400px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="font-display text-3xl font-bold flex items-center gap-2"><CircleDot className="text-amber-400" />Roulette <span className="text-sm font-normal text-muted-foreground">— American (0 / 00)</span></h1>
         <div className="flex gap-1 text-xs">
@@ -223,7 +223,7 @@ function RoulettePage() {
         <TabsContent value="solo" className="space-y-4">
           <CasinoFrame title="American Roulette" subtitle="0 / 00 · place chips · spin" icon={<CircleDot className="size-6 text-amber-400" />}>
 
-            <div className="grid lg:grid-cols-[300px,1fr] gap-6 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6 items-center">
               <div className="flex flex-col items-center gap-3">
                 <Wheel angle={angle} />
                 <AnimatePresence>
@@ -236,8 +236,9 @@ function RoulettePage() {
                 </AnimatePresence>
               </div>
 
-              {/* Felt table */}
-              <div className="rounded-xl p-3" style={{ background: "linear-gradient(180deg, #064e3b, #022c1f)", boxShadow: "inset 0 0 24px rgba(0,0,0,0.5)" }}>
+              {/* Felt table — horizontal scroll on small screens */}
+              <div className="rounded-xl p-3 overflow-x-auto" style={{ background: "linear-gradient(180deg, #064e3b, #022c1f)", boxShadow: "inset 0 0 24px rgba(0,0,0,0.5)" }}>
+               <div className="min-w-[700px]">
                 {/* zero / double-zero */}
                 <div className="grid grid-cols-[60px,repeat(12,1fr),60px] gap-1">
                   <div className="row-span-3 grid grid-rows-2 gap-1">
@@ -293,6 +294,7 @@ function RoulettePage() {
                     );
                   })}
                 </div>
+               </div>
               </div>
             </div>
           </CasinoFrame>

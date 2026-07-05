@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown, MapPin, Swords } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -30,6 +31,32 @@ export const Route = createFileRoute("/profile")({
 function MyProfile() {
   const { user } = useAuth();
   const { data: p } = useMyProfile(user?.id);
+  const qc = useQueryClient();
+
+  // Realtime: refresh stats & achievements as new game results / achievements roll in.
+  useEffect(() => {
+    if (!user?.id) return;
+    const ch = supabase.channel(`profile-live:${user.id}`)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "game_results", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["rank-stats", user.id] });
+          qc.invalidateQueries({ queryKey: ["my-ach", user.id] });
+          qc.invalidateQueries({ queryKey: ["achievements-full", user.id] });
+          qc.invalidateQueries({ queryKey: ["wallet", user.id] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "user_achievements", filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ["my-ach", user.id] });
+          qc.invalidateQueries({ queryKey: ["achievements-full", user.id] });
+        })
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "user_baddies", filter: `user_id=eq.${user.id}` },
+        () => qc.invalidateQueries({ queryKey: ["achievements-full", user.id] }))
+      .subscribe();
+    return () => { void supabase.removeChannel(ch); };
+  }, [user?.id, qc]);
 
   const sold = useQuery({
     queryKey: ["my-sold", user?.id],
