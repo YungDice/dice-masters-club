@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { Crown, Gift, Package, Sparkles, Lock, Check } from "lucide-react";
+import { useMemo, useEffect, useState } from "react";
+import { Crown, Gift, Package, Sparkles, Lock, Check, Clock, Star, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/dice/TopNav";
-import { PageHeader } from "@/components/dice/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/season-pass")({
   head: () => ({
     meta: [
       { title: "Season Pass — DICE" },
-      { name: "description", content: "Free und VIP Belohnungen jede Season. Verdiene XP, schalte Tiers frei und claime Cases, DICE und VIP-Tage." },
+      { name: "description", content: "Earn XP, unlock tiers and claim Cases, DICE and VIP days every season. Free and VIP tracks." },
     ],
   }),
   component: () => <AppShell><SeasonPassPage /></AppShell>,
@@ -36,10 +36,28 @@ function rewardLabel(r: Reward) {
   if (r.kind === "vip_days") return `${r.amount ?? 1}d VIP`;
   return "—";
 }
-function RewardIcon({ r }: { r: Reward }) {
-  if (r?.kind === "case_token") return <Package className="h-4 w-4" />;
-  if (r?.kind === "vip_days") return <Crown className="h-4 w-4" />;
-  return <Sparkles className="h-4 w-4" />;
+function RewardIcon({ r, className }: { r: Reward; className?: string }) {
+  const cls = cn("h-5 w-5", className);
+  if (r?.kind === "case_token") return <Package className={cls} />;
+  if (r?.kind === "vip_days") return <Crown className={cls} />;
+  if (r?.kind === "dice") return <Zap className={cls} />;
+  return <Sparkles className={cls} />;
+}
+
+function useCountdown(iso?: string) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  if (!iso) return "";
+  const diff = Math.max(0, new Date(iso).getTime() - now);
+  const d = Math.floor(diff / 86_400_000);
+  const h = Math.floor((diff % 86_400_000) / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
 }
 
 function SeasonPassPage() {
@@ -103,7 +121,8 @@ function SeasonPassPage() {
 
   const currentTier = season.data ? Math.min(season.data.tier_count, Math.floor(seasonXp / season.data.xp_per_tier)) : 0;
   const nextTierXp = season.data ? (currentTier + 1) * season.data.xp_per_tier : 0;
-  const pctToNext = season.data ? ((seasonXp - currentTier * season.data.xp_per_tier) / season.data.xp_per_tier) * 100 : 0;
+  const xpIntoTier = season.data ? seasonXp - currentTier * season.data.xp_per_tier : 0;
+  const pctToNext = season.data ? (xpIntoTier / season.data.xp_per_tier) * 100 : 0;
 
   const claim = useMutation({
     mutationFn: async ({ tier, track }: { tier: number; track: "free" | "vip" }) => {
@@ -119,8 +138,7 @@ function SeasonPassPage() {
     onError: (e: any) => toast.error(e?.message ?? "Claim failed"),
   });
 
-  // ensure progress row exists (first visit)
-  useMemo(() => {
+  useEffect(() => {
     if (user && season.data && !progress.data && progress.isFetched) {
       (supabase.rpc as any)("ensure_season_progress").then(() => {
         qc.invalidateQueries({ queryKey: ["season-progress"] });
@@ -128,120 +146,230 @@ function SeasonPassPage() {
     }
   }, [user, season.data?.id, progress.data, progress.isFetched, qc]);
 
-  if (!season.data) {
+  const endsIn = useCountdown(season.data?.ends_at);
+
+  if (season.isLoading) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <PageHeader icon={Crown} accent="gold" title="Season Pass" subtitle="Momentan läuft keine Season." />
+        <Card className="p-10 text-center">
+          <Sparkles className="mx-auto h-8 w-8 animate-pulse text-[color:var(--gold)]" />
+          <div className="mt-3 text-sm text-muted-foreground">Loading current season…</div>
+        </Card>
       </div>
     );
   }
 
-  const endsIn = Math.max(0, Math.floor((new Date(season.data.ends_at).getTime() - Date.now()) / 86_400_000));
+  if (!season.data) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        <Card className="p-10 text-center border-[color:var(--gold)]/25">
+          <Crown className="mx-auto h-10 w-10 text-[color:var(--gold)]" />
+          <h1 className="mt-3 font-display text-2xl font-bold">Season Pass</h1>
+          <p className="mt-2 text-sm text-muted-foreground">No season is running right now. Check back soon!</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
-      <PageHeader
-        icon={Crown}
-        accent="gold"
-        title={season.data.name}
-        subtitle={`XP verdienen · Tier hochleveln · Free & VIP Belohnungen claimen`}
-      />
+      {/* HERO */}
+      <Card className="relative overflow-hidden border-[color:var(--gold)]/30">
+        <div className="absolute inset-0 opacity-40" style={{
+          background: "radial-gradient(80% 60% at 50% 0%, color-mix(in oklab, var(--gold) 35%, transparent), transparent 60%), linear-gradient(135deg, #180d20 0%, #0b0714 100%)",
+        }} />
+        <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{
+          backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)",
+          backgroundSize: "8px 8px",
+        }} />
+        <div className="relative p-6 md:p-8 grid gap-6 md:grid-cols-[1fr_auto] items-center">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[color:var(--gold)] font-semibold">
+              <Crown className="h-4 w-4" /> Season Pass
+              {isVip ? (
+                <Badge className="ml-2 bg-[color:var(--gold)] text-black font-bold">VIP</Badge>
+              ) : (
+                <Badge variant="outline" className="ml-2">Free track</Badge>
+              )}
+            </div>
+            <h1 className="mt-1 font-display text-3xl md:text-4xl font-black truncate">{season.data.name}</h1>
+            <div className="mt-2 text-sm text-muted-foreground flex items-center gap-4 flex-wrap">
+              <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> Ends in <b className="text-foreground">{endsIn}</b></span>
+              <span className="inline-flex items-center gap-1"><Star className="h-4 w-4" /> {fmt(seasonXp)} season XP</span>
+            </div>
 
-      <Card className="p-5 space-y-4 border-[color:var(--gold)]/25">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div className="text-sm text-muted-foreground">Aktuelles Tier</div>
-            <div className="text-3xl font-black">
-              Tier {currentTier} <span className="text-muted-foreground text-lg">/ {season.data.tier_count}</span>
+            <div className="mt-5">
+              <div className="flex items-end justify-between mb-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">Tier</span>
+                  <span className="font-display text-3xl font-black text-[color:var(--gold)]">{currentTier}</span>
+                  <span className="text-sm text-muted-foreground">/ {season.data.tier_count}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {currentTier >= season.data.tier_count
+                    ? <span className="text-emerald-400 font-semibold">Max tier reached</span>
+                    : <>Next: <b className="text-foreground">{fmt(nextTierXp - seasonXp)} XP</b></>}
+                </div>
+              </div>
+              <div className="relative h-3 rounded-full bg-black/40 overflow-hidden border border-white/5">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, pctToNext)}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="h-full rounded-full"
+                  style={{ background: "linear-gradient(90deg, color-mix(in oklab, var(--gold) 80%, white), var(--gold))", boxShadow: "0 0 12px color-mix(in oklab, var(--gold) 60%, transparent)" }}
+                />
+              </div>
+              <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+                <span>Tier {currentTier}</span>
+                <span>Tier {Math.min(season.data.tier_count, currentTier + 1)}</span>
+              </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground">Season endet in</div>
-            <div className="text-2xl font-bold">{endsIn}d</div>
+
+          <div className="hidden md:flex flex-col items-center gap-2 shrink-0 min-w-[160px]">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full blur-2xl opacity-60" style={{ background: "radial-gradient(circle, color-mix(in oklab, var(--gold) 55%, transparent), transparent 65%)" }} />
+              <div className="relative grid h-32 w-32 place-items-center rounded-full border-4 border-[color:var(--gold)]/50 bg-black/60">
+                <div className="text-center">
+                  <div className="text-[10px] uppercase tracking-widest text-[color:var(--gold)]/80">Tier</div>
+                  <div className="font-display text-5xl font-black text-[color:var(--gold)] leading-none">{currentTier}</div>
+                </div>
+              </div>
+            </div>
+            {!isVip && (
+              <p className="text-[11px] text-center text-muted-foreground max-w-[160px]">Get VIP to unlock the premium track & exclusive rewards.</p>
+            )}
           </div>
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground">VIP Track</div>
-            <Badge variant={isVip ? "default" : "outline"} className={isVip ? "bg-[color:var(--gold)] text-black" : ""}>
-              {isVip ? "Freigeschaltet" : "Nur mit VIP"}
-            </Badge>
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-            <span>{fmt(seasonXp)} XP</span>
-            <span>{fmt(nextTierXp)} XP → Tier {currentTier + 1}</span>
-          </div>
-          <Progress value={Math.min(100, pctToNext)} />
         </div>
       </Card>
 
-      <div className="grid gap-3">
-        {(tiers.data ?? []).map((t) => {
-          const unlocked = currentTier >= t.tier;
-          const freeClaimed = claimedSet.has(`${t.tier}:free`);
-          const vipClaimed = claimedSet.has(`${t.tier}:vip`);
-          return (
-            <Card key={t.tier} className={cn("p-4 grid grid-cols-[auto_1fr_1fr] items-center gap-4", unlocked && "border-[color:var(--gold)]/40")}>
-              <div className={cn(
-                "flex h-14 w-14 items-center justify-center rounded-lg text-xl font-black shrink-0",
-                unlocked ? "bg-[color:var(--gold)]/20 text-[color:var(--gold)]" : "bg-muted text-muted-foreground"
-              )}>
-                {unlocked ? t.tier : <Lock className="h-5 w-5" />}
-                {unlocked && <span className="sr-only">{t.tier}</span>}
-              </div>
-
-              <RewardRow
-                label="Free"
-                reward={t.free_reward}
-                unlocked={unlocked}
-                claimed={freeClaimed}
-                onClaim={() => claim.mutate({ tier: t.tier, track: "free" })}
-                pending={claim.isPending}
-              />
-              <RewardRow
-                label="VIP"
-                reward={t.vip_reward}
-                unlocked={unlocked && isVip}
-                claimed={vipClaimed}
-                vip
-                lockedReason={!isVip ? "VIP" : undefined}
-                onClaim={() => claim.mutate({ tier: t.tier, track: "vip" })}
-                pending={claim.isPending}
-              />
-            </Card>
-          );
-        })}
+      {/* Legend */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+        <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-emerald-400" /> Claimed</span>
+        <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-[color:var(--gold)]" /> Ready to claim</span>
+        <span className="inline-flex items-center gap-1"><span className="size-2 rounded-full bg-white/20" /> Locked</span>
+        <span className="ml-auto inline-flex items-center gap-1"><Crown className="h-3 w-3 text-[color:var(--gold)]" /> VIP reward</span>
       </div>
+
+      {/* Progression track */}
+      {tiers.isLoading ? (
+        <Card className="p-10 text-center text-sm text-muted-foreground">Loading tiers…</Card>
+      ) : (tiers.data ?? []).length === 0 ? (
+        <Card className="p-10 text-center text-sm text-muted-foreground">No tiers configured for this season yet.</Card>
+      ) : (
+        <div className="space-y-2">
+          {(tiers.data ?? []).map((t) => {
+            const unlocked = currentTier >= t.tier;
+            const upcoming = !unlocked && t.tier <= currentTier + 2;
+            const freeClaimed = claimedSet.has(`${t.tier}:free`);
+            const vipClaimed = claimedSet.has(`${t.tier}:vip`);
+            return (
+              <TierRow
+                key={t.tier}
+                tier={t}
+                unlocked={unlocked}
+                upcoming={upcoming}
+                isVip={isVip}
+                freeClaimed={freeClaimed}
+                vipClaimed={vipClaimed}
+                onClaim={(track) => claim.mutate({ tier: t.tier, track })}
+                pending={claim.isPending}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
-function RewardRow({
-  label, reward, unlocked, claimed, onClaim, pending, vip, lockedReason,
+function TierRow({
+  tier: t, unlocked, upcoming, isVip, freeClaimed, vipClaimed, onClaim, pending,
 }: {
-  label: string; reward: Reward; unlocked: boolean; claimed: boolean;
-  onClaim: () => void; pending: boolean; vip?: boolean; lockedReason?: string;
+  tier: Tier; unlocked: boolean; upcoming: boolean; isVip: boolean;
+  freeClaimed: boolean; vipClaimed: boolean;
+  onClaim: (track: "free" | "vip") => void; pending: boolean;
 }) {
   return (
-    <div className={cn(
-      "flex items-center justify-between gap-3 rounded-lg border px-3 py-2",
-      vip ? "border-[color:var(--gold)]/30 bg-[color:var(--gold)]/5" : "border-border"
+    <Card className={cn(
+      "grid grid-cols-[64px_1fr_1fr] items-stretch overflow-hidden transition",
+      unlocked && "border-[color:var(--gold)]/40",
+      !unlocked && !upcoming && "opacity-70",
     )}>
-      <div className="flex items-center gap-2 min-w-0">
-        {vip ? <Crown className="h-4 w-4 text-[color:var(--gold)]" /> : <Gift className="h-4 w-4 text-muted-foreground" />}
-        <span className="text-xs text-muted-foreground shrink-0">{label}</span>
-        <span className="flex items-center gap-1 font-semibold truncate">
-          <RewardIcon r={reward} />
-          {rewardLabel(reward)}
-        </span>
+      {/* Tier badge */}
+      <div className={cn(
+        "flex flex-col items-center justify-center gap-1 py-3 border-r",
+        unlocked ? "bg-[color:var(--gold)]/15 border-[color:var(--gold)]/30" : "bg-white/[0.02] border-white/5",
+      )}>
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Tier</div>
+        <div className={cn("font-display text-2xl font-black leading-none", unlocked ? "text-[color:var(--gold)]" : "text-muted-foreground")}>
+          {t.tier}
+        </div>
+        {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
       </div>
-      {claimed ? (
-        <Badge variant="outline" className="gap-1"><Check className="h-3 w-3" /> Claimed</Badge>
-      ) : unlocked ? (
-        <Button size="sm" onClick={onClaim} disabled={pending}>Claim</Button>
-      ) : (
-        <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> {lockedReason ?? "Locked"}</Badge>
-      )}
+
+      <RewardCell
+        track="free"
+        reward={t.free_reward}
+        unlocked={unlocked}
+        claimed={freeClaimed}
+        onClaim={() => onClaim("free")}
+        pending={pending}
+      />
+      <RewardCell
+        track="vip"
+        reward={t.vip_reward}
+        unlocked={unlocked}
+        vipUnlocked={isVip}
+        claimed={vipClaimed}
+        onClaim={() => onClaim("vip")}
+        pending={pending}
+      />
+    </Card>
+  );
+}
+
+function RewardCell({
+  track, reward, unlocked, claimed, onClaim, pending, vipUnlocked,
+}: {
+  track: "free" | "vip"; reward: Reward; unlocked: boolean;
+  claimed: boolean; onClaim: () => void; pending: boolean; vipUnlocked?: boolean;
+}) {
+  const isVip = track === "vip";
+  const canClaim = unlocked && (!isVip || vipUnlocked) && !claimed;
+  const blockedReason = !unlocked ? "Locked" : (isVip && !vipUnlocked) ? "VIP only" : null;
+
+  return (
+    <div className={cn(
+      "flex items-center gap-3 px-4 py-3 border-l first:border-l-0",
+      isVip ? "bg-[color:var(--gold)]/[0.06] border-[color:var(--gold)]/20" : "border-white/5",
+    )}>
+      <div className={cn(
+        "grid h-11 w-11 shrink-0 place-items-center rounded-lg",
+        claimed ? "bg-emerald-500/15 text-emerald-300"
+          : canClaim ? "bg-[color:var(--gold)]/20 text-[color:var(--gold)]"
+          : "bg-white/5 text-muted-foreground",
+      )}>
+        {claimed ? <Check className="h-5 w-5" /> : <RewardIcon r={reward} />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+          {isVip ? <><Crown className="h-3 w-3 text-[color:var(--gold)]" /> VIP</> : <><Gift className="h-3 w-3" /> Free</>}
+        </div>
+        <div className="font-semibold truncate">{rewardLabel(reward)}</div>
+      </div>
+      <div className="shrink-0">
+        {claimed ? (
+          <Badge variant="outline" className="gap-1 border-emerald-400/40 text-emerald-300"><Check className="h-3 w-3" /> Claimed</Badge>
+        ) : canClaim ? (
+          <Button size="sm" onClick={onClaim} disabled={pending} className={isVip ? "bg-[color:var(--gold)] text-black hover:bg-[color:var(--gold)]/90" : ""}>
+            Claim
+          </Button>
+        ) : (
+          <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> {blockedReason}</Badge>
+        )}
+      </div>
     </div>
   );
 }
