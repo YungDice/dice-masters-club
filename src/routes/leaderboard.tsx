@@ -201,6 +201,21 @@ function DiceBoard() {
   return <Board rows={q.data ?? []} unit="DICE" />;
 }
 
+function WinsBoard() {
+  const q = useQuery({
+    queryKey: ["lb", "wins"],
+    queryFn: async (): Promise<Row[]> => {
+      const { data } = await supabase.from("user_game_stats" as any).select("user_id,wins,rank_score").order("rank_score", { ascending: false }).limit(50);
+      const list = ((data as any[]) ?? []).filter((r) => Number(r.wins) > 0);
+      const ids = list.map((r) => r.user_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return list.filter((r) => m[r.user_id]).map((r: any) => ({ ...m[r.user_id], points: Number(r.wins) }));
+    },
+  });
+  return <Board rows={q.data ?? []} unit="WINS" />;
+}
+
 function LB() {
   return (
     <div className="space-y-4">
