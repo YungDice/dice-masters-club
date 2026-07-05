@@ -158,8 +158,14 @@ function Slots() {
         setSpinPhase("idle");
         setPayout(r.payout);
         qc.invalidateQueries({ queryKey: ["wallet"] });
-        if (r.payout > 0) toast.success(`+${fmt(r.payout)} DICE!`);
+        if (r.payout > 0) {
+          const big = r.payout >= bet * 10;
+          fx.celebrate({ amount: r.payout, big, shake: big });
+        } else {
+          fx.celebrate({ amount: -bet });
+        }
       }, total);
+
     } catch (e: any) {
       toast.error(e.message); setSpinPhase("idle");
     }
