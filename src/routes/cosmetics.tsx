@@ -101,9 +101,9 @@ function CosmeticsPage() {
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
       <Card className="glass p-5">
-        <div className="flex items-center gap-3">
-          <Palette className="size-8 text-primary" />
-          <div className="flex-1">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Palette className="size-8 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
             <h1 className="font-display text-3xl font-bold">Cosmetics</h1>
             <p className="text-sm text-muted-foreground">Titles, avatar frames, banners, chat emotes and dice skins. Purely visual — no gameplay advantage.</p>
           </div>
@@ -111,8 +111,11 @@ function CosmeticsPage() {
             <div className="text-xs text-muted-foreground">Balance</div>
             <div className="font-display text-xl flex items-center gap-1 justify-end"><Coins className="size-4 text-primary" />{fmt(balance)}</div>
           </div>
+          <SubmitCosmeticButton balance={balance} />
         </div>
       </Card>
+
+      {user?.id && <MySubmissions userId={user.id} />}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Cosmetic["kind"])}>
         <TabsList className="w-full flex-wrap h-auto">
