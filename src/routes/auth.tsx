@@ -97,18 +97,26 @@ function SignInForm() {
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
+  function goNext() {
+    if (target === "/") navigate({ to: "/" });
+    else window.location.href = target;
+  }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     setBusy(false);
     if (error) toast.error(error.message);
-    else navigate({ to: "/" });
+    else goNext();
   }
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const redirectTarget =
+      target === "/" ? window.location.origin : `${window.location.origin}${target}`;
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: redirectTarget });
     if (r.error) toast.error(r.error.message);
-    else if (!r.redirected) navigate({ to: "/" });
+    else if (!r.redirected) goNext();
   }
   return (
     <form onSubmit={submit} className="space-y-4 mt-4">
