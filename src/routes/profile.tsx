@@ -56,17 +56,17 @@ function MyProfile() {
   });
 
   const rank = useQuery({
-    queryKey: ["rank", user?.id],
+    queryKey: ["rank-stats", user?.id],
     enabled: !!user?.id,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", user!.id).limit(1000);
-      const rows = data ?? [];
-      const wins = rows.filter((r: any) => r.outcome === "win").length;
-      const losses = rows.filter((r: any) => r.outcome === "loss").length;
-      const total = wins + losses;
-      const ratio = total > 0 ? wins / total : 0;
-      return { wins, losses, total, ratio };
+      const { data } = await supabase.from("user_game_stats" as any).select("*").eq("user_id", user!.id).maybeSingle();
+      const row = (data ?? {}) as any;
+      const wins = Number(row.wins ?? 0);
+      const losses = Number(row.losses ?? 0);
+      const total = Number(row.games_played ?? 0);
+      const ratio = losses > 0 ? wins / losses : (wins > 0 ? wins : 0);
+      return { wins, losses, total, ratio, rank_score: Number(row.rank_score ?? 0), net: Number(row.net ?? 0) };
     },
   });
 
