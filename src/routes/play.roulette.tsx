@@ -14,6 +14,8 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
+import { useFx } from "@/lib/fx";
+
 
 export const Route = createFileRoute("/play/roulette")({
   head: () => ({ meta: [
