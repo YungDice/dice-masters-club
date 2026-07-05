@@ -230,3 +230,47 @@ function UsersAdmin() {
     </Card>
   );
 }
+
+function CosmeticsQueue() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin-cosmetics"],
+    queryFn: async () => {
+      const { data } = await supabase.from("cosmetic_submissions" as any)
+        .select("*, profiles!cosmetic_submissions_submitter_id_fkey(username,display_name)")
+        .eq("status", "pending").order("created_at", { ascending: true });
+      return (data ?? []) as any[];
+    },
+  });
+  async function decide(id: string, approve: boolean) {
+    try {
+      const { error } = await (supabase.rpc as any)("review_cosmetic_submission", { _submission_id: id, _approve: approve });
+      if (error) throw error;
+      toast.success(approve ? "Approved — cosmetic added to catalog" : "Rejected — fee refunded");
+      qc.invalidateQueries({ queryKey: ["admin-cosmetics"] });
+      qc.invalidateQueries({ queryKey: ["cosmetics-catalog"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+  }
+  return (
+    <Card className="glass p-4 mt-3 space-y-3">
+      {q.data?.length === 0 && <p className="text-sm text-muted-foreground p-4">Queue empty</p>}
+      {(q.data ?? []).map((s: any) => (
+        <div key={s.id} className="rounded-lg border border-border/60 p-3 space-y-2">
+          <div className="flex justify-between flex-wrap gap-2">
+            <div>
+              <div className="font-semibold">{s.name} <span className="text-xs text-muted-foreground capitalize">· {s.kind} · {s.rarity}</span></div>
+              <div className="text-xs text-muted-foreground">by @{s.profiles?.username ?? "?"} · fee {s.fee_paid} DICE · asking price {s.price_dice}</div>
+            </div>
+          </div>
+          <pre className="text-[11px] bg-black/40 rounded p-2 overflow-x-auto">{JSON.stringify(s.meta, null, 2)}</pre>
+          {s.kind === "banner" && s.meta?.gradient && <div className="h-10 rounded" style={{ background: s.meta.gradient }} />}
+          {s.kind === "emote" && <div className="text-2xl">{s.meta?.emoji} <code className="text-xs">{s.meta?.code}</code></div>}
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => decide(s.id, true)}>Approve</Button>
+            <Button size="sm" variant="destructive" onClick={() => decide(s.id, false)}>Reject &amp; refund</Button>
+          </div>
+        </div>
+      ))}
+    </Card>
+  );
+}
