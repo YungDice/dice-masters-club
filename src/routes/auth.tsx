@@ -141,6 +141,10 @@ function SignUpForm() {
   const [terms, setTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
+  const emailRedirect =
+    target === "/" ? window.location.origin : `${window.location.origin}${target}`;
 
   function ageOk(d: string) {
     if (!d) return false;
@@ -158,13 +162,17 @@ function SignUpForm() {
     const { error } = await supabase.auth.signUp({
       email, password: pw,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: emailRedirect,
         data: { username, display_name: displayName || username, dob, is_18_plus: true },
       },
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Welcome to DICE! You earned a 2500 DICE welcome bonus."); navigate({ to: "/" }); }
+    else {
+      toast.success("Welcome to DICE! You earned a 2500 DICE welcome bonus.");
+      if (target === "/") navigate({ to: "/" });
+      else window.location.href = target;
+    }
   }
 
   return (
