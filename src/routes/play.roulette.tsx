@@ -135,6 +135,8 @@ function RoulettePage() {
   const { data: wallet } = useWallet(user?.id);
   const qc = useQueryClient();
   const spinFn = useServerFn(rouletteSpin);
+  const fx = useFx();
+
 
   const [chip, setChip] = useState(25);
   const [bets, setBets] = useState<BetMap>({});
