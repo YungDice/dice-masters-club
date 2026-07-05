@@ -242,6 +242,7 @@ function SubmitCosmeticButton({ balance }: { balance: number }) {
 
 function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [kind, setKind] = useState<Cosmetic["kind"]>("title");
   const [name, setName] = useState("");
   const [rarity, setRarity] = useState<Cosmetic["rarity"]>("rare");
@@ -251,22 +252,50 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [gradient, setGradient] = useState("linear-gradient(135deg,#f472b6,#8b5cf6)");
   const [emoji, setEmoji] = useState("🎲");
   const [code, setCode] = useState(":dice:");
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function reset() {
     setKind("title"); setName(""); setRarity("rare"); setPrice(0);
     setText(""); setColor("#f472b6"); setGradient("linear-gradient(135deg,#f472b6,#8b5cf6)");
-    setEmoji("🎲"); setCode(":dice:");
+    setEmoji("🎲"); setCode(":dice:"); setImageUrl("");
+  }
+
+  async function uploadImage(file: File) {
+    if (!user?.id) return toast.error("Sign in first");
+    if (file.size > 3 * 1024 * 1024) return toast.error("Max 3 MB");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `${user.id}/cosmetic-${Date.now()}.${ext}`;
+      const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setImageUrl(signed.data?.signedUrl ?? "");
+      toast.success("Image uploaded");
+    } catch (e: any) { toast.error(e.message ?? "Upload failed"); }
+    finally { setUploading(false); }
   }
 
   async function submit() {
     if (name.trim().length < 2) return toast.error("Name is too short");
     let meta: any = {};
     if (kind === "title") meta = { text: text || name, color };
-    else if (kind === "banner") meta = { gradient };
-    else if (kind === "frame") meta = { ring: "ring-2 ring-primary/50", glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]" };
-    else if (kind === "emote") meta = { emoji, code: code.startsWith(":") ? code : `:${code}:` };
-    else if (kind === "dice_skin") meta = { color, pip: "#ffffff" };
+    else if (kind === "banner") meta = imageUrl ? { image_url: imageUrl } : { gradient };
+    else if (kind === "frame") meta = {
+      ring: "ring-2 ring-primary/50",
+      glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]",
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
+    else if (kind === "emote") meta = {
+      emoji, code: code.startsWith(":") ? code : `:${code}:`,
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
+    else if (kind === "dice_skin") meta = {
+      color, pip: "#ffffff",
+      ...(imageUrl ? { image_url: imageUrl } : {}),
+    };
 
     setSubmitting(true);
     try {
