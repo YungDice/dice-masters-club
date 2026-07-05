@@ -144,13 +144,13 @@ function MyProfile() {
             <div className="text-2xl font-display font-bold text-rose-400">{rank.data?.losses ?? 0}</div>
           </div>
           <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">W/L Ratio</div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Rank Score</div>
             <div className="text-2xl font-display font-bold text-primary">
-              {rank.data?.total ? `${(rank.data.ratio * 100).toFixed(0)}%` : "—"}
+              {rank.data?.total ? fmt(Math.round(rank.data.rank_score)) : "—"}
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-3">Computed from your PvP &amp; casino game history ({rank.data?.total ?? 0} games tracked).</p>
+        <p className="text-xs text-muted-foreground mt-3">Computed from your full game history ({rank.data?.total ?? 0} games tracked · net {fmt(rank.data?.net ?? 0)} DICE).</p>
       </Card>
 
 
