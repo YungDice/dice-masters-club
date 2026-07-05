@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Palette, Coins, Check, Sparkles, Crown } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Palette, Coins, Check, Sparkles, Crown, Plus, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,6 +19,8 @@ import {
   type Cosmetic,
 } from "@/lib/cosmetics";
 import { fmt } from "@/lib/format";
+
+const SUBMISSION_FEE = 25000;
 
 export const Route = createFileRoute("/cosmetics")({
   head: () => ({
