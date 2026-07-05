@@ -15,6 +15,9 @@ import { DiceLogo } from "@/components/dice/Logo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — DICE" },
@@ -24,12 +27,23 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+// Only allow same-origin relative paths as return targets.
+function safeNext(next: string | undefined): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/" });
-  }, [user, loading, navigate]);
+    if (!loading && user) {
+      if (target === "/") navigate({ to: "/" });
+      else window.location.href = target;
+    }
+  }, [user, loading, navigate, target]);
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
