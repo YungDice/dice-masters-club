@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Palette, Coins, Check, Sparkles, Crown } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Palette, Coins, Check, Sparkles, Crown, Plus, Clock, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/dice/TopNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,6 +19,8 @@ import {
   type Cosmetic,
 } from "@/lib/cosmetics";
 import { fmt } from "@/lib/format";
+
+const SUBMISSION_FEE = 25000;
 
 export const Route = createFileRoute("/cosmetics")({
   head: () => ({
@@ -95,9 +101,9 @@ function CosmeticsPage() {
   return (
     <div className="space-y-5 max-w-6xl mx-auto">
       <Card className="glass p-5">
-        <div className="flex items-center gap-3">
-          <Palette className="size-8 text-primary" />
-          <div className="flex-1">
+        <div className="flex items-center gap-3 flex-wrap">
+          <Palette className="size-8 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
             <h1 className="font-display text-3xl font-bold">Cosmetics</h1>
             <p className="text-sm text-muted-foreground">Titles, avatar frames, banners, chat emotes and dice skins. Purely visual — no gameplay advantage.</p>
           </div>
@@ -105,8 +111,11 @@ function CosmeticsPage() {
             <div className="text-xs text-muted-foreground">Balance</div>
             <div className="font-display text-xl flex items-center gap-1 justify-end"><Coins className="size-4 text-primary" />{fmt(balance)}</div>
           </div>
+          <SubmitCosmeticButton balance={balance} />
         </div>
       </Card>
+
+      {user?.id && <MySubmissions userId={user.id} />}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Cosmetic["kind"])}>
         <TabsList className="w-full flex-wrap h-auto">
@@ -198,3 +207,177 @@ function CosmeticPreview({ c }: { c: Cosmetic }) {
   }
   return null;
 }
+
+// ============================================================
+// User-submitted cosmetics
+// ============================================================
+function SubmitCosmeticButton({ balance }: { balance: number }) {
+  const [open, setOpen] = useState(false);
+  const canAfford = balance >= SUBMISSION_FEE;
+  return (
+    <>
+      <Button size="sm" variant="outline" onClick={() => setOpen(true)} disabled={!canAfford} title={canAfford ? "" : `Requires ${fmt(SUBMISSION_FEE)} DICE`}>
+        <Plus className="size-4 mr-1" /> Submit cosmetic
+      </Button>
+      <SubmitCosmeticDialog open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+
+function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const qc = useQueryClient();
+  const [kind, setKind] = useState<Cosmetic["kind"]>("title");
+  const [name, setName] = useState("");
+  const [rarity, setRarity] = useState<Cosmetic["rarity"]>("rare");
+  const [price, setPrice] = useState<number>(0);
+  const [text, setText] = useState("");
+  const [color, setColor] = useState("#f472b6");
+  const [gradient, setGradient] = useState("linear-gradient(135deg,#f472b6,#8b5cf6)");
+  const [emoji, setEmoji] = useState("🎲");
+  const [code, setCode] = useState(":dice:");
+  const [submitting, setSubmitting] = useState(false);
+
+  function reset() {
+    setKind("title"); setName(""); setRarity("rare"); setPrice(0);
+    setText(""); setColor("#f472b6"); setGradient("linear-gradient(135deg,#f472b6,#8b5cf6)");
+    setEmoji("🎲"); setCode(":dice:");
+  }
+
+  async function submit() {
+    if (name.trim().length < 2) return toast.error("Name is too short");
+    let meta: any = {};
+    if (kind === "title") meta = { text: text || name, color };
+    else if (kind === "banner") meta = { gradient };
+    else if (kind === "frame") meta = { ring: "ring-2 ring-primary/50", glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]" };
+    else if (kind === "emote") meta = { emoji, code: code.startsWith(":") ? code : `:${code}:` };
+    else if (kind === "dice_skin") meta = { color, pip: "#ffffff" };
+
+    setSubmitting(true);
+    try {
+      const { error } = await (supabase.rpc as any)("submit_cosmetic", {
+        _kind: kind, _name: name.trim(), _rarity: rarity, _meta: meta, _price_dice: price,
+      });
+      if (error) throw error;
+      toast.success("Submitted! An admin will review your cosmetic.");
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["my-submissions"] });
+      onOpenChange(false);
+      reset();
+    } catch (e: any) {
+      toast.error(e.message ?? "Submission failed");
+    } finally { setSubmitting(false); }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Submit your cosmetic</DialogTitle>
+          <DialogDescription>
+            Costs {fmt(SUBMISSION_FEE)} DICE. If rejected, the fee is refunded. If approved, the item goes live in the catalog and is granted to you for free.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Kind</Label>
+              <Select value={kind} onValueChange={(v) => setKind(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="title">Title</SelectItem>
+                  <SelectItem value="frame">Avatar Frame</SelectItem>
+                  <SelectItem value="banner">Profile Banner</SelectItem>
+                  <SelectItem value="emote">Chat Emote</SelectItem>
+                  <SelectItem value="dice_skin">Dice Skin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Rarity</Label>
+              <Select value={rarity} onValueChange={(v) => setRarity(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {(["common","uncommon","rare","epic","legendary","unreal"] as const).map((r) =>
+                    <SelectItem key={r} value={r} className="capitalize">{r}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value.slice(0, 40))} placeholder="e.g. Neon Vanguard" />
+          </div>
+
+          <div>
+            <Label>Catalog price (DICE)</Label>
+            <Input type="number" min={0} value={price} onChange={(e) => setPrice(Math.max(0, +e.target.value || 0))} />
+            <p className="text-[11px] text-muted-foreground mt-1">Set to 0 for free items. Admins may adjust before approval.</p>
+          </div>
+
+          {kind === "title" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Text</Label><Input value={text} onChange={(e) => setText(e.target.value.slice(0, 20))} placeholder={name || "TITLE"} /></div>
+              <div><Label>Color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
+            </div>
+          )}
+          {kind === "banner" && (
+            <div>
+              <Label>CSS gradient</Label>
+              <Input value={gradient} onChange={(e) => setGradient(e.target.value)} placeholder="linear-gradient(135deg,#f472b6,#8b5cf6)" />
+              <div className="mt-2 h-14 rounded-md border border-white/10" style={{ background: gradient }} />
+            </div>
+          )}
+          {kind === "emote" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Emoji</Label><Input value={emoji} onChange={(e) => setEmoji(e.target.value.slice(0, 4))} /></div>
+              <div><Label>Code</Label><Input value={code} onChange={(e) => setCode(e.target.value.toLowerCase().slice(0, 20))} /></div>
+            </div>
+          )}
+          {kind === "dice_skin" && (
+            <div><Label>Base color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={submitting} className="glow-red">
+            {submitting ? "Submitting…" : `Submit for ${fmt(SUBMISSION_FEE)} DICE`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MySubmissions({ userId }: { userId: string }) {
+  const q = useQuery({
+    queryKey: ["my-submissions", userId],
+    queryFn: async () => {
+      const { data } = await supabase.from("cosmetic_submissions" as any).select("*").eq("submitter_id", userId).order("created_at", { ascending: false }).limit(10);
+      return (data ?? []) as any[];
+    },
+  });
+  if (!q.data?.length) return null;
+  return (
+    <Card className="glass p-4">
+      <div className="text-sm font-semibold mb-2">Your submissions</div>
+      <div className="space-y-2">
+        {q.data.map((s) => (
+          <div key={s.id} className="flex items-center gap-3 text-sm rounded border border-border/50 px-3 py-2">
+            <span className="font-semibold truncate">{s.name}</span>
+            <span className="text-xs text-muted-foreground capitalize">{s.kind} · {s.rarity}</span>
+            <span className="ml-auto text-xs inline-flex items-center gap-1">
+              {s.status === "pending" && <><Clock className="size-3 text-amber-400" /><span className="text-amber-300">Pending</span></>}
+              {s.status === "approved" && <><Check className="size-3 text-emerald-400" /><span className="text-emerald-300">Approved</span></>}
+              {s.status === "rejected" && <><X className="size-3 text-rose-400" /><span className="text-rose-300">Rejected · refunded</span></>}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+

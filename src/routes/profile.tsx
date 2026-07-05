@@ -56,17 +56,17 @@ function MyProfile() {
   });
 
   const rank = useQuery({
-    queryKey: ["rank", user?.id],
+    queryKey: ["rank-stats", user?.id],
     enabled: !!user?.id,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("outcome").eq("user_id", user!.id).limit(1000);
-      const rows = data ?? [];
-      const wins = rows.filter((r: any) => r.outcome === "win").length;
-      const losses = rows.filter((r: any) => r.outcome === "loss").length;
-      const total = wins + losses;
-      const ratio = total > 0 ? wins / total : 0;
-      return { wins, losses, total, ratio };
+      const { data } = await supabase.from("user_game_stats" as any).select("*").eq("user_id", user!.id).maybeSingle();
+      const row = (data ?? {}) as any;
+      const wins = Number(row.wins ?? 0);
+      const losses = Number(row.losses ?? 0);
+      const total = Number(row.games_played ?? 0);
+      const ratio = losses > 0 ? wins / losses : (wins > 0 ? wins : 0);
+      return { wins, losses, total, ratio, rank_score: Number(row.rank_score ?? 0), net: Number(row.net ?? 0) };
     },
   });
 
@@ -144,13 +144,13 @@ function MyProfile() {
             <div className="text-2xl font-display font-bold text-rose-400">{rank.data?.losses ?? 0}</div>
           </div>
           <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">W/L Ratio</div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">Rank Score</div>
             <div className="text-2xl font-display font-bold text-primary">
-              {rank.data?.total ? `${(rank.data.ratio * 100).toFixed(0)}%` : "—"}
+              {rank.data?.total ? fmt(Math.round(rank.data.rank_score)) : "—"}
             </div>
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-3">Computed from your PvP &amp; casino game history ({rank.data?.total ?? 0} games tracked).</p>
+        <p className="text-xs text-muted-foreground mt-3">Computed from your full game history ({rank.data?.total ?? 0} games tracked · net {fmt(rank.data?.net ?? 0)} DICE).</p>
       </Card>
 
 

@@ -297,12 +297,14 @@ function RoulettePage() {
             </div>
           </CasinoFrame>
 
-          <Card className="glass p-4">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="text-xs uppercase text-muted-foreground mr-1">Chip</div>
-              {CHIPS.map((v) => <Chip key={v} value={v} selected={chip === v} onClick={() => setChip(v)} />)}
-              <div className="ml-auto flex items-center gap-2">
-                <div className="text-sm text-muted-foreground">Bet total: <b className="text-foreground">{fmt(total)}</b> DICE</div>
+          <Card className="glass p-3 sticky bottom-2 z-20 backdrop-blur">
+            <div className="flex items-center gap-3 flex-nowrap overflow-x-auto">
+              <div className="text-xs uppercase text-muted-foreground shrink-0">Chip</div>
+              <div className="flex items-center gap-2 shrink-0">
+                {CHIPS.map((v) => <Chip key={v} value={v} selected={chip === v} onClick={() => setChip(v)} />)}
+              </div>
+              <div className="ml-auto flex items-center gap-2 shrink-0">
+                <div className="text-sm text-muted-foreground whitespace-nowrap">Total: <b className="text-foreground">{fmt(total)}</b> DICE</div>
                 <Button variant="outline" size="sm" onClick={undo} disabled={!total || spinning}><RotateCcw className="size-4" /></Button>
                 <Button variant="outline" size="sm" onClick={clearBets} disabled={!total || spinning}><Trash2 className="size-4" /></Button>
                 <Button onClick={spin} disabled={spinning || !total} className="glow-red">

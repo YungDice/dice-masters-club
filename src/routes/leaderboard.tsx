@@ -201,6 +201,21 @@ function DiceBoard() {
   return <Board rows={q.data ?? []} unit="DICE" />;
 }
 
+function WinsBoard() {
+  const q = useQuery({
+    queryKey: ["lb", "wins"],
+    queryFn: async (): Promise<Row[]> => {
+      const { data } = await supabase.from("user_game_stats" as any).select("user_id,wins,rank_score").order("rank_score", { ascending: false }).limit(50);
+      const list = ((data as any[]) ?? []).filter((r) => Number(r.wins) > 0);
+      const ids = list.map((r) => r.user_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return list.filter((r) => m[r.user_id]).map((r: any) => ({ ...m[r.user_id], points: Number(r.wins) }));
+    },
+  });
+  return <Board rows={q.data ?? []} unit="WINS" />;
+}
+
 function LB() {
   return (
     <div className="space-y-4">
@@ -217,7 +232,7 @@ function LB() {
         <span><span className="text-orange-400 font-bold">#3</span> 500 DICE</span>
       </div>
       <Tabs defaultValue="xp">
-        <TabsList className="mx-auto flex w-full max-w-xl h-14 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+        <TabsList className="mx-auto flex w-full max-w-2xl h-14 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <TabsTrigger
             value="xp"
             className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
@@ -231,6 +246,12 @@ function LB() {
             <Coins className="size-5 mr-2" /> DICE
           </TabsTrigger>
           <TabsTrigger
+            value="wins"
+            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
+          >
+            <Trophy className="size-5 mr-2" /> Wins
+          </TabsTrigger>
+          <TabsTrigger
             value="level"
             className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
           >
@@ -239,6 +260,7 @@ function LB() {
         </TabsList>
         <TabsContent value="xp" className="mt-4"><ProfileBoard orderBy="xp" unit="XP" /></TabsContent>
         <TabsContent value="dice" className="mt-4"><DiceBoard /></TabsContent>
+        <TabsContent value="wins" className="mt-4"><WinsBoard /></TabsContent>
         <TabsContent value="level" className="mt-4"><ProfileBoard orderBy="level" unit="LVL" /></TabsContent>
       </Tabs>
     </div>

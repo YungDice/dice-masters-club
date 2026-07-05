@@ -41,16 +41,18 @@ function Admin() {
       <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Shield className="text-primary" />Admin {isAdmin ? "(admin)" : "(moderator)"}</h1>
       <Stats />
       <Tabs defaultValue="proofs">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="proofs">Proof queue</TabsTrigger>
           <TabsTrigger value="challenges">Challenge queue</TabsTrigger>
           <TabsTrigger value="listings">Listings queue</TabsTrigger>
+          <TabsTrigger value="cosmetics">Cosmetics queue</TabsTrigger>
           <TabsTrigger value="reports">Reports</TabsTrigger>
           {isAdmin && <TabsTrigger value="users">Users</TabsTrigger>}
         </TabsList>
         <TabsContent value="proofs"><ProofQueue /></TabsContent>
         <TabsContent value="challenges"><ChallengeQueue /></TabsContent>
         <TabsContent value="listings"><ListingsQueue /></TabsContent>
+        <TabsContent value="cosmetics"><CosmeticsQueue /></TabsContent>
         <TabsContent value="reports"><ReportsQueue /></TabsContent>
         {isAdmin && <TabsContent value="users"><UsersAdmin /></TabsContent>}
       </Tabs>
@@ -223,6 +225,50 @@ function UsersAdmin() {
         <div key={u.id} className="rounded-lg border border-border/60 p-3 flex items-center justify-between">
           <div className="text-sm"><b>{u.display_name}</b> @{u.username}</div>
           <div className="flex gap-2"><Button size="sm" onClick={() => dice(u.id)}>Adjust DICE</Button><Button size="sm" variant="outline" onClick={() => setRole(u.id, "moderator")}>Mod</Button><Button size="sm" variant="outline" onClick={() => setRole(u.id, "admin")}>Admin</Button></div>
+        </div>
+      ))}
+    </Card>
+  );
+}
+
+function CosmeticsQueue() {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["admin-cosmetics"],
+    queryFn: async () => {
+      const { data } = await supabase.from("cosmetic_submissions" as any)
+        .select("*, profiles!cosmetic_submissions_submitter_id_fkey(username,display_name)")
+        .eq("status", "pending").order("created_at", { ascending: true });
+      return (data ?? []) as any[];
+    },
+  });
+  async function decide(id: string, approve: boolean) {
+    try {
+      const { error } = await (supabase.rpc as any)("review_cosmetic_submission", { _submission_id: id, _approve: approve });
+      if (error) throw error;
+      toast.success(approve ? "Approved — cosmetic added to catalog" : "Rejected — fee refunded");
+      qc.invalidateQueries({ queryKey: ["admin-cosmetics"] });
+      qc.invalidateQueries({ queryKey: ["cosmetics-catalog"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed"); }
+  }
+  return (
+    <Card className="glass p-4 mt-3 space-y-3">
+      {q.data?.length === 0 && <p className="text-sm text-muted-foreground p-4">Queue empty</p>}
+      {(q.data ?? []).map((s: any) => (
+        <div key={s.id} className="rounded-lg border border-border/60 p-3 space-y-2">
+          <div className="flex justify-between flex-wrap gap-2">
+            <div>
+              <div className="font-semibold">{s.name} <span className="text-xs text-muted-foreground capitalize">· {s.kind} · {s.rarity}</span></div>
+              <div className="text-xs text-muted-foreground">by @{s.profiles?.username ?? "?"} · fee {s.fee_paid} DICE · asking price {s.price_dice}</div>
+            </div>
+          </div>
+          <pre className="text-[11px] bg-black/40 rounded p-2 overflow-x-auto">{JSON.stringify(s.meta, null, 2)}</pre>
+          {s.kind === "banner" && s.meta?.gradient && <div className="h-10 rounded" style={{ background: s.meta.gradient }} />}
+          {s.kind === "emote" && <div className="text-2xl">{s.meta?.emoji} <code className="text-xs">{s.meta?.code}</code></div>}
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => decide(s.id, true)}>Approve</Button>
+            <Button size="sm" variant="destructive" onClick={() => decide(s.id, false)}>Reject &amp; refund</Button>
+          </div>
         </div>
       ))}
     </Card>
