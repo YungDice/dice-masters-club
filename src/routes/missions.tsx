@@ -99,7 +99,7 @@ function MissionsPage() {
       <PageHeader
         icon={Target}
         title="Daily Missions"
-        subtitle="Drei tägliche Aufgaben. Mindestens eine erledigen, um deinen Streak zu halten."
+        subtitle="Three daily tasks. Complete at least one to keep your streak alive."
         actions={tokens.data ? (
           <Button asChild variant="outline"><Link to="/baddies"><Sparkles className="size-4 mr-1.5" /> {tokens.data} free case token{tokens.data > 1 ? "s" : ""}</Link></Button>
         ) : undefined}
@@ -113,15 +113,15 @@ function MissionsPage() {
             <Flame className="size-7" />
           </div>
           <div className="flex-1">
-            <div className="text-sm text-muted-foreground">Aktueller Streak</div>
+            <div className="text-sm text-muted-foreground">Current streak</div>
             <div className="text-3xl font-bold">
-              {current} <span className="text-lg font-normal text-muted-foreground">Tag{current === 1 ? "" : "e"}</span>
+              {current} <span className="text-lg font-normal text-muted-foreground">day{current === 1 ? "" : "s"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">Best: {s?.best_streak ?? 0} · Bonus bei Tag 7</div>
+            <div className="text-xs text-muted-foreground">Best: {s?.best_streak ?? 0} · Bonus at day 7</div>
           </div>
           <Button onClick={onClaim} disabled={!canClaim} size="lg" className={canClaim ? "" : "opacity-60"}>
             <Gift className="size-4 mr-1.5" />
-            {canClaim ? "Claim +2,500 DICE + Free Case" : `${Math.max(0, 7 - current)} Tage bis Bonus`}
+            {canClaim ? "Claim +2,500 DICE + Free Case" : `${Math.max(0, 7 - current)} days until bonus`}
           </Button>
         </div>
         {/* 7-day dots */}
@@ -168,13 +168,13 @@ function MissionsPage() {
         })}
         {(missions.data ?? []).length === 0 && (
           <Card className="p-6 text-center text-muted-foreground md:col-span-3">
-            Deine Missions werden erstellt … öffne beliebige Seite oder spiele ein Game.
+            Your missions are being generated… open any page or play a game.
           </Card>
         )}
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Missions resetten täglich um 00:00 UTC · Fortschritt wird automatisch getrackt.
+        Missions reset daily at 00:00 UTC · Progress is tracked automatically.
       </div>
     </div>
   );
