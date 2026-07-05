@@ -176,6 +176,8 @@ function RoulettePage() {
       return { type, value, amount };
     });
     setSpinning(true);
+    fx.play("spin");
+
     try {
       const r = await spinFn({ data: { bets: list } });
       // Animate wheel so pocketIndex lands at top (angle 0)
