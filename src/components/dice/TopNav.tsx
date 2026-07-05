@@ -334,3 +334,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function _useButton() { return Button; }
+
+function SoundToggle() {
+  const { enabled, toggleSound } = useFx();
+  return (
+    <button
+      onClick={toggleSound}
+      aria-label={enabled ? "Mute sound" : "Enable sound"}
+      title={enabled ? "Sound on" : "Sound off"}
+      className="grid size-9 place-items-center rounded-md hover:bg-white/5 text-muted-foreground hover:text-amber-200 transition"
+    >
+      {enabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+    </button>
+  );
+}
+
