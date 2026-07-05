@@ -384,6 +384,28 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           {kind === "dice_skin" && (
             <div><Label>Base color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
           )}
+
+          {(kind === "frame" || kind === "emote" || kind === "dice_skin" || kind === "banner") && (
+            <div className="rounded-lg border border-dashed border-white/15 p-3 space-y-2">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : kind === "dice_skin" ? "(dice skin face)" : "(banner)"}
+              </Label>
+              <Input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                disabled={uploading}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void uploadImage(f); }}
+              />
+              {uploading && <p className="text-xs text-muted-foreground">Uploading…</p>}
+              {imageUrl && (
+                <div className="flex items-center gap-3">
+                  <img src={imageUrl} alt="preview" className="size-16 object-cover rounded border border-white/10" />
+                  <Button size="sm" variant="ghost" onClick={() => setImageUrl("")}>Remove</Button>
+                </div>
+              )}
+              <p className="text-[11px] text-muted-foreground">PNG/JPG/WebP/GIF · max 3 MB. Optional but recommended.</p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
