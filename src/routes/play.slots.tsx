@@ -13,6 +13,8 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { toast } from "sonner";
+import { useFx } from "@/lib/fx";
+
 
 export const Route = createFileRoute("/play/slots")({
   head: () => ({ meta: [{ title: "Slots — DICE" }] }),
