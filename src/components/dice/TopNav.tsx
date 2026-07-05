@@ -19,10 +19,14 @@ import {
   Palette,
   Crown,
   ChevronDown,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useFx } from "@/lib/fx";
+
 import { DiceLogo } from "./Logo";
 import { DiceBadge } from "./DiceBadge";
 import { ChatPopover } from "./ChatPopover";
