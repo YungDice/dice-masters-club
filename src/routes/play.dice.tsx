@@ -71,7 +71,7 @@ function Solo() {
         setRolling(false);
         qc.invalidateQueries({ queryKey: ["wallet"] });
         if (r.outcome === "win") fx.celebrate({ amount: r.delta });
-        else if (r.outcome === "lose") fx.celebrate({ amount: r.delta, shake: true });
+        else if (r.delta < 0) fx.celebrate({ amount: r.delta, shake: true });
       }, 700);
     } catch (e: any) { toast.error(e.message); setRolling(false); }
   }
