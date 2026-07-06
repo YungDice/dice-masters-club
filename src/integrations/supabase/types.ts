@@ -1070,6 +1070,56 @@ export type Database = {
         }
         Relationships: []
       }
+      dominion_battles: {
+        Row: {
+          attack_power: number
+          client_action_id: string
+          created_at: string
+          defense_power: number
+          id: string
+          outcome: string
+          rewards: Json
+          sector_id: number
+          survivors: Json
+          units_sent: Json
+          user_id: string
+        }
+        Insert: {
+          attack_power: number
+          client_action_id: string
+          created_at?: string
+          defense_power: number
+          id?: string
+          outcome: string
+          rewards?: Json
+          sector_id: number
+          survivors: Json
+          units_sent: Json
+          user_id: string
+        }
+        Update: {
+          attack_power?: number
+          client_action_id?: string
+          created_at?: string
+          defense_power?: number
+          id?: string
+          outcome?: string
+          rewards?: Json
+          sector_id?: number
+          survivors?: Json
+          units_sent?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dominion_battles_sector_id_fkey"
+            columns: ["sector_id"]
+            isOneToOne: false
+            referencedRelation: "dominion_sectors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dominion_buildings: {
         Row: {
           created_at: string
@@ -1235,6 +1285,45 @@ export type Database = {
           node?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      dominion_sectors: {
+        Row: {
+          created_at: string
+          id: number
+          kind: Database["public"]["Enums"]["dominion_sector_kind"]
+          name: string
+          reward_power: number
+          reward_roll_credits: number
+          reward_scrap: number
+          strength: number
+          x: number
+          y: number
+        }
+        Insert: {
+          created_at?: string
+          id: number
+          kind: Database["public"]["Enums"]["dominion_sector_kind"]
+          name: string
+          reward_power?: number
+          reward_roll_credits?: number
+          reward_scrap?: number
+          strength: number
+          x: number
+          y: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          kind?: Database["public"]["Enums"]["dominion_sector_kind"]
+          name?: string
+          reward_power?: number
+          reward_roll_credits?: number
+          reward_scrap?: number
+          strength?: number
+          x?: number
+          y?: number
         }
         Relationships: []
       }
@@ -3009,6 +3098,7 @@ export type Database = {
         | "workshop"
       dominion_job_kind: "build" | "upgrade" | "train" | "research"
       dominion_research_branch: "industry" | "tactics" | "logistics"
+      dominion_sector_kind: "neutral" | "dice_vault" | "fortified" | "event"
       dominion_unit_kind:
         | "scout_roller"
         | "shield_guard"
@@ -3260,6 +3350,7 @@ export const Constants = {
       ],
       dominion_job_kind: ["build", "upgrade", "train", "research"],
       dominion_research_branch: ["industry", "tactics", "logistics"],
+      dominion_sector_kind: ["neutral", "dice_vault", "fortified", "event"],
       dominion_unit_kind: [
         "scout_roller",
         "shield_guard",

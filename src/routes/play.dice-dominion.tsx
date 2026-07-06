@@ -15,8 +15,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { fmt } from "@/lib/format";
 import {
   dominionGetState, dominionInit, dominionBuild, dominionUpgrade, dominionCollect, dominionFinishJobs,
+  dominionTrain, dominionResearch, dominionListSectors, dominionAttack, dominionListBattles,
 } from "@/lib/dominion.functions";
-import { BUILDINGS, GRID_SIZE, type BuildingKind } from "@/lib/dominion.config";
+import { BUILDINGS, UNITS, RESEARCH, GRID_SIZE, type BuildingKind, type UnitKind, type ResearchNodeId } from "@/lib/dominion.config";
 
 type BuildableKind = Exclude<BuildingKind, "headquarters">;
 const BUILDABLE: BuildableKind[] = ["salvage_yard","power_core","dice_forge","vault","command_center","workshop"];
@@ -59,6 +60,14 @@ function Dominion() {
   const upgradeFn = useServerFn(dominionUpgrade);
   const collectFn = useServerFn(dominionCollect);
   const finishFn = useServerFn(dominionFinishJobs);
+  const trainFn = useServerFn(dominionTrain);
+  const researchFn = useServerFn(dominionResearch);
+  const attackFn = useServerFn(dominionAttack);
+  const listSectorsFn = useServerFn(dominionListSectors);
+  const listBattlesFn = useServerFn(dominionListBattles);
+
+  const sectorsQ = useQuery({ queryKey: ["dominion", "sectors"], queryFn: () => listSectorsFn() });
+  const battlesQ = useQuery({ queryKey: ["dominion", "battles"], queryFn: () => listBattlesFn() });
 
   const q = useQuery({ queryKey: ["dominion"], queryFn: () => getState(), refetchInterval: 15000 });
 
@@ -99,14 +108,40 @@ function Dominion() {
     onError: (e: any) => toast.error(e.message ?? "Build failed"),
   });
 
+
   const upgrade = useMutation({
     mutationFn: (id: string) => upgradeFn({ data: { client_action_id: cid(), building_id: id } }),
     onSuccess: () => { toast.success("Upgrade queued"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
     onError: (e: any) => toast.error(e.message ?? "Upgrade failed"),
   });
 
+  const train = useMutation({
+    mutationFn: (v: { kind: UnitKind; qty: number }) => trainFn({ data: { client_action_id: cid(), ...v } }),
+    onSuccess: () => { toast.success("Training started"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Training failed"),
+  });
+
+  const research = useMutation({
+    mutationFn: (node: ResearchNodeId) => researchFn({ data: { client_action_id: cid(), node } }),
+    onSuccess: () => { toast.success("Research started"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Research failed"),
+  });
+
+  const [battleResult, setBattleResult] = useState<any>(null);
+  const attack = useMutation({
+    mutationFn: (v: { sector_id: number; units: Record<string, number> }) => attackFn({ data: { client_action_id: cid(), ...v } }),
+    onSuccess: (r: any) => {
+      setBattleResult(r);
+      setAttackTarget(null);
+      qc.invalidateQueries({ queryKey: ["dominion"] });
+      qc.invalidateQueries({ queryKey: ["dominion", "battles"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Attack failed"),
+  });
+
   const [placing, setPlacing] = useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [attackTarget, setAttackTarget] = useState<any>(null);
 
   if (q.isLoading) {
     return <div className="grid place-items-center py-20 text-amber-100/60"><RefreshCw className="size-5 animate-spin" /></div>;
@@ -256,19 +291,13 @@ function Dominion() {
           </TabsContent>
 
           <TabsContent value="units">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              Unit training unlocks in Phase 2.
-            </div>
+            <UnitsPanel units={q.data.units} onTrain={(k, qty) => train.mutate({ kind: k, qty })} pending={train.isPending} />
           </TabsContent>
           <TabsContent value="research">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              Research tree unlocks in Phase 2.
-            </div>
+            <ResearchPanel research={q.data.research} onResearch={(n) => research.mutate(n)} pending={research.isPending} jobs={jobs} />
           </TabsContent>
           <TabsContent value="territory">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              World map opens in Phase 3.
-            </div>
+            <TerritoryPanel sectors={sectorsQ.data ?? []} battles={battlesQ.data ?? []} onAttack={(s) => setAttackTarget(s)} energy={derived.commandEnergy} />
           </TabsContent>
         </Tabs>
       </aside>
@@ -309,6 +338,29 @@ function Dominion() {
         {selectedBuilding && (
           <DialogContent className="max-w-md">
             <UpgradePanel building={selectedBuilding} profile={profile} onUpgrade={() => upgrade.mutate(selectedBuilding.id)} pending={upgrade.isPending} isJobActive={!!jobByBuilding.get(selectedBuilding.id)} />
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* Attack modal */}
+      <Dialog open={!!attackTarget} onOpenChange={(v) => !v && setAttackTarget(null)}>
+        {attackTarget && (
+          <DialogContent className="max-w-md">
+            <AttackPanel
+              sector={attackTarget}
+              units={q.data.units}
+              onLaunch={(u) => attack.mutate({ sector_id: attackTarget.id, units: u })}
+              pending={attack.isPending}
+            />
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* Battle result modal */}
+      <Dialog open={!!battleResult} onOpenChange={(v) => !v && setBattleResult(null)}>
+        {battleResult && (
+          <DialogContent className="max-w-md">
+            <BattleResultPanel result={battleResult} onClose={() => setBattleResult(null)} />
           </DialogContent>
         )}
       </Dialog>
@@ -355,6 +407,241 @@ function UpgradePanel({ building, profile, onUpgrade, pending, isJobActive }: an
     </>
   );
 }
+
+// ============================================================
+// Units panel
+// ============================================================
+function UnitsPanel({ units, onTrain, pending }: { units: any[]; onTrain: (k: UnitKind, qty: number) => void; pending: boolean }) {
+  const [qty, setQty] = useState<Record<string, number>>({});
+  const counts: Record<string, number> = {};
+  for (const u of units) counts[u.kind] = u.count;
+  return (
+    <div className="space-y-2">
+      {(Object.keys(UNITS) as UnitKind[]).map((k) => {
+        const u = UNITS[k];
+        const own = counts[k] ?? 0;
+        const n = qty[k] ?? 1;
+        return (
+          <div key={k} className="rounded-xl border border-amber-400/15 bg-black/30 p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-amber-100">
+                  <Swords className="size-4 text-amber-300" />
+                  <span className="font-semibold">{u.label}</span>
+                  <span className="text-xs text-amber-100/60">×{own}</span>
+                </div>
+                <p className="text-[11px] text-amber-100/60">{u.desc}</p>
+                <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-amber-100/70">
+                  <span className="rounded bg-white/5 px-1.5 py-0.5">ATK {u.attack}</span>
+                  <span className="rounded bg-white/5 px-1.5 py-0.5">DEF {u.defense}</span>
+                  <span className="rounded bg-white/5 px-1.5 py-0.5">Cap {u.capacity}</span>
+                  <span className="rounded bg-white/5 px-1.5 py-0.5">{u.trainSeconds}s each</span>
+                </div>
+                <div className="mt-1 text-[10px] text-amber-100/60">
+                  {Object.entries(u.cost).map(([r, v]) => `${v} ${r}`).join(" · ")}
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="number" min={1} max={20} value={n}
+                onChange={(e) => setQty({ ...qty, [k]: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })}
+                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-amber-100 ring-1 ring-amber-400/20"
+              />
+              <Button size="sm" disabled={pending} onClick={() => onTrain(k, n)} className="h-8 flex-1 bg-amber-400 text-black hover:bg-amber-300">
+                Train ×{n}
+              </Button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// Research panel
+// ============================================================
+function ResearchPanel({ research, onResearch, pending, jobs }: { research: any[]; onResearch: (n: ResearchNodeId) => void; pending: boolean; jobs: any[] }) {
+  const activeResearch = jobs.find((j: any) => j.kind === "research");
+  const levels = new Map<string, number>();
+  for (const r of research) levels.set(r.node, r.level);
+  const groups: Record<string, ResearchNodeId[]> = { industry: [], tactics: [], logistics: [] };
+  for (const [k, v] of Object.entries(RESEARCH)) groups[v.branch].push(k as ResearchNodeId);
+  return (
+    <div className="space-y-3">
+      {activeResearch && (
+        <div className="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-xs text-amber-200">
+          <span className="flex items-center gap-1"><Timer className="size-3" />Research in progress</span>
+          <CountdownPill endsAt={activeResearch.ends_at} />
+        </div>
+      )}
+      {(Object.entries(groups) as [string, ResearchNodeId[]][]).map(([branch, nodes]) => (
+        <div key={branch}>
+          <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-300/80">{branch}</div>
+          <div className="space-y-1.5">
+            {nodes.map((n) => {
+              const spec = RESEARCH[n];
+              const lv = levels.get(n) ?? 0;
+              const atMax = lv >= spec.maxLevel;
+              const nxt = lv + 1;
+              return (
+                <div key={n} className="rounded-lg border border-amber-400/15 bg-black/30 p-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-amber-100">{spec.label}</span>
+                    <span className="text-xs text-amber-200/70">L{lv}{atMax ? " · MAX" : ""}</span>
+                  </div>
+                  <p className="text-[11px] text-amber-100/60">{spec.desc}</p>
+                  {!atMax && (
+                    <div className="mt-1 flex items-center justify-between">
+                      <span className="text-[10px] text-amber-100/60">{spec.cost(nxt)} RC · {spec.seconds(nxt)}s</span>
+                      <Button size="sm" disabled={pending || !!activeResearch} onClick={() => onResearch(n)} className="h-6 bg-amber-400 text-black hover:bg-amber-300">→ L{nxt}</Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// Territory panel
+// ============================================================
+const SECTOR_TONE: Record<string, string> = {
+  neutral: "border-amber-400/30 bg-emerald-900/40",
+  dice_vault: "border-amber-300 bg-amber-500/20",
+  fortified: "border-red-400/60 bg-red-950/40",
+  event: "border-fuchsia-400/60 bg-fuchsia-900/30",
+};
+
+function TerritoryPanel({ sectors, battles, onAttack, energy }: { sectors: any[]; battles: any[]; onAttack: (s: any) => void; energy: number }) {
+  return (
+    <div className="space-y-3">
+      <div className="text-[11px] text-amber-100/70">Command Energy: <span className="font-semibold text-amber-200">{energy}</span></div>
+      <div className="grid grid-cols-4 gap-1.5">
+        {sectors.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onAttack(s)}
+            className={`aspect-square rounded-lg border p-1 text-left transition hover:scale-[1.03] ${SECTOR_TONE[s.kind] ?? "border-white/10"}`}
+          >
+            <div className="text-[9px] font-bold uppercase tracking-wide text-amber-200">{s.kind === "dice_vault" ? "Vault" : s.kind}</div>
+            <div className="mt-0.5 truncate text-[10px] text-amber-50/90">{s.name}</div>
+            <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-100/70"><Swords className="size-2.5" />{s.strength}</div>
+          </button>
+        ))}
+      </div>
+      <div>
+        <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-300/70">Recent battles</div>
+        {battles.length === 0 ? (
+          <div className="rounded-lg border border-white/5 bg-black/30 p-3 text-center text-xs text-amber-100/50">No battles yet.</div>
+        ) : (
+          <ul className="space-y-1">
+            {battles.slice(0, 5).map((b: any) => (
+              <li key={b.id} className="flex items-center justify-between rounded-md bg-black/30 px-2 py-1 text-[11px] text-amber-100/80">
+                <span>#{b.sector_id}</span>
+                <span className={b.outcome === "victory" ? "text-emerald-300" : "text-red-300"}>{b.outcome}</span>
+                <span className="text-amber-100/50">{b.attack_power} vs {b.defense_power}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Attack modal
+// ============================================================
+function AttackPanel({ sector, units, onLaunch, pending }: { sector: any; units: any[]; onLaunch: (u: Record<string, number>) => void; pending: boolean }) {
+  const [sel, setSel] = useState<Record<string, number>>({});
+  const counts: Record<string, number> = {};
+  for (const u of units) counts[u.kind] = u.count;
+  const power = Object.entries(sel).reduce((s, [k, q]) => s + (UNITS[k as UnitKind]?.attack ?? 0) * q, 0);
+  const total = Object.values(sel).reduce((s, q) => s + q, 0);
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2"><Swords className="size-4 text-amber-300" />{sector.name}</DialogTitle>
+        <DialogDescription>Type: {sector.kind} · Strength {sector.strength}</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-2">
+        {(Object.keys(UNITS) as UnitKind[]).map((k) => {
+          const own = counts[k] ?? 0;
+          const chosen = sel[k] ?? 0;
+          return (
+            <div key={k} className="flex items-center gap-2 rounded-lg bg-black/30 p-2">
+              <div className="flex-1">
+                <div className="text-sm text-amber-100">{UNITS[k].label}</div>
+                <div className="text-[10px] text-amber-100/60">Own {own} · ATK {UNITS[k].attack}</div>
+              </div>
+              <input
+                type="number" min={0} max={own} value={chosen}
+                onChange={(e) => setSel({ ...sel, [k]: Math.max(0, Math.min(own, Number(e.target.value) || 0)) })}
+                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-amber-100 ring-1 ring-amber-400/20"
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="rounded-lg border border-amber-400/20 bg-black/40 p-2 text-xs text-amber-100/80">
+        Force sent: {total} · Attack power: {power} · Reward on win: {sector.reward_scrap} scrap / {sector.reward_power} pwr / {sector.reward_roll_credits} RC
+      </div>
+      <DialogFooter>
+        <Button disabled={total === 0 || pending} onClick={() => onLaunch(sel)} className="bg-amber-400 text-black hover:bg-amber-300">
+          <Swords className="mr-1 size-4" />Launch attack
+        </Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+// ============================================================
+// Battle result modal
+// ============================================================
+function BattleResultPanel({ result, onClose }: { result: any; onClose: () => void }) {
+  const win = result.win;
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle className={win ? "text-emerald-300" : "text-red-300"}>
+          {win ? "Victory" : "Defeat"}
+        </DialogTitle>
+        <DialogDescription>Attack {result.effectiveAttack} vs Defense {result.defense}</DialogDescription>
+      </DialogHeader>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-2">
+        <div>
+          <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-200/60">Survivors returned</div>
+          <div className="flex flex-wrap gap-1 text-xs">
+            {Object.entries(result.survivors).map(([k, v]: any) => (
+              <span key={k} className="rounded bg-white/5 px-2 py-1 text-amber-100">{UNITS[k as UnitKind].label}: {v}</span>
+            ))}
+          </div>
+        </div>
+        {win && (
+          <div>
+            <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-200/60">Rewards</div>
+            <div className="flex flex-wrap gap-1 text-xs text-amber-100">
+              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.scrap)} Scrap</span>
+              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.power)} Power</span>
+              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.roll_credits)} RC</span>
+            </div>
+          </div>
+        )}
+      </motion.div>
+      <DialogFooter>
+        <Button onClick={onClose} className="bg-amber-400 text-black hover:bg-amber-300">Continue</Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+
 
 export const Route = createFileRoute("/play/dice-dominion")({
   head: () => ({ meta: [
