@@ -648,6 +648,41 @@ function BattleResultPanel({ result, onClose }: { result: any; onClose: () => vo
   );
 }
 
+function HowItWorks() {
+  const steps = [
+    { emoji: "🏗️", title: "1. Build", text: "Tap empty tiles to place buildings like the Salvage Yard, Power Core & Dice Forge. They make resources for you 24/7." },
+    { emoji: "💰", title: "2. Collect", text: "Come back and hit Collect to grab all the Scrap, Power and Roll Credits your buildings made while you were gone." },
+    { emoji: "⚔️", title: "3. Conquer", text: "Train units, then attack sectors on the Map for big rewards. Stronger sectors drop bigger loot." },
+    { emoji: "🎲", title: "4. Level up", text: "Upgrade your HQ and unlock Research to unlock stronger buildings, faster training and better payouts." },
+  ];
+  return (
+    <div className="rounded-3xl border border-amber-400/20 bg-black/40 p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="grid size-8 place-items-center rounded-full bg-amber-400/20 ring-1 ring-amber-400/30">💡</div>
+        <h3 className="font-display text-xl font-bold text-amber-100">How it works</h3>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {steps.map((s) => (
+          <div key={s.title} className="rounded-2xl border border-amber-400/15 bg-gradient-to-br from-white/[0.04] to-transparent p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl">{s.emoji}</span>
+              <div className="font-display font-bold text-amber-100">{s.title}</div>
+            </div>
+            <p className="text-sm text-amber-100/70 leading-snug">{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100/90 flex gap-3">
+        <div className="text-2xl">🎁</div>
+        <div>
+          <div className="font-semibold text-amber-100">Earn free DICE from your district</div>
+          <p className="text-amber-100/70 text-xs mt-0.5">Conquering sectors, finishing daily objectives and leveling up your HQ pay out DICE straight to your wallet. The bigger your district, the bigger the rewards!</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 
 export const Route = createFileRoute("/play/dice-dominion")({
