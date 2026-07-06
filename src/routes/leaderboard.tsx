@@ -234,14 +234,20 @@ function LossesBoard() {
   return <Board rows={q.data ?? []} unit="LOSSES" />;
 }
 
+function tierFromCumulativeXp(xp: number) {
+  // Inverse of 125*T^2 + 875*T = xp  →  T = floor((-875 + sqrt(875^2 + 500*xp)) / 250)
+  if (xp <= 0) return 0;
+  const t = Math.floor((-875 + Math.sqrt(875 * 875 + 500 * xp)) / 250);
+  return Math.max(0, t);
+}
+
 function SeasonPassBoard() {
   const q = useQuery({
     queryKey: ["lb", "season-pass"],
     queryFn: async (): Promise<Row[]> => {
-      const { data: season } = await supabase.from("seasons" as any).select("id,xp_per_tier")
+      const { data: season } = await supabase.from("seasons" as any).select("id")
         .eq("active", true).order("starts_at", { ascending: false }).limit(1).maybeSingle();
       if (!season) return [];
-      const xpPer = Number((season as any).xp_per_tier) || 1000;
       const { data: prog } = await supabase.from("season_progress" as any).select("user_id,baseline_xp,bonus_xp")
         .eq("season_id", (season as any).id);
       const progRows = (prog ?? []) as any[];
@@ -253,8 +259,7 @@ function SeasonPassBoard() {
         .map((r: any) => {
           const p = pm[r.user_id]; if (!p) return null;
           const sXp = Math.max(0, (p.xp ?? 0) - (r.baseline_xp ?? 0)) + (r.bonus_xp ?? 0);
-          const tier = Math.floor(sXp / xpPer);
-          return { ...p, points: tier };
+          return { ...p, points: tierFromCumulativeXp(sXp) };
         })
         .filter(Boolean)
         .sort((a: any, b: any) => b.points - a.points)
