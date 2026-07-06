@@ -4,7 +4,7 @@ import React from "react";
 
 export type Cosmetic = {
   id: string;
-  kind: "title" | "frame" | "banner" | "emote" | "dice_skin";
+  kind: "title" | "frame" | "emote" | "dice_skin";
   slug: string;
   name: string;
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary" | "unreal";
