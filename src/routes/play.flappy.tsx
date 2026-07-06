@@ -32,6 +32,23 @@ function FlappyGame() {
   const sentGateRef = useRef(0);
   const qc = useQueryClient();
 
+  // Equipped dice skin (cosmetic)
+  const { user } = useAuth();
+  const prof = useMyProfile(user?.id);
+  const equipped = useEquippedFor(prof.data);
+  const skin = (equipped.data as any)?.dice_skin;
+  const skinColor = String(skin?.meta?.color ?? "#fef3c7");
+  const skinPip = String(skin?.meta?.pip ?? "#0b4d3a");
+  const skinImage = (skin?.meta?.image_url ?? null) as string | null;
+  const skinImgRef = useRef<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!skinImage) { skinImgRef.current = null; return; }
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = skinImage;
+    img.onload = () => { skinImgRef.current = img; };
+  }, [skinImage]);
+
   // Mutable game state
   const stateRef = useRef({
     y: H / 2, v: 0, pipes: [] as Pipe[], frame: 0, nextIdx: 1,
