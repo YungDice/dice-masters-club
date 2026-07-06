@@ -52,7 +52,6 @@ function CosmeticsPage() {
   const equippedIds: Record<Cosmetic["kind"], string | null> = {
     title:  (profile as any)?.equipped_title_id ?? null,
     frame:  (profile as any)?.equipped_frame_id ?? null,
-    banner: (profile as any)?.equipped_banner_id ?? null,
     emote:  null,
     dice_skin: (profile as any)?.equipped_dice_skin_id ?? null,
   };
