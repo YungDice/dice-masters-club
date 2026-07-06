@@ -341,6 +341,29 @@ function Dominion() {
           </DialogContent>
         )}
       </Dialog>
+
+      {/* Attack modal */}
+      <Dialog open={!!attackTarget} onOpenChange={(v) => !v && setAttackTarget(null)}>
+        {attackTarget && (
+          <DialogContent className="max-w-md">
+            <AttackPanel
+              sector={attackTarget}
+              units={q.data.units}
+              onLaunch={(u) => attack.mutate({ sector_id: attackTarget.id, units: u })}
+              pending={attack.isPending}
+            />
+          </DialogContent>
+        )}
+      </Dialog>
+
+      {/* Battle result modal */}
+      <Dialog open={!!battleResult} onOpenChange={(v) => !v && setBattleResult(null)}>
+        {battleResult && (
+          <DialogContent className="max-w-md">
+            <BattleResultPanel result={battleResult} onClose={() => setBattleResult(null)} />
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
