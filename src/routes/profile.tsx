@@ -15,6 +15,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
 import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { LoadoutCard } from "@/components/dice/LoadoutCard";
 import { finalizeMyStaleGames } from "@/lib/stats.functions";
 
 
