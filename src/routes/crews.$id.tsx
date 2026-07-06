@@ -285,12 +285,12 @@ function CrewPage() {
                     <div className="font-semibold text-amber-200">{fmt(m.contribution_weekly)}</div>
                     <div className="text-muted-foreground">weekly · total {fmt(m.contribution_total)}</div>
                   </div>
-                  {isOwner && m.role !== "owner" && (
+                  {isOwner && (
                     <div className="flex gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
-                        title="Award DICE from crew bank"
+                        title={m.role === "owner" ? "Award DICE to yourself from crew bank" : "Award DICE from crew bank"}
                         className="text-amber-300"
                         onClick={() => {
                           setAwardTarget({ id: m.user_id, name: m.profile?.display_name ?? m.profile?.username ?? "member" });
@@ -300,7 +300,7 @@ function CrewPage() {
                       >
                         <Gift className="size-4" />
                       </Button>
-                      {m.role === "member" ? (
+                      {m.role !== "owner" && (m.role === "member" ? (
                         <Button size="icon" variant="ghost" title="Promote to officer" onClick={() => onSetRole(m.user_id, "officer")}>
                           <ArrowUp className="size-4" />
                         </Button>
@@ -308,10 +308,12 @@ function CrewPage() {
                         <Button size="icon" variant="ghost" title="Demote to member" onClick={() => onSetRole(m.user_id, "member")}>
                           <ArrowDown className="size-4" />
                         </Button>
+                      ))}
+                      {m.role !== "owner" && (
+                        <Button size="icon" variant="ghost" className="text-destructive" title="Kick" onClick={() => onKick(m.user_id)}>
+                          <UserMinus className="size-4" />
+                        </Button>
                       )}
-                      <Button size="icon" variant="ghost" className="text-destructive" title="Kick" onClick={() => onKick(m.user_id)}>
-                        <UserMinus className="size-4" />
-                      </Button>
                     </div>
                   )}
                   {!isOwner && canManage && m.role === "member" && (

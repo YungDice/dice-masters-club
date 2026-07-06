@@ -119,7 +119,8 @@ function SeasonPassPage() {
     return Math.max(0, ((profile as any).xp ?? 0) - base) + bonus;
   }, [profile, progress.data]);
 
-  const currentTier = season.data ? Math.min(season.data.tier_count, Math.floor(seasonXp / season.data.xp_per_tier)) : 0;
+  // Infinite tiers: level keeps climbing past tier_count for prestige/flex.
+  const currentTier = season.data ? Math.floor(seasonXp / season.data.xp_per_tier) : 0;
   const nextTierXp = season.data ? (currentTier + 1) * season.data.xp_per_tier : 0;
   const xpIntoTier = season.data ? seasonXp - currentTier * season.data.xp_per_tier : 0;
   const pctToNext = season.data ? (xpIntoTier / season.data.xp_per_tier) * 100 : 0;
@@ -203,12 +204,10 @@ function SeasonPassPage() {
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground">Tier</span>
                   <span className="font-display text-3xl font-black text-[color:var(--gold)]">{currentTier}</span>
-                  <span className="text-sm text-muted-foreground">/ {season.data.tier_count}</span>
+                  <span className="text-sm text-muted-foreground">∞ (infinite)</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {currentTier >= season.data.tier_count
-                    ? <span className="text-emerald-400 font-semibold">Max tier reached</span>
-                    : <>Next: <b className="text-foreground">{fmt(nextTierXp - seasonXp)} XP</b></>}
+                  Next: <b className="text-foreground">{fmt(nextTierXp - seasonXp)} XP</b>
                 </div>
               </div>
               <div className="relative h-3 rounded-full bg-black/40 overflow-hidden border border-white/5">
@@ -222,7 +221,7 @@ function SeasonPassPage() {
               </div>
               <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
                 <span>Tier {currentTier}</span>
-                <span>Tier {Math.min(season.data.tier_count, currentTier + 1)}</span>
+                <span>Tier {currentTier + 1}</span>
               </div>
             </div>
           </div>

@@ -106,7 +106,11 @@ export function LoadoutCard({ profile }: { profile: any }) {
 
         <Tile icon={<Smile className="size-3" />} label="Your Emoji" empty="No emoji">
           {profile?.user_emoji && (
-            <div className="text-3xl leading-none" aria-label="user emoji">{profile.user_emoji}</div>
+            /^(https?:|data:|\/)/i.test(profile.user_emoji) ? (
+              <img src={profile.user_emoji} alt="user emoji" className="h-10 w-10 rounded-md object-cover" />
+            ) : (
+              <div className="text-3xl leading-none" aria-label="user emoji">{profile.user_emoji}</div>
+            )
           )}
         </Tile>
       </div>

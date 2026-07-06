@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Upload, ImageIcon } from "lucide-react";
 
 const GAMES = [
   { v: "coinflip", n: "Coin Flip" }, { v: "dice", n: "Dice" }, { v: "blackjack", n: "Blackjack" },
@@ -17,20 +17,8 @@ const GAMES = [
 
 const EMOJI_QUICK = ["🔥", "😎", "👑", "💎", "🎲", "🃏", "⚡", "💰", "🚀", "🌟", "😈", "🦄", "🐉", "🍀", "🎯", "💀"];
 
-// Roughly detects a single grapheme emoji. Keeps it simple & permissive.
-function isSingleEmoji(s: string): boolean {
-  if (!s) return true;
-  try {
-    const Seg = (Intl as any).Segmenter;
-    if (typeof Seg === "function") {
-      const seg = new Seg(undefined, { granularity: "grapheme" });
-      const count = [...seg.segment(s)].length;
-      return count === 1 && s.length <= 12;
-    }
-    return s.length <= 8;
-  } catch {
-    return s.length <= 8;
-  }
+function isImageValue(s: string) {
+  return /^(https?:|data:|\/)/i.test(s);
 }
 
 export function LoadoutEditor({ user, profile, refetch }: any) {
@@ -40,6 +28,8 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
   const [achId, setAchId] = useState<string>("");
   const [emoji, setEmoji] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -71,11 +61,24 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
     },
   });
 
+  async function uploadEmoji(file: File) {
+    if (!user?.id) return toast.error("Sign in first");
+    if (file.size > 2 * 1024 * 1024) return toast.error("Max 2 MB");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `${user.id}/emoji-${Date.now()}.${ext}`;
+      const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (up.error) throw up.error;
+      const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      if (signed.data?.signedUrl) setEmoji(signed.data.signedUrl);
+      toast.success("Image ready — click Save to apply");
+    } catch (e: any) { toast.error(e.message ?? "Upload failed"); }
+    finally { setUploading(false); }
+  }
+
   async function save() {
     if (!user) return;
-    if (emoji && !isSingleEmoji(emoji)) {
-      return toast.error("Pick a single emoji");
-    }
     setSaving(true);
     const { error } = await supabase.from("profiles").update({
       favorite_baddie_id: baddieId || null,
@@ -136,21 +139,40 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
         </div>
 
         <div className="md:col-span-2">
-          <Label>Your Emoji</Label>
+          <Label>Your Emoji / Image</Label>
           <p className="text-[11px] text-muted-foreground mb-2">
-            Shown next to your nickname in global chat, games and the profile card. Pick one emoji.
+            Shown next to your nickname in global chat, games and the profile card. Pick a single emoji or upload an image/GIF.
           </p>
-          <div className="flex items-center gap-3">
-            <div className="text-3xl w-12 h-12 grid place-items-center rounded-md bg-black/30 border border-border/60">
-              {emoji || <span className="text-xs text-muted-foreground">—</span>}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="w-14 h-14 grid place-items-center rounded-md bg-black/30 border border-border/60 overflow-hidden">
+              {emoji ? (
+                isImageValue(emoji)
+                  ? <img src={emoji} alt="preview" className="w-full h-full object-cover" />
+                  : <span className="text-3xl">{emoji}</span>
+              ) : <span className="text-xs text-muted-foreground">—</span>}
             </div>
             <Input
               value={emoji}
               onChange={(e) => setEmoji(e.target.value)}
-              placeholder="🔥"
-              maxLength={12}
-              className="max-w-[140px]"
+              placeholder="🔥 or paste image URL"
+              className="max-w-[280px]"
             />
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,image/gif"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadEmoji(f); e.currentTarget.value = ""; }}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Uploading…" : <><Upload className="size-3.5 mr-1" /> Upload</>}
+            </Button>
             {emoji && <Button size="sm" variant="ghost" onClick={() => setEmoji("")}>Clear</Button>}
           </div>
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -168,6 +190,9 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
               </button>
             ))}
           </div>
+          <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
+            <ImageIcon className="size-3" /> Tip: GIFs work too — great for animated flair.
+          </p>
         </div>
 
       </div>

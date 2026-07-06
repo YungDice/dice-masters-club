@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useWallet } from "@/hooks/use-profile";
+import { useMyProfile, useWallet } from "@/hooks/use-profile";
+import { isVipActive } from "@/lib/limits";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
 import {
@@ -12,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
-import { Heart, Sparkles, PackageOpen, X, Users2 } from "lucide-react";
+import { Heart, Sparkles, PackageOpen, X, Users2, Coins, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const RARITY_STYLE: Record<string, string> = {
@@ -38,11 +40,16 @@ type Yuri = {
 export function YuriCase() {
   const { user } = useAuth();
   const walletQ = useWallet(user?.id);
+  const prof = useMyProfile(user?.id);
   const qc = useQueryClient();
   const [rolling, setRolling] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [placeTarget, setPlaceTarget] = useState<{ slot: number } | null>(null);
   const [unpairConfirm, setUnpairConfirm] = useState<{ group: number } | null>(null);
+  const [sellTarget, setSellTarget] = useState<any>(null);
+
+  const isVip = isVipActive((prof.data as any)?.vip_until);
+  const autosellList: string[] = (prof.data as any)?.yuri_autosell_rarities ?? [];
 
   const yuriQ = useQuery({
     queryKey: ["my-yuri", user?.id],
@@ -84,14 +91,31 @@ export function YuriCase() {
     try {
       const { data, error } = await supabase.rpc("open_yuri_case" as any, { _count: count });
       if (error) throw error;
-      // hydrate with templates
       const rows = (Array.isArray(data) ? data : []) as any[];
       const t = templatesQ.data ?? [];
       const hydrated = rows.map((r: any) => ({
         ...r,
         template: t.find((x: any) => x.id === r.template_id),
       }));
+
+      // VIP autosell — sell rolls whose rarity is in the user's list
+      let autosold = 0; let autoDice = 0;
+      if (isVip && autosellList.length && hydrated.length) {
+        const toSell = hydrated.filter((r: any) => autosellList.includes(r.template?.rarity));
+        for (const r of toSell) {
+          try {
+            const { data: sd } = await supabase.rpc("sell_yuri_tx" as any, { _yuri_id: r.id });
+            const row: any = Array.isArray(sd) ? sd[0] : sd;
+            autoDice += Number(row?.price ?? 0);
+            autosold++;
+            r.autosold = true;
+            r.sell_price = row?.price ?? 0;
+          } catch {}
+        }
+      }
+
       setResults(hydrated);
+      if (autosold) toast.success(`Autosold ${autosold} for +${fmt(autoDice)} DICE`);
       qc.invalidateQueries({ queryKey: ["my-yuri"] });
       qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) {
@@ -99,6 +123,27 @@ export function YuriCase() {
     } finally {
       setRolling(false);
     }
+  }
+
+  async function toggleAutosell(rarity: string, on: boolean) {
+    const next = on ? Array.from(new Set([...autosellList, rarity])) : autosellList.filter((r) => r !== rarity);
+    try {
+      const { error } = await supabase.rpc("set_yuri_autosell_rarities" as any, { _rarities: next });
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to update autosell"); }
+  }
+
+  async function sellYuri(yuriId: string) {
+    try {
+      const { data, error } = await supabase.rpc("sell_yuri_tx" as any, { _yuri_id: yuriId });
+      if (error) throw error;
+      const row: any = Array.isArray(data) ? data[0] : data;
+      toast.success(`Sold for +${fmt(row?.price ?? 0)} DICE`);
+      setSellTarget(null);
+      qc.invalidateQueries({ queryKey: ["my-yuri"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
   }
 
   async function place(yuriId: string, slot: number) {
@@ -161,6 +206,26 @@ export function YuriCase() {
               </Button>
             ))}
           </div>
+        </div>
+
+        {/* Autosell — VIP only */}
+        <div className="mt-4 border-t border-border/40 pt-3">
+          <div className="text-xs font-semibold flex items-center gap-2 mb-2">
+            <Crown className="size-3.5 text-amber-300" />
+            Autosell by rarity {isVip ? <span className="text-emerald-300">(VIP)</span> : <span className="text-muted-foreground">— VIP only</span>}
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs">
+            {(["common","uncommon","rare","epic","legendary"] as const).map((rar) => {
+              const on = autosellList.includes(rar);
+              return (
+                <label key={rar} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 cursor-pointer transition ${on ? "border-pink-300/60 bg-pink-500/10" : "border-border/60 bg-white/5"} ${!isVip ? "opacity-50 pointer-events-none" : ""}`}>
+                  <Checkbox checked={on} onCheckedChange={(v) => toggleAutosell(rar, !!v)} disabled={!isVip} />
+                  <span className="capitalize">{rar}</span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1.5">New Yuri pulls of these rarities are auto-sold on roll. Sell price ≈ 4h income.</p>
         </div>
       </Card>
 
@@ -281,17 +346,29 @@ export function YuriCase() {
           <EmptyState icon={Sparkles} title="No Yuri girls yet" description="Open a Yuri Case to start building your duos." />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {inventory.map((y) => (
-              <div key={y.id} className={`rounded-lg border bg-gradient-to-br p-2 ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}>
-                <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
-                  {y.template?.image_url
-                    ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
-                    : <Heart className="size-6 text-pink-300/80" />}
+            {inventory.map((y) => {
+              const rate = y.template?.income_per_hour ?? 0;
+              const sellPrice = Math.max(1, rate * 4);
+              return (
+                <div key={y.id} className={`rounded-lg border bg-gradient-to-br p-2 ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}>
+                  <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
+                    {y.template?.image_url
+                      ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
+                      : <Heart className="size-6 text-pink-300/80" />}
+                  </div>
+                  <div className="text-xs font-semibold truncate">{y.template?.name}</div>
+                  <div className="text-[10px] opacity-80 capitalize">{y.template?.rarity} · {rate}/h</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full mt-1.5 h-7 text-[10px]"
+                    onClick={() => setSellTarget(y)}
+                  >
+                    <Coins className="size-3 mr-1" /> Sell {fmt(sellPrice)}
+                  </Button>
                 </div>
-                <div className="text-xs font-semibold truncate">{y.template?.name}</div>
-                <div className="text-[10px] opacity-80 capitalize">{y.template?.rarity} · {y.template?.income_per_hour}/h</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
@@ -333,6 +410,25 @@ export function YuriCase() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setUnpairConfirm(null)}>Cancel</Button>
             <Button variant="destructive" onClick={() => unpairConfirm && unpairDuo(unpairConfirm.group)}>Unpair</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sell confirm */}
+      <Dialog open={!!sellTarget} onOpenChange={(o) => !o && setSellTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sell {sellTarget?.template?.name}?</DialogTitle>
+            <DialogDescription>
+              You'll receive <b>{fmt(Math.max(1, (sellTarget?.template?.income_per_hour ?? 0) * 4))} DICE</b>.
+              This is permanent.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSellTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => sellTarget && sellYuri(sellTarget.id)}>
+              <Coins className="size-4 mr-1" /> Sell
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

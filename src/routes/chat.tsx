@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useEmoteMap, renderWithEmotes } from "@/lib/cosmetics";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 const PAGE_SIZE = 40;
 const NEAR_BOTTOM_PX = 80;
@@ -32,7 +33,7 @@ type ChatRow = {
 async function fetchProfilesFor(rows: ChatRow[]) {
   const ids = Array.from(new Set(rows.map((m) => m.user_id)));
   if (!ids.length) return {};
-  const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids);
+  const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,tag,user_emoji").in("id", ids);
   return Object.fromEntries((data ?? []).map((p: any) => [p.id, p]));
 }
 
@@ -98,12 +99,19 @@ function Chat() {
   }, [pages]);
 
   // Initial mount → jump straight to newest message (no manual scrolling).
+  // Re-scroll a few times to account for images/emotes settling their heights.
   useLayoutEffect(() => {
     if (initialScrolledRef.current) return;
     if (!messages.length) return;
     const el = scrollRef.current; if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    const jump = () => { const e = scrollRef.current; if (e) e.scrollTop = e.scrollHeight; };
+    jump();
+    // Belt-and-braces: re-jump after paint + after content likely settles.
+    requestAnimationFrame(jump);
+    const t1 = setTimeout(jump, 120);
+    const t2 = setTimeout(jump, 400);
     initialScrolledRef.current = true;
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [messages.length]);
 
   // Auto-follow newest messages if the user is already near bottom.
@@ -189,7 +197,13 @@ function Chat() {
                   </Avatar>
                 )}
                 <div className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-white/5"}`}>
-                  {!mine && <div className="text-[10px] opacity-70 mb-0.5">@{m.user?.username ?? "user"}</div>}
+                  {!mine && (
+                    <div className="text-[10px] opacity-70 mb-0.5 flex items-center gap-1 flex-wrap">
+                      <span>@{m.user?.username ?? "user"}</span>
+                      {(m.user as any)?.tag && <span className="text-primary font-mono">#{(m.user as any).tag}</span>}
+                      <NameBadges userId={m.user_id} emoji={(m.user as any)?.user_emoji} />
+                    </div>
+                  )}
                   <div className="whitespace-pre-wrap break-words">{renderWithEmotes(m.body, emoteMap)}</div>
                 </div>
                 {(mine || isStaff) && (
