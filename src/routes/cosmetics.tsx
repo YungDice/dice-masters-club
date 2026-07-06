@@ -360,10 +360,10 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div><Label>Base color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
           )}
 
-          {(kind === "frame" || kind === "emote" || kind === "dice_skin" || kind === "banner") && (
+          {(kind === "frame" || kind === "emote" || kind === "dice_skin") && (
             <div className="rounded-lg border border-dashed border-white/15 p-3 space-y-2">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : kind === "dice_skin" ? "(dice skin face)" : "(banner)"}
+                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : "(dice skin face)"}
               </Label>
               <Input
                 type="file"
