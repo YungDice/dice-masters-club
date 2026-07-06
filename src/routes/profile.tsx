@@ -185,6 +185,10 @@ function MyProfile() {
         <p className="text-xs text-muted-foreground mt-3">Computed from your full game history ({rank.data?.total ?? 0} games tracked · net {fmt(rank.data?.net ?? 0)} DICE).</p>
       </Card>
 
+      <LoadoutCard profile={p} />
+
+
+
 
       <Card className="glass p-5">
         <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
