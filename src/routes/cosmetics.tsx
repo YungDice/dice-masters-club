@@ -105,27 +105,10 @@ function CosmeticsPage() {
           <Palette className="size-8 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
             <h1 className="font-display text-3xl font-bold">Cosmetics</h1>
-            <p className="text-sm text-muted-foreground">Titles, avatar frames, banners, chat emotes and dice skins. Purely visual — no gameplay advantage.</p>
-          </div>
-          <div className="text-right text-sm">
-            <div className="text-xs text-muted-foreground">Balance</div>
-            <div className="font-display text-xl flex items-center gap-1 justify-end"><Coins className="size-4 text-primary" />{fmt(balance)}</div>
-          </div>
-          <SubmitCosmeticButton balance={balance} />
-        </div>
-      </Card>
-
-      {/* Submission fee banner */}
-      <Card className={`p-4 border-2 ${balance >= SUBMISSION_FEE ? "border-emerald-500/40 bg-emerald-500/5" : "border-amber-500/40 bg-amber-500/5"}`}>
-        <div className="flex items-center gap-3 flex-wrap">
-          <Sparkles className={`size-6 shrink-0 ${balance >= SUBMISSION_FEE ? "text-emerald-300" : "text-amber-300"}`} />
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold">Create your own cosmetic</div>
-            <div className="text-sm text-muted-foreground">
-              You need <b className="text-foreground">{fmt(SUBMISSION_FEE)} DICE</b> to submit a custom title, avatar frame, banner, chat emote or dice skin.
-              Upload your own image for frames, emotes and dice skins. If rejected the fee is refunded.
-              {balance < SUBMISSION_FEE && <> You currently have <b className="text-foreground">{fmt(balance)}</b> DICE — earn <b className="text-foreground">{fmt(SUBMISSION_FEE - balance)}</b> more to unlock this.</>}
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Titles, avatar frames, banners, chat emotes and dice skins. Purely visual — no gameplay advantage.
+              {" "}Submit your own for <b className="text-foreground">{fmt(SUBMISSION_FEE)} DICE</b> (refunded if rejected).
+            </p>
           </div>
           <SubmitCosmeticButton balance={balance} />
         </div>
