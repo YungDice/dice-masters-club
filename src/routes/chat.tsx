@@ -98,12 +98,19 @@ function Chat() {
   }, [pages]);
 
   // Initial mount → jump straight to newest message (no manual scrolling).
+  // Re-scroll a few times to account for images/emotes settling their heights.
   useLayoutEffect(() => {
     if (initialScrolledRef.current) return;
     if (!messages.length) return;
     const el = scrollRef.current; if (!el) return;
-    el.scrollTop = el.scrollHeight;
+    const jump = () => { const e = scrollRef.current; if (e) e.scrollTop = e.scrollHeight; };
+    jump();
+    // Belt-and-braces: re-jump after paint + after content likely settles.
+    requestAnimationFrame(jump);
+    const t1 = setTimeout(jump, 120);
+    const t2 = setTimeout(jump, 400);
     initialScrolledRef.current = true;
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [messages.length]);
 
   // Auto-follow newest messages if the user is already near bottom.
