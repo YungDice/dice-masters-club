@@ -44,6 +44,7 @@ import { Route as PlayCoinflipRouteImport } from './routes/play.coinflip'
 import { Route as PlayBlackjackRouteImport } from './routes/play.blackjack'
 import { Route as MarketplaceNewRouteImport } from './routes/marketplace.new'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
+import { Route as LeaderboardCrewsRouteImport } from './routes/leaderboard.crews'
 import { Route as CrewsNewRouteImport } from './routes/crews.new'
 import { Route as CrewsIdRouteImport } from './routes/crews.$id'
 import { Route as ChallengesNewRouteImport } from './routes/challenges.new'
@@ -230,6 +231,11 @@ const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
   path: '/marketplace/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeaderboardCrewsRoute = LeaderboardCrewsRouteImport.update({
+  id: '/crews',
+  path: '/crews',
+  getParentRoute: () => LeaderboardRoute,
+} as any)
 const CrewsNewRoute = CrewsNewRouteImport.update({
   id: '/crews/new',
   path: '/crews/new',
@@ -295,7 +301,7 @@ export interface FileRoutesByFullPath {
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/leaderboard': typeof LeaderboardRouteWithChildren
   '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
   '/crews/new': typeof CrewsNewRoute
+  '/leaderboard/crews': typeof LeaderboardCrewsRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -342,7 +349,7 @@ export interface FileRoutesByTo {
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/leaderboard': typeof LeaderboardRouteWithChildren
   '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
@@ -357,6 +364,7 @@ export interface FileRoutesByTo {
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
   '/crews/new': typeof CrewsNewRoute
+  '/leaderboard/crews': typeof LeaderboardCrewsRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -390,7 +398,7 @@ export interface FileRoutesById {
   '/dikdok': typeof DikdokRoute
   '/friends': typeof FriendsRoute
   '/gallery': typeof GalleryRoute
-  '/leaderboard': typeof LeaderboardRoute
+  '/leaderboard': typeof LeaderboardRouteWithChildren
   '/mcp': typeof McpRoute
   '/missions': typeof MissionsRoute
   '/notifications': typeof NotificationsRoute
@@ -405,6 +413,7 @@ export interface FileRoutesById {
   '/challenges/new': typeof ChallengesNewRoute
   '/crews/$id': typeof CrewsIdRoute
   '/crews/new': typeof CrewsNewRoute
+  '/leaderboard/crews': typeof LeaderboardCrewsRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
   '/marketplace/new': typeof MarketplaceNewRoute
   '/play/blackjack': typeof PlayBlackjackRoute
@@ -454,6 +463,7 @@ export interface FileRouteTypes {
     | '/challenges/new'
     | '/crews/$id'
     | '/crews/new'
+    | '/leaderboard/crews'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -501,6 +511,7 @@ export interface FileRouteTypes {
     | '/challenges/new'
     | '/crews/$id'
     | '/crews/new'
+    | '/leaderboard/crews'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/challenges/new'
     | '/crews/$id'
     | '/crews/new'
+    | '/leaderboard/crews'
     | '/marketplace/$id'
     | '/marketplace/new'
     | '/play/blackjack'
@@ -581,7 +593,7 @@ export interface RootRouteChildren {
   DikdokRoute: typeof DikdokRoute
   FriendsRoute: typeof FriendsRoute
   GalleryRoute: typeof GalleryRoute
-  LeaderboardRoute: typeof LeaderboardRoute
+  LeaderboardRoute: typeof LeaderboardRouteWithChildren
   McpRoute: typeof McpRoute
   MissionsRoute: typeof MissionsRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -865,6 +877,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplaceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leaderboard/crews': {
+      id: '/leaderboard/crews'
+      path: '/crews'
+      fullPath: '/leaderboard/crews'
+      preLoaderRoute: typeof LeaderboardCrewsRouteImport
+      parentRoute: typeof LeaderboardRoute
+    }
     '/crews/new': {
       id: '/crews/new'
       path: '/crews/new'
@@ -938,6 +957,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LeaderboardRouteChildren {
+  LeaderboardCrewsRoute: typeof LeaderboardCrewsRoute
+}
+
+const LeaderboardRouteChildren: LeaderboardRouteChildren = {
+  LeaderboardCrewsRoute: LeaderboardCrewsRoute,
+}
+
+const LeaderboardRouteWithChildren = LeaderboardRoute._addFileChildren(
+  LeaderboardRouteChildren,
+)
+
 interface ChallengesIdRouteChildren {
   ChallengesIdSubmitRoute: typeof ChallengesIdSubmitRoute
 }
@@ -960,7 +991,7 @@ const rootRouteChildren: RootRouteChildren = {
   DikdokRoute: DikdokRoute,
   FriendsRoute: FriendsRoute,
   GalleryRoute: GalleryRoute,
-  LeaderboardRoute: LeaderboardRoute,
+  LeaderboardRoute: LeaderboardRouteWithChildren,
   McpRoute: McpRoute,
   MissionsRoute: MissionsRoute,
   NotificationsRoute: NotificationsRoute,

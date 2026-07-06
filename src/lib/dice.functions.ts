@@ -497,11 +497,21 @@ export const claimTag = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const TAG = data.tag.toUpperCase();
     const COST = 5000;
-    const { data: me } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
-    if (me?.tag) throw new Error("You already own a tag. Sell it on the marketplace first.");
-    // Uniqueness check: profile OR an active marketplace listing escrowing the tag
+    // Enforce the 3-tag limit per user (matches settings UI)
+    const { count: ownedCount } = await supabaseAdmin
+      .from("profile_tags" as any)
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", context.userId);
+    if ((ownedCount ?? 0) >= 3) throw new Error("Tag limit reached (3/3). Sell or delete one first.");
+    // Uniqueness: no other profile or user already holds this tag
+    const { data: mineDupe } = await supabaseAdmin
+      .from("profile_tags" as any).select("tag").eq("user_id", context.userId).ilike("tag", TAG).maybeSingle();
+    if (mineDupe) throw new Error("You already own that tag.");
     const { data: clash } = await supabaseAdmin.from("profiles").select("id").ilike("tag", TAG).maybeSingle();
     if (clash) throw new Error("That tag is already taken. Try to buy it on the marketplace.");
+    const { data: otherOwner } = await supabaseAdmin
+      .from("profile_tags" as any).select("user_id").ilike("tag", TAG).neq("user_id", context.userId).maybeSingle();
+    if (otherOwner) throw new Error("That tag is already taken. Try to buy it on the marketplace.");
     const { data: listed } = await supabaseAdmin.from("marketplace_listings")
       .select("id").eq("category", "tag").ilike("tag_value", TAG).eq("status", "active").maybeSingle();
     if (listed) throw new Error("That tag is listed for sale — buy it on the marketplace.");
@@ -509,14 +519,21 @@ export const claimTag = createServerFn({ method: "POST" })
       _user: context.userId, _delta: -COST, _type: "fee",
       _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: `Claim tag #${TAG}`,
     });
-    const { error } = await supabaseAdmin.from("profiles").update({ tag: TAG }).eq("id", context.userId);
-    if (error) {
-      // Refund on race
+    // Record ownership in profile_tags
+    const { error: ptErr } = await supabaseAdmin.from("profile_tags" as any).insert({
+      user_id: context.userId, tag: TAG,
+    });
+    if (ptErr) {
       await supabaseAdmin.rpc("wallet_adjust", {
         _user: context.userId, _delta: COST, _type: "refund",
         _source: "tag_claim", _ref_kind: null as any, _ref_id: null as any, _note: "Tag race refund",
       });
       throw new Error("Tag taken just now — refunded");
+    }
+    // If user has no active tag, set this one as active
+    const { data: meNow } = await supabaseAdmin.from("profiles").select("tag").eq("id", context.userId).single();
+    if (!meNow?.tag) {
+      await supabaseAdmin.from("profiles").update({ tag: TAG }).eq("id", context.userId);
     }
     return { ok: true, tag: TAG };
   });

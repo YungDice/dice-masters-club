@@ -119,11 +119,15 @@ function SeasonPassPage() {
     return Math.max(0, ((profile as any).xp ?? 0) - base) + bonus;
   }, [profile, progress.data]);
 
-  // Infinite tiers: level keeps climbing past tier_count for prestige/flex.
-  const currentTier = season.data ? Math.floor(seasonXp / season.data.xp_per_tier) : 0;
-  const nextTierXp = season.data ? (currentTier + 1) * season.data.xp_per_tier : 0;
-  const xpIntoTier = season.data ? seasonXp - currentTier * season.data.xp_per_tier : 0;
-  const pctToNext = season.data ? (xpIntoTier / season.data.xp_per_tier) * 100 : 0;
+  // Progressive XP curve: tier k→k+1 costs 1000 + 250*k. Cumulative to reach tier T: 875*T + 125*T*T
+  const xpForTier = (t: number) => Math.max(0, 875 * t + 125 * t * t);
+  const currentTier = seasonXp <= 0 ? 0 : Math.max(0, Math.floor((-875 + Math.sqrt(875 * 875 + 500 * seasonXp)) / 250));
+  const prevTierXp = xpForTier(currentTier);
+  const nextTierXp = xpForTier(currentTier + 1);
+  const xpIntoTier = seasonXp - prevTierXp;
+  const tierSpan = Math.max(1, nextTierXp - prevTierXp);
+  const pctToNext = (xpIntoTier / tierSpan) * 100;
+  const tierCount = season.data?.tier_count ?? 30;
 
   const claim = useMutation({
     mutationFn: async ({ tier, track }: { tier: number; track: "free" | "vip" }) => {
@@ -318,6 +322,46 @@ function SeasonPassPage() {
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground mt-3 text-center">Scroll horizontally to see all tiers →</p>
+        </Card>
+      )}
+
+      {/* Prestige tiers past tier_count — infinite, each awards 500 DICE */}
+      {currentTier >= tierCount && (
+        <Card className="p-4 overflow-hidden border-[color:var(--gold)]/30">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-[color:var(--gold)]" /> Prestige tiers
+              <Badge variant="outline" className="ml-1">Infinite</Badge>
+            </h2>
+            <p className="text-xs text-muted-foreground">Every tier past {tierCount} awards <b className="text-[color:var(--gold)]">500 DICE</b>.</p>
+          </div>
+          <div className="overflow-x-auto pb-2">
+            <div className="min-w-max grid grid-flow-col auto-cols-[minmax(120px,1fr)] gap-3">
+              {Array.from({ length: Math.max(3, Math.min(30, currentTier - tierCount + 3)) }, (_, i) => {
+                const t = tierCount + 1 + i;
+                const unlocked = currentTier >= t;
+                const claimed = claimedSet.has(`${t}:free`);
+                return (
+                  <div key={`p-${t}`} className="flex flex-col items-center gap-2">
+                    <div className={cn(
+                      "grid h-10 w-10 place-items-center rounded-full border-2 font-display font-black",
+                      unlocked
+                        ? "border-[color:var(--gold)] bg-[color:var(--gold)]/20 text-[color:var(--gold)]"
+                        : "border-white/15 bg-white/[0.03] text-muted-foreground",
+                    )}>{t}</div>
+                    <RewardTile
+                      track="free"
+                      reward={{ kind: "dice", amount: 500 }}
+                      unlocked={unlocked}
+                      claimed={claimed}
+                      onClaim={() => claim.mutate({ tier: t, track: "free" })}
+                      pending={claim.isPending}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </Card>
       )}
     </div>

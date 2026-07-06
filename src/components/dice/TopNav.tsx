@@ -87,7 +87,13 @@ const nav: Entry[] = [
       { to: "/crews", label: "Crews", icon: Shield },
     ],
   },
-  { kind: "leaf", to: "/leaderboard", label: "Ranks", icon: BarChart3 },
+  {
+    kind: "group", label: "Ranks", icon: BarChart3,
+    children: [
+      { to: "/leaderboard", label: "Players", icon: BarChart3 },
+      { to: "/leaderboard/crews", label: "Crews", icon: Shield },
+    ],
+  },
 ];
 
 export function TopNav() {
