@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
-import { ImageCropper, readFileAsDataURL } from "@/components/dice/ImageCropper";
 
 const GAMES = [
   { v: "coinflip", n: "Coin Flip" }, { v: "dice", n: "Dice" }, { v: "blackjack", n: "Blackjack" },
@@ -16,22 +15,37 @@ const GAMES = [
   { v: "split-steal", n: "Split or Steal" },
 ];
 
+const EMOJI_QUICK = ["🔥", "😎", "👑", "💎", "🎲", "🃏", "⚡", "💰", "🚀", "🌟", "😈", "🦄", "🐉", "🍀", "🎯", "💀"];
+
+// Roughly detects a single grapheme emoji. Keeps it simple & permissive.
+function isSingleEmoji(s: string): boolean {
+  if (!s) return true;
+  // Use Intl.Segmenter when available for accurate grapheme count.
+  try {
+    // @ts-expect-error - Intl.Segmenter may not be typed everywhere
+    const seg = new Intl.Segmenter(undefined, { granularity: "grapheme" });
+    // @ts-expect-error - Segmenter iterable
+    const count = [...seg.segment(s)].length;
+    return count === 1 && s.length <= 12;
+  } catch {
+    return s.length <= 8;
+  }
+}
+
 export function LoadoutEditor({ user, profile, refetch }: any) {
   const qc = useQueryClient();
   const [baddieId, setBaddieId] = useState<string>("");
   const [game, setGame] = useState<string>("");
   const [achId, setAchId] = useState<string>("");
-  const [poseUrl, setPoseUrl] = useState<string>("");
+  const [emoji, setEmoji] = useState<string>("");
   const [saving, setSaving] = useState(false);
-  const [poseSrc, setPoseSrc] = useState<string>("");
-  const [poseOpen, setPoseOpen] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
     setBaddieId(profile.favorite_baddie_id ?? "");
     setGame(profile.favorite_game ?? "");
     setAchId(profile.favorite_achievement_id ?? "");
-    setPoseUrl(profile.win_pose_url ?? "");
+    setEmoji(profile.user_emoji ?? "");
   }, [profile]);
 
   const baddies = useQuery({
@@ -58,29 +72,21 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
 
   async function save() {
     if (!user) return;
+    if (emoji && !isSingleEmoji(emoji)) {
+      return toast.error("Pick a single emoji");
+    }
     setSaving(true);
     const { error } = await supabase.from("profiles").update({
       favorite_baddie_id: baddieId || null,
       favorite_game: game || null,
       favorite_achievement_id: achId || null,
-      win_pose_url: poseUrl || null,
+      user_emoji: emoji || null,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Loadout saved");
     refetch?.();
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
-  }
-
-  async function uploadPose(blob: Blob) {
-    if (!user) return;
-    const path = `${user.id}/win-pose-${Date.now()}.jpg`;
-    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
-    if (up.error) { toast.error(up.error.message); return; }
-    const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
-    setPoseUrl(signed.data.signedUrl);
-    toast.success("Sticker uploaded — click Save loadout");
   }
 
   return (
@@ -129,32 +135,38 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
         </div>
 
         <div className="md:col-span-2">
-          <Label>Win Pose / Sticker</Label>
+          <Label>Your Emoji</Label>
+          <p className="text-[11px] text-muted-foreground mb-2">
+            Shown next to your nickname in global chat, games and the profile card. Pick one emoji.
+          </p>
           <div className="flex items-center gap-3">
-            {poseUrl && <img src={poseUrl} className="size-16 rounded object-contain bg-black/30" alt="pose" />}
-            <div className="flex-1 space-y-2">
-              <Input type="file" accept="image/*" onChange={async (e) => {
-                const f = e.target.files?.[0]; if (!f || !user) return;
-                if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
-                if (f.type === "image/gif") {
-                  const path = `${user.id}/win-pose-${Date.now()}.gif`;
-                  const up = await supabase.storage.from("avatars").upload(path, f, { upsert: true, contentType: "image/gif" });
-                  if (up.error) return toast.error(up.error.message);
-                  const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-                  if (signed.error || !signed.data) return toast.error("Could not load image");
-                  setPoseUrl(signed.data.signedUrl);
-                  toast.success("Sticker uploaded — click Save loadout");
-                } else {
-                  setPoseSrc(await readFileAsDataURL(f)); setPoseOpen(true);
-                }
-                e.currentTarget.value = "";
-              }} />
-              <p className="text-[11px] text-muted-foreground">PNG/WebP get cropped as a square. GIFs upload as-is (animated).</p>
-              {poseUrl && <Button size="sm" variant="ghost" onClick={() => setPoseUrl("")}>Remove sticker</Button>}
+            <div className="text-3xl w-12 h-12 grid place-items-center rounded-md bg-black/30 border border-border/60">
+              {emoji || <span className="text-xs text-muted-foreground">—</span>}
             </div>
+            <Input
+              value={emoji}
+              onChange={(e) => setEmoji(e.target.value)}
+              placeholder="🔥"
+              maxLength={12}
+              className="max-w-[140px]"
+            />
+            {emoji && <Button size="sm" variant="ghost" onClick={() => setEmoji("")}>Clear</Button>}
           </div>
-          <ImageCropper open={poseOpen} onOpenChange={setPoseOpen} imageSrc={poseSrc} aspect={1}
-            outputWidth={512} title="Crop sticker" onCropped={uploadPose} />
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {EMOJI_QUICK.map((e) => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setEmoji(e)}
+                className={`text-xl w-9 h-9 rounded-md grid place-items-center border transition ${
+                  emoji === e ? "border-primary bg-primary/10" : "border-border/60 bg-black/20 hover:bg-white/5"
+                }`}
+                aria-label={`Pick ${e}`}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
         </div>
 
       </div>
