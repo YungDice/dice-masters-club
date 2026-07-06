@@ -1970,6 +1970,7 @@ export type Database = {
           vip_until: string | null
           win_pose_url: string | null
           xp: number
+          yuri_autosell_rarities: string[]
         }
         Insert: {
           autosell_rarities?: string[]
@@ -2010,6 +2011,7 @@ export type Database = {
           vip_until?: string | null
           win_pose_url?: string | null
           xp?: number
+          yuri_autosell_rarities?: string[]
         }
         Update: {
           autosell_rarities?: string[]
@@ -2050,6 +2052,7 @@ export type Database = {
           vip_until?: string | null
           win_pose_url?: string | null
           xp?: number
+          yuri_autosell_rarities?: string[]
         }
         Relationships: [
           {
@@ -2838,6 +2841,19 @@ export type Database = {
       is_vip: { Args: { _uid: string }; Returns: boolean }
       join_crew_tx: { Args: { _crew_id: string }; Returns: Json }
       kick_crew_member_tx: { Args: { _target: string }; Returns: Json }
+      leaderboard_crews: {
+        Args: { _limit?: number; _order?: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          level: number
+          member_count: number
+          name: string
+          tag: string
+          total_score: number
+          weekly_score: number
+        }[]
+      }
       leaderboard_wins: {
         Args: { _limit?: number }
         Returns: {
@@ -2998,6 +3014,12 @@ export type Database = {
         }
       }
       sell_baddie_tx: { Args: { _baddie_id: string }; Returns: Json }
+      sell_yuri_tx: {
+        Args: { _yuri_id: string }
+        Returns: {
+          price: number
+        }[]
+      }
       set_active_tag: { Args: { _tag: string }; Returns: Json }
       set_autosell_rarities: {
         Args: { _rarities: string[] }
@@ -3013,6 +3035,10 @@ export type Database = {
           _target: string
         }
         Returns: Json
+      }
+      set_yuri_autosell_rarities: {
+        Args: { _rarities: string[] }
+        Returns: undefined
       }
       settle_auction_tx: { Args: { _listing_id: string }; Returns: Json }
       submit_cosmetic: {
