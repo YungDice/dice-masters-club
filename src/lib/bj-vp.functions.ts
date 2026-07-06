@@ -33,10 +33,11 @@ function bjScore(h: Card[]) {
 // the sanitized public view, so even if a client subscribes to the room row
 // they cannot see the next cards.
 async function savePrivate(adm: any, roomId: string, priv: { deck: Card[]; dealerHole?: Card | null; hand?: Card[] }) {
-  await adm.from("game_private_state").upsert(
-    { room_id: roomId, state: priv, updated_at: new Date().toISOString() },
-    { onConflict: "room_id" },
-  );
+  const { error } = await (adm.rpc as any)("save_game_private_state", {
+    _room_id: roomId,
+    _state: priv,
+  });
+  if (error) throw error;
 }
 async function loadPrivate(adm: any, roomId: string): Promise<any> {
   const { data } = await adm.from("game_private_state").select("state").eq("room_id", roomId).single();
@@ -118,6 +119,7 @@ export const bjDeal = createServerFn({ method: "POST" })
         _uid: context.userId, _kind: "blackjack", _delta: delta,
         _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
         _room_id: room.id, _details: { initial: true } as any,
+        _wagered: data.bet, _payout: delta + data.bet,
       });
     }
     return { roomId: room.id, ...publicState };
@@ -194,6 +196,7 @@ export const bjAction = createServerFn({ method: "POST" })
         _uid: context.userId, _kind: "blackjack", _delta: delta,
         _outcome: outcome === "push" ? "tie" : outcome,
         _room_id: room.id, _details: { doubled, action: data.action } as any,
+        _wagered: bet, _payout: delta + bet,
       });
     }
     return { roomId: room.id, ...view };
@@ -291,6 +294,7 @@ export const vpDraw = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "poker", _delta: vpDelta,
       _outcome: vpDelta > 0 ? "win" : vpDelta < 0 ? "loss" : "tie",
       _room_id: room.id, _details: { result } as any,
+      _wagered: pubState.bet, _payout: payAmount,
     });
     return { hand: newHand, outcome: result, payout: payAmount, delta: vpDelta };
 
@@ -466,6 +470,7 @@ async function mbjResolve(adm: any, room: any, s: any) {
       _uid: seat.userId, _kind: "blackjack", _delta: seat.delta,
       _outcome: outcome === "push" ? "tie" : outcome === "blackjack" ? "win" : outcome,
       _room_id: room.id, _details: { ps, ds, mp: true },
+      _wagered: seat.bet, _payout: seat.delta + seat.bet,
     });
 
   }

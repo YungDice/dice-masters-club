@@ -66,6 +66,7 @@ export const playDiceSolo = createServerFn({ method: "POST" })
     await supabaseAdmin.rpc("record_game_result" as any, {
       _uid: context.userId, _kind: "dice", _delta: delta, _outcome: outcome,
       _room_id: null, _details: { me, house } as any,
+      _wagered: stake, _payout: delta + stake,
     });
     return { me, house, delta, outcome };
 
@@ -104,6 +105,7 @@ export const playSlots = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "slots", _delta: slotsNet,
       _outcome: slotsNet > 0 ? "win" : slotsNet < 0 ? "loss" : "tie",
       _room_id: null, _details: { reels, payout } as any,
+      _wagered: data.bet, _payout: payout,
     });
     return { reels, payout, delta: slotsNet };
   });
@@ -200,8 +202,8 @@ export const pickCoinFlipSide = createServerFn({ method: "POST" })
       _source: "coinflip", _ref_kind: "coinflip", _ref_id: room.id, _note: "Coin flip win",
     });
     await supabaseAdmin.from("game_results").insert([
-      { room_id: room.id, user_id: winnerId, kind: "coinflip", delta: room.stake, outcome: "win", details: { flip } },
-      { room_id: room.id, user_id: loserId, kind: "coinflip", delta: -room.stake, outcome: "loss", details: { flip } },
+      { room_id: room.id, user_id: winnerId, kind: "coinflip", delta: room.stake, outcome: "win", wagered: room.stake, payout: room.stake * 2, details: { flip } },
+      { room_id: room.id, user_id: loserId, kind: "coinflip", delta: -room.stake, outcome: "loss", wagered: room.stake, payout: 0, details: { flip } },
     ]);
     return { flip, winnerId, pot, hostPick: next.host_pick, joinerPick: next.joiner_pick };
   });
@@ -273,6 +275,7 @@ export const playBlackjack = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "blackjack", _delta: bjDelta,
       _outcome: outcome === "push" ? "tie" : outcome,
       _room_id: null, _details: { p, dl } as any,
+      _wagered: data.bet, _payout: payout,
     });
     return { player, dealer, outcome, delta: bjDelta, playerScore: p, dealerScore: dl };
 
@@ -361,11 +364,13 @@ export const choiceSplitSteal = createServerFn({ method: "POST" })
       _uid: a.user_id, _kind: "split_steal", _delta: aDelta,
       _outcome: aDelta > 0 ? "win" : aDelta < 0 ? "loss" : "tie",
       _room_id: data.roomId, _details: { outcome, choice: ac } as any,
+      _wagered: stake, _payout: aPay,
     });
     await supabaseAdmin.rpc("record_game_result" as any, {
       _uid: b.user_id, _kind: "split_steal", _delta: bDelta,
       _outcome: bDelta > 0 ? "win" : bDelta < 0 ? "loss" : "tie",
       _room_id: data.roomId, _details: { outcome, choice: bc } as any,
+      _wagered: stake, _payout: bPay,
     });
     return { waiting: false, outcome, aPay, bPay };
   });
@@ -445,11 +450,13 @@ export const joinDiceRoom = createServerFn({ method: "POST" })
         _uid: room.host_id, _kind: "dice", _delta: hostDelta,
         _outcome: hostDelta > 0 ? "win" : hostDelta < 0 ? "loss" : "tie",
         _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+        _wagered: stakeAmt, _payout: hostDelta + stakeAmt,
       });
       await supabaseAdmin.rpc("record_game_result" as any, {
         _uid: context.userId, _kind: "dice", _delta: joinDelta,
         _outcome: joinDelta > 0 ? "win" : joinDelta < 0 ? "loss" : "tie",
         _room_id: room.id, _details: { hostRoll, joinRoll } as any,
+        _wagered: stakeAmt, _payout: joinDelta + stakeAmt,
       });
     }
     return { hostRoll, joinRoll, winnerId, pot };
@@ -1002,6 +1009,7 @@ export const coinFlipBot = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "coinflip", _delta: cfbDelta,
       _outcome: won ? "win" : "loss",
       _room_id: null, _details: { flip, vs: "bot" } as any,
+      _wagered: stake, _payout: cfbDelta + stake,
     });
     return { flip, won, delta: cfbDelta };
 
@@ -1040,6 +1048,7 @@ export const splitStealBot = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "split_steal", _delta: ssbDelta,
       _outcome: ssbDelta > 0 ? "win" : ssbDelta < 0 ? "loss" : "tie",
       _room_id: null, _details: { outcome, bot, vs: "bot" } as any,
+      _wagered: stake, _payout: payout,
     });
     return { bot, outcome, payout, delta: ssbDelta };
   });
