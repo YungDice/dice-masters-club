@@ -350,13 +350,6 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div><Label>Color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
             </div>
           )}
-          {kind === "banner" && (
-            <div>
-              <Label>CSS gradient</Label>
-              <Input value={gradient} onChange={(e) => setGradient(e.target.value)} placeholder="linear-gradient(135deg,#f472b6,#8b5cf6)" />
-              <div className="mt-2 h-14 rounded-md border border-white/10" style={{ background: gradient }} />
-            </div>
-          )}
           {kind === "emote" && (
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Emoji</Label><Input value={emoji} onChange={(e) => setEmoji(e.target.value.slice(0, 4))} /></div>
