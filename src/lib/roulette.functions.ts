@@ -97,6 +97,7 @@ export const rouletteSpin = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "roulette", _delta: net,
       _outcome: net > 0 ? "win" : net < 0 ? "loss" : "tie",
       _room_id: null, _details: { pocket, payout, stake: total } as any,
+      _wagered: total, _payout: payout,
     });
     return { pocket, pocketIndex: idx, color: pocketColor(pocket), payout, net, bets: perBet };
 

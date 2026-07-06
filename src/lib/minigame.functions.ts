@@ -108,6 +108,7 @@ export const flappyEnd = createServerFn({ method: "POST" })
       _uid: context.userId, _kind: "flappy", _delta: s.reward ?? 0,
       _outcome: totalGates > 0 ? "win" : "loss",
       _room_id: room.id, _details: { gates: totalGates } as any,
+      _wagered: 0, _payout: s.reward ?? 0,
     });
     return { gates: totalGates, reward: s.reward ?? 0 };
   });
@@ -207,6 +208,7 @@ export const obbyFinish = createServerFn({ method: "POST" })
     await supabaseAdmin.rpc("record_game_result" as any, {
       _uid: context.userId, _kind: "obby", _delta: OBBY_REWARD, _outcome: "win",
       _room_id: room.id, _details: { seed: s.seed } as any,
+      _wagered: 0, _payout: OBBY_REWARD,
     });
     return { reward: OBBY_REWARD };
   });
@@ -226,6 +228,7 @@ export const obbyAbandon = createServerFn({ method: "POST" })
     await supabaseAdmin.rpc("record_game_result" as any, {
       _uid: context.userId, _kind: "obby", _delta: 0, _outcome: "loss",
       _room_id: room.id, _details: {} as any,
+      _wagered: 0, _payout: 0,
     });
     return { ok: true };
   });

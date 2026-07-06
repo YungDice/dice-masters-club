@@ -2255,6 +2255,10 @@ export type Database = {
       expire_auctions: { Args: never; Returns: undefined }
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
+      finalize_stale_user_games: {
+        Args: { _older_than_seconds?: number; _uid: string }
+        Returns: Json
+      }
       finalize_weekly_crew_rankings: { Args: never; Returns: Json }
       fuse_baddies_tx: { Args: { _baddie_ids: string[] }; Returns: Json }
       get_today_missions: {
@@ -2280,15 +2284,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      grant_achievement:
-        | {
-            Args: { _achievement_id: string; _user_id: string }
-            Returns: boolean
-          }
-        | {
-            Args: { _achievement_id: string; _user_id: string }
-            Returns: boolean
-          }
+      grant_achievement: {
+        Args: { _achievement_id: string; _user_id: string }
+        Returns: boolean
+      }
       grant_achievement_tx: {
         Args: { _achievement: string; _user: string }
         Returns: Json
@@ -2422,6 +2421,10 @@ export type Database = {
           _reviewer: string
         }
         Returns: Json
+      }
+      save_game_private_state: {
+        Args: { _room_id: string; _state: Json }
+        Returns: undefined
       }
       seed_daily_missions: {
         Args: { _user: string }

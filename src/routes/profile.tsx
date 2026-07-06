@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Trophy, Flame, Star, Calendar, Award, ShoppingBag, Crown, MapPin, Swords } from "lucide-react";
@@ -14,6 +15,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
 import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { finalizeMyStaleGames } from "@/lib/stats.functions";
 
 
 
@@ -32,6 +34,7 @@ function MyProfile() {
   const { user } = useAuth();
   const { data: p } = useMyProfile(user?.id);
   const qc = useQueryClient();
+  const finalizeStaleGames = useServerFn(finalizeMyStaleGames);
 
   // Realtime: refresh stats & achievements as new game results / achievements roll in.
   useEffect(() => {
@@ -87,6 +90,7 @@ function MyProfile() {
     enabled: !!user?.id,
     staleTime: 30_000,
     queryFn: async () => {
+      try { await finalizeStaleGames({ data: { olderThanSeconds: 30 } }); } catch { /* stats still load */ }
       const { data } = await supabase.from("user_game_stats" as any).select("*").eq("user_id", user!.id).maybeSingle();
       const row = (data ?? {}) as any;
       const wins = Number(row.wins ?? 0);
