@@ -119,11 +119,15 @@ function SeasonPassPage() {
     return Math.max(0, ((profile as any).xp ?? 0) - base) + bonus;
   }, [profile, progress.data]);
 
-  // Infinite tiers: level keeps climbing past tier_count for prestige/flex.
-  const currentTier = season.data ? Math.floor(seasonXp / season.data.xp_per_tier) : 0;
-  const nextTierXp = season.data ? (currentTier + 1) * season.data.xp_per_tier : 0;
-  const xpIntoTier = season.data ? seasonXp - currentTier * season.data.xp_per_tier : 0;
-  const pctToNext = season.data ? (xpIntoTier / season.data.xp_per_tier) * 100 : 0;
+  // Progressive XP curve: tier k→k+1 costs 1000 + 250*k. Cumulative to reach tier T: 875*T + 125*T*T
+  const xpForTier = (t: number) => Math.max(0, 875 * t + 125 * t * t);
+  const currentTier = seasonXp <= 0 ? 0 : Math.max(0, Math.floor((-875 + Math.sqrt(875 * 875 + 500 * seasonXp)) / 250));
+  const prevTierXp = xpForTier(currentTier);
+  const nextTierXp = xpForTier(currentTier + 1);
+  const xpIntoTier = seasonXp - prevTierXp;
+  const tierSpan = Math.max(1, nextTierXp - prevTierXp);
+  const pctToNext = (xpIntoTier / tierSpan) * 100;
+  const tierCount = season.data?.tier_count ?? 30;
 
   const claim = useMutation({
     mutationFn: async ({ tier, track }: { tier: number; track: "free" | "vip" }) => {
