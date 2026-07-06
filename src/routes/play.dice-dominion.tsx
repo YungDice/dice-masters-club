@@ -148,17 +148,24 @@ function Dominion() {
   }
   if (!q.data?.initialized) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-amber-400/30 bg-black/40 p-8 text-center">
-        <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-amber-400/10 ring-1 ring-amber-400/30">
-          <Dices className="size-8 text-amber-300" />
+      <div className="mx-auto max-w-2xl space-y-5">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-fuchsia-500/10 to-emerald-500/10 p-8 text-center">
+          <div className="absolute -right-16 -top-16 size-64 rounded-full bg-amber-400/20 blur-3xl" />
+          <div className="absolute -left-16 -bottom-16 size-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="relative">
+            <div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-orange-500 text-black text-4xl shadow-lg shadow-amber-500/30">
+              🏰
+            </div>
+            <h2 className="font-display text-4xl font-black text-amber-100">DICE Dominion</h2>
+            <p className="mt-2 text-amber-100/80 max-w-md mx-auto">
+              Build your own tiny city, train a crew, and conquer the map to stack up loot!
+            </p>
+            <Button onClick={() => init.mutate()} disabled={init.isPending} size="lg" className="mt-6 bg-amber-400 text-black hover:bg-amber-300 font-bold text-base">
+              {init.isPending ? "Deploying…" : "🚀 Start My District"}
+            </Button>
+          </div>
         </div>
-        <h2 className="font-display text-2xl font-bold text-amber-100">Claim your District</h2>
-        <p className="mt-2 text-sm text-amber-100/70">
-          Build production, forge Roll Credits, command a crew, and conquer the board.
-        </p>
-        <Button onClick={() => init.mutate()} disabled={init.isPending} className="mt-6 bg-amber-400 text-black hover:bg-amber-300">
-          {init.isPending ? "Deploying…" : "Deploy District"}
-        </Button>
+        <HowItWorks />
       </div>
     );
   }
