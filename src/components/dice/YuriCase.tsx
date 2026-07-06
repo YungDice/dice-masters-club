@@ -346,17 +346,29 @@ export function YuriCase() {
           <EmptyState icon={Sparkles} title="No Yuri girls yet" description="Open a Yuri Case to start building your duos." />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {inventory.map((y) => (
-              <div key={y.id} className={`rounded-lg border bg-gradient-to-br p-2 ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}>
-                <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
-                  {y.template?.image_url
-                    ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
-                    : <Heart className="size-6 text-pink-300/80" />}
+            {inventory.map((y) => {
+              const rate = y.template?.income_per_hour ?? 0;
+              const sellPrice = Math.max(1, rate * 4);
+              return (
+                <div key={y.id} className={`rounded-lg border bg-gradient-to-br p-2 ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}>
+                  <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
+                    {y.template?.image_url
+                      ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
+                      : <Heart className="size-6 text-pink-300/80" />}
+                  </div>
+                  <div className="text-xs font-semibold truncate">{y.template?.name}</div>
+                  <div className="text-[10px] opacity-80 capitalize">{y.template?.rarity} · {rate}/h</div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full mt-1.5 h-7 text-[10px]"
+                    onClick={() => setSellTarget(y)}
+                  >
+                    <Coins className="size-3 mr-1" /> Sell {fmt(sellPrice)}
+                  </Button>
                 </div>
-                <div className="text-xs font-semibold truncate">{y.template?.name}</div>
-                <div className="text-[10px] opacity-80 capitalize">{y.template?.rarity} · {y.template?.income_per_hour}/h</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
