@@ -52,6 +52,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ChallengesIdSubmitRouteImport } from './routes/challenges.$id.submit'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const UpgraderRoute = UpgraderRouteImport.update({
@@ -272,6 +273,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -367,6 +374,7 @@ export interface FileRoutesByTo {
   '/crews': typeof CrewsIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
   '/play': typeof PlayIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -414,6 +422,7 @@ export interface FileRoutesById {
   '/crews/': typeof CrewsIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
   '/play/': typeof PlayIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/challenges/$id/submit': typeof ChallengesIdSubmitRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -462,6 +471,7 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/marketplace/'
     | '/play/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/crews'
     | '/marketplace'
     | '/play'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
@@ -554,6 +565,7 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/marketplace/'
     | '/play/'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/challenges/$id/submit'
     | '/api/public/payments/webhook'
@@ -601,6 +613,7 @@ export interface RootRouteChildren {
   CrewsIndexRoute: typeof CrewsIndexRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
   PlayIndexRoute: typeof PlayIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -908,6 +921,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -973,6 +993,7 @@ const rootRouteChildren: RootRouteChildren = {
   CrewsIndexRoute: CrewsIndexRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
   PlayIndexRoute: PlayIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }

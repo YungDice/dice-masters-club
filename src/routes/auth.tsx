@@ -14,7 +14,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DiceLogo } from "@/components/dice/Logo";
 import { toast } from "sonner";
 
+// Preserve a `next` search param so consent/OAuth flows redirect back to the
+// originating page (e.g. /.lovable/oauth/consent?authorization_id=...) after
+// sign-in. Validate as a same-origin relative path before using.
+function safeNext(next: string | undefined): string {
+  if (!next || typeof next !== "string") return "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — DICE" },
