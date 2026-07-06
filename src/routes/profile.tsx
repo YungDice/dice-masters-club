@@ -92,12 +92,12 @@ function MyProfile() {
     staleTime: 30_000,
     queryFn: async () => {
       try { await finalizeStaleGames({ data: { olderThanSeconds: 30 } }); } catch { /* stats still load */ }
-      const { data } = await supabase.from("user_game_stats" as any).select("*").eq("user_id", user!.id).maybeSingle();
-      const row = (data ?? {}) as any;
+      const { data } = await (supabase.rpc as any)("get_user_profile_stats", { _uid: user!.id });
+      const row = (Array.isArray(data) ? data[0] : data) ?? {};
       const wins = Number(row.wins ?? 0);
       const losses = Number(row.losses ?? 0);
       const total = Number(row.games_played ?? 0);
-      const ratio = losses > 0 ? wins / losses : (wins > 0 ? wins : 0);
+      const ratio = Number(row.win_loss_ratio ?? (losses > 0 ? wins / losses : (wins > 0 ? wins : 0)));
       return { wins, losses, total, ratio, rank_score: Number(row.rank_score ?? 0), net: Number(row.net ?? 0) };
     },
   });

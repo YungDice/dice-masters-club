@@ -2284,6 +2284,7 @@ export type Database = {
       autofill_crew_missions: { Args: never; Returns: Json }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
+      baddie_storage_cap: { Args: { _tier: string }; Returns: number }
       baddie_tier_mult_bp: { Args: { _tier: string }; Returns: number }
       baddie_upgrade_chance: {
         Args: {
@@ -2381,6 +2382,7 @@ export type Database = {
         }
       }
       current_week_start: { Args: never; Returns: string }
+      delete_tag_tx: { Args: { _tag: string }; Returns: Json }
       donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
       ensure_season_progress: {
         Args: never
@@ -2432,6 +2434,21 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_user_profile_stats: {
+        Args: { _uid: string }
+        Returns: {
+          draws: number
+          games_played: number
+          losses: number
+          net: number
+          payout: number
+          rank_score: number
+          user_id: string
+          wagered: number
+          win_loss_ratio: number
+          wins: number
+        }[]
       }
       grant_achievement: {
         Args: { _achievement_id: string; _user_id: string }
@@ -2727,6 +2744,12 @@ export type Database = {
         | "admin_announcement"
         | "auction_outbid"
         | "auction_won"
+        | "event"
+        | "achievement"
+        | "trade_offer"
+        | "trade_declined"
+        | "crew"
+        | "system"
       proof_status: "pending" | "approved" | "rejected"
       proof_type:
         | "text"
@@ -2958,6 +2981,12 @@ export const Constants = {
         "admin_announcement",
         "auction_outbid",
         "auction_won",
+        "event",
+        "achievement",
+        "trade_offer",
+        "trade_declined",
+        "crew",
+        "system",
       ],
       proof_status: ["pending", "approved", "rejected"],
       proof_type: [

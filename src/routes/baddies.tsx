@@ -60,6 +60,8 @@ const TIER_META: Record<string, { label: string; icon: any; className: string }>
   elite:    { label: "Elite",    icon: Zap,      className: "ring-2 ring-fuchsia-300/70 shadow-[0_0_22px_-4px_rgba(232,121,249,0.7)]" },
   prestige: { label: "Prestige", icon: Crown,    className: "ring-2 ring-amber-300 shadow-[0_0_28px_-4px_rgba(252,211,77,0.85)]" },
 };
+// DICE storage cap per baddie by tier — enforced server-side in collect_baddie_tx
+const TIER_STORAGE_CAP: Record<string, number> = { base: 120000, shiny: 240000, elite: 360000, prestige: 480000 };
 const effectiveRate = (rate: number, tier: string) => Math.floor((rate * (TIER_MULT[tier] ?? 1)));
 const sellPriceFor = (rate: number, tier = "base") => Math.max(Math.floor(effectiveRate(rate, tier) / 2), 1);
 
@@ -453,8 +455,10 @@ function Page() {
                 const tierMeta = TIER_META[tier];
                 const TierIcon = tierMeta.icon;
                 const rateEff = effectiveRate(t.income_per_hour, tier);
-                const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 24 * 3600);
-                const pending = listed ? 0 : Math.floor((rateEff * secs) / 3600);
+                const secs = Math.min(Math.floor((now - new Date(b.last_collected_at).getTime()) / 1000), 30 * 24 * 3600);
+                const cap = TIER_STORAGE_CAP[tier] ?? TIER_STORAGE_CAP.base;
+                const pending = listed ? 0 : Math.min(Math.floor((rateEff * secs) / 3600), cap);
+                const atCap = !listed && pending >= cap;
                 const img = templateImage(t);
                 const price = sellPriceFor(t.income_per_hour, tier);
                 return (
@@ -482,7 +486,11 @@ function Page() {
                       </div>
                       <Coins className="size-5 opacity-80" />
                     </div>
-                    <div className="text-sm mb-2">Pending: <b>{fmt(pending)} DICE</b></div>
+                    <div className="text-sm mb-1">Pending: <b>{fmt(pending)}</b> <span className="opacity-70">/ {fmt(cap)} DICE</span></div>
+                    <div className="h-1.5 rounded-full bg-black/30 overflow-hidden mb-2">
+                      <div className={`h-full ${atCap ? "bg-amber-400" : "bg-primary"}`} style={{ width: `${Math.min(100, (pending / cap) * 100)}%` }} />
+                    </div>
+                    {atCap && <div className="text-[10px] text-amber-300 mb-1.5">Storage full — collect to keep earning.</div>}
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" onClick={() => collect(b.id)} disabled={pending <= 0 || listed}>Collect</Button>
                       <Button size="sm" variant="outline" onClick={() => setSellTarget({ ...b, template: t, price })} disabled={listed}>

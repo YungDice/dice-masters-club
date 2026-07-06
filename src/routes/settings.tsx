@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { changeUsername, buyVip, claimTag, listTagForSale, buyLevelUp, setActiveTag } from "@/lib/dice.functions";
+import { changeUsername, buyVip, claimTag, listTagForSale, buyLevelUp, setActiveTag, deleteTag } from "@/lib/dice.functions";
 import { Crown, Sparkles, Hash, User, Coins, ShieldAlert, Camera } from "lucide-react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { fmt } from "@/lib/format";
@@ -331,6 +331,7 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
   const claim = useServerFn(claimTag);
   const listFn = useServerFn(listTagForSale);
   const setActiveFn = useServerFn(setActiveTag);
+  const deleteFn = useServerFn(deleteTag);
   const currentTag: string | null = profile?.tag ?? null;
 
   const ownedTags = useQuery({
@@ -376,6 +377,13 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
     try { await setActiveFn({ data: { tag: t } }); toast.success(`#${t} is now your active tag`); refetch(); }
     catch (e: any) { toast.error(e.message ?? "Failed"); }
   }
+  async function doDelete(t: string) {
+    if (!confirm(`Delete tag #${t}? This frees up the slot but is permanent.`)) return;
+    setBusy(true);
+    try { await deleteFn({ data: { tag: t } }); toast.success(`Tag #${t} deleted`); refetch(); ownedTags.refetch(); }
+    catch (e: any) { toast.error(e.message ?? "Failed"); }
+    finally { setBusy(false); }
+  }
 
   return (
     <Card className="glass p-6 space-y-3 border-primary/40">
@@ -389,13 +397,17 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
             const isActive = t === currentTag;
             const listingId = tagsForSale.data?.[t];
             return (
-              <div key={t} className="rounded-md bg-white/5 p-3">
+              <div key={t} className={`rounded-md p-3 border ${isActive ? "bg-primary/10 border-primary/50 shadow-[0_0_18px_-6px_hsl(var(--primary)/0.6)]" : "bg-white/5 border-white/10"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="font-mono text-xl text-primary">@{profile?.username}#{t}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-mono text-xl text-primary">@{profile?.username}#{t}</div>
+                    {isActive && <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-primary text-primary-foreground font-bold">Equipped</span>}
+                  </div>
                   <div className="flex gap-2 flex-wrap">
-                    {isActive ? <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">Active</span> : <Button size="sm" variant="outline" onClick={() => makeActive(t)}>Make active</Button>}
+                    {isActive ? <span className="text-xs px-2 py-1 rounded bg-primary/20 text-primary">Active tag</span> : <Button size="sm" variant="outline" onClick={() => makeActive(t)}>Equip</Button>}
                     {listingId ? <span className="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300">For sale</span>
                       : <Button size="sm" variant="outline" onClick={() => { setSellFor(t); setSellPrice(1000); setSaleType("fixed"); setHours(24); }}>Sell</Button>}
+                    {!listingId && <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy} onClick={() => doDelete(t)}>Delete</Button>}
                   </div>
                 </div>
                 {sellFor === t && (
@@ -425,14 +437,33 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
               </div>
             );
           })}
+          {/* empty slot placeholders */}
+          {Array.from({ length: Math.max(0, 3 - owned.length) }).map((_, i) => (
+            <div key={`empty-${i}`} className="rounded-md p-3 border border-dashed border-white/15 bg-white/[0.02] text-xs text-muted-foreground flex items-center justify-between">
+              <span>Empty tag slot</span>
+              <span className="opacity-60">Claim below or buy from the marketplace</span>
+            </div>
+          ))}
         </div>
       )}
 
-      {owned.length < 3 && (
+      {owned.length === 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {[0,1,2].map((i) => (
+            <div key={i} className="rounded-md p-3 border border-dashed border-white/15 bg-white/[0.02] text-xs text-muted-foreground text-center">Empty tag slot</div>
+          ))}
+        </div>
+      )}
+
+      {owned.length < 3 ? (
         <div className="flex items-center gap-2 pt-2 border-t border-white/10">
           <span className="text-muted-foreground text-lg">#</span>
           <Input value={tag} onChange={(e) => setTag(e.target.value.toUpperCase())} maxLength={6} placeholder="EG. WOLF" />
           <Button onClick={doClaim} disabled={busy || tag.length < 2} className="glow-red">{busy ? "Claiming..." : "Claim — 5,000 DICE"}</Button>
+        </div>
+      ) : (
+        <div className="pt-2 border-t border-white/10 text-xs text-amber-300/90">
+          All 3 tag slots are full. Delete or sell one to claim or buy another.
         </div>
       )}
     </Card>
