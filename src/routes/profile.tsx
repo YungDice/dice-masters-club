@@ -134,9 +134,9 @@ function MyProfile() {
             <div className="flex-1">
               <h1 className="font-display text-3xl font-bold flex items-center gap-2 flex-wrap">
                 <span>{p.display_name}{tag && <span className="text-primary font-mono">#{tag}</span>}</span>
-                <NameBadges userId={p.id} emoji={(p as any).user_emoji} />
                 <TitleBadge title={equipped?.title} />
                 {vipActive && <Crown className="size-5 text-amber-400" />}
+                <NameBadges userId={p.id} emoji={(p as any).user_emoji} />
               </h1>
 
               <div className="text-muted-foreground">@{p.username} · Lvl {p.level}</div>
