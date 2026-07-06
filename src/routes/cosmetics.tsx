@@ -57,7 +57,7 @@ function CosmeticsPage() {
   };
 
   const grouped = useMemo(() => {
-    const m: Record<string, Cosmetic[]> = { title: [], frame: [], banner: [], emote: [], dice_skin: [] };
+    const m: Record<string, Cosmetic[]> = { title: [], frame: [], emote: [], dice_skin: [] };
     for (const c of catalog.data ?? []) m[c.kind]?.push(c);
     return m;
   }, [catalog.data]);
