@@ -174,21 +174,35 @@ function FlappyGame() {
         ctx.fillRect(p.x - 4, p.topH + GAP, PIPE_W + 8, 12);
       }
 
-      // The DIE
+      // The DIE (uses equipped dice skin cosmetic if any)
       ctx.save();
       ctx.translate(x + DIE_SIZE / 2, s.y + DIE_SIZE / 2);
       ctx.rotate(Math.max(-0.4, Math.min(0.9, s.v / 12)));
-      ctx.fillStyle = "#fef3c7";
-      ctx.strokeStyle = "#c9a84c";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(-DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE, 6);
-      ctx.fill(); ctx.stroke();
-      // pips (face = 5)
-      ctx.fillStyle = "#0b4d3a";
-      const r = 2.5;
-      const pip = (dx: number, dy: number) => { ctx.beginPath(); ctx.arc(dx, dy, r, 0, Math.PI * 2); ctx.fill(); };
-      pip(-8, -8); pip(8, -8); pip(0, 0); pip(-8, 8); pip(8, 8);
+      const img = skinImgRef.current;
+      if (img) {
+        // Draw skin image as the die face
+        ctx.beginPath();
+        ctx.roundRect(-DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE, 6);
+        ctx.save();
+        ctx.clip();
+        ctx.drawImage(img, -DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE);
+        ctx.restore();
+        ctx.strokeStyle = "#c9a84c";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = skinColor;
+        ctx.strokeStyle = "#c9a84c";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE, 6);
+        ctx.fill(); ctx.stroke();
+        // pips (face = 5)
+        ctx.fillStyle = skinPip;
+        const r = 2.5;
+        const pip = (dx: number, dy: number) => { ctx.beginPath(); ctx.arc(dx, dy, r, 0, Math.PI * 2); ctx.fill(); };
+        pip(-8, -8); pip(8, -8); pip(0, 0); pip(-8, 8); pip(8, 8);
+      }
       ctx.restore();
 
       raf = requestAnimationFrame(loop);
