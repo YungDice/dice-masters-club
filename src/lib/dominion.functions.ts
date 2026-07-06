@@ -2,9 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  BUILDINGS, UNITS, GRID_SIZE, PRODUCTION_CAP_SECONDS,
-  COMMAND_ENERGY_REGEN_PER_SEC, baseCapacity, baseCommandEnergyCap, workshopSpeedMultiplier,
-  type BuildingKind, type UnitKind,
+  BUILDINGS, UNITS, RESEARCH, GRID_SIZE, PRODUCTION_CAP_SECONDS,
+  COMMAND_ENERGY_REGEN_PER_SEC, BASE_UNIT_CAP, BASE_ATTACK_COST,
+  baseCapacity, baseCommandEnergyCap, workshopSpeedMultiplier,
+  type BuildingKind, type UnitKind, type ResearchNodeId,
 } from "./dominion.config";
 
 const CID = z.string().min(8).max(80);
