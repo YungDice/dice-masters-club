@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
-  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown, Target,
+  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown, Target, Gift,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,8 +22,9 @@ import {
 import { fmt, handle } from "@/lib/format";
 import { toast } from "sonner";
 import {
-  donateToCrew, leaveCrew, kickCrewMember, setCrewRole, respondCrewJoin,
+  donateToCrew, leaveCrew, kickCrewMember, setCrewRole, respondCrewJoin, awardCrewDice,
 } from "@/lib/crew.functions";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 export const Route = createFileRoute("/crews/$id")({
   head: ({ params }) => ({ meta: [{ title: `Crew — DICE` }] }),
@@ -40,6 +41,7 @@ function CrewPage() {
   const kick = useServerFn(kickCrewMember);
   const setRole = useServerFn(setCrewRole);
   const respond = useServerFn(respondCrewJoin);
+  const award = useServerFn(awardCrewDice);
   const [donateOpen, setDonateOpen] = useState(false);
   const [amount, setAmount] = useState(500);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -47,6 +49,9 @@ function CrewPage() {
   const [cAvatar, setCAvatar] = useState("");
   const [cBanner, setCBanner] = useState("");
   const [cDesc, setCDesc] = useState("");
+  const [awardOpen, setAwardOpen] = useState(false);
+  const [awardTarget, setAwardTarget] = useState<{ id: string; name: string } | null>(null);
+  const [awardAmount, setAwardAmount] = useState(500);
 
   const crew = useQuery({
     queryKey: ["crew", id],
