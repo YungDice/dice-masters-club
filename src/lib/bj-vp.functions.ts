@@ -421,21 +421,64 @@ export const mbjLeave = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room) throw new Error("Room not found");
-    if (room.status !== "waiting") throw new Error("Already started — can't leave");
-    const s = room.state as any;
-    const idx = s.seats.findIndex((x: any) => x.userId === context.userId);
-    if (idx < 0) throw new Error("Not in lobby");
-    await supabaseAdmin.rpc("wallet_adjust", {
-      _user: context.userId, _delta: room.stake, _type: "refund",
-      _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: "Leave lobby",
-    });
-    s.seats.splice(idx, 1);
-    if (s.seats.length === 0) {
-      await supabaseAdmin.from("game_rooms").update({ state: mbjPublicView(s), status: "cancelled", finished_at: new Date().toISOString() }).eq("id", room.id);
-    } else {
-      await supabaseAdmin.from("game_rooms").update({ state: mbjPublicView(s) }).eq("id", room.id);
+    if (room.status === "finished" || room.status === "cancelled") {
+      throw new Error("Game already ended");
     }
-    return { ok: true };
+
+    // --- Waiting lobby: refund & remove seat ---
+    if (room.status === "waiting") {
+      const s = room.state as any;
+      const idx = s.seats.findIndex((x: any) => x.userId === context.userId);
+      if (idx < 0) throw new Error("Not in lobby");
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: room.stake, _type: "refund",
+        _source: "blackjack_mp", _ref_kind: "blackjack", _ref_id: room.id, _note: "Leave lobby",
+      });
+      s.seats.splice(idx, 1);
+      if (s.seats.length === 0) {
+        await supabaseAdmin.from("game_rooms").update({ state: mbjPublicView(s), status: "cancelled", finished_at: new Date().toISOString() }).eq("id", room.id);
+      } else {
+        const patch: any = { state: mbjPublicView(s) };
+        if (room.host_id === context.userId) patch.host_id = s.seats[0].userId;
+        await supabaseAdmin.from("game_rooms").update(patch).eq("id", room.id);
+      }
+      return { ok: true, mode: "refunded" };
+    }
+
+    // --- Active game: forfeit seat, game continues for others ---
+    const { room: r2, full: s } = await loadMbjFull(supabaseAdmin, data.roomId);
+    const idx = s.seats.findIndex((x: any) => x.userId === context.userId);
+    if (idx < 0) throw new Error("Not in this game");
+    const seat = s.seats[idx];
+    if (seat.outcome || seat.leftEarly) throw new Error("Already resolved");
+    seat.leftEarly = true;
+    seat.status = "stand";
+
+    const activeRemaining = s.seats.filter((x: any) => !x.leftEarly && !x.outcome && x.status === "playing").length;
+    if (activeRemaining === 0) {
+      await mbjResolve(supabaseAdmin, r2, s);
+      await persistMbj(supabaseAdmin, r2.id, s, { roomStatus: "finished", finishedAt: new Date().toISOString() });
+      return { ok: true, mode: "forfeit_resolved" };
+    }
+    if (s.turn === idx) {
+      while (s.turn < s.seats.length && s.seats[s.turn].status !== "playing") s.turn++;
+      if (s.turn >= s.seats.length) {
+        await mbjResolve(supabaseAdmin, r2, s);
+        await persistMbj(supabaseAdmin, r2.id, s, { roomStatus: "finished", finishedAt: new Date().toISOString() });
+        return { ok: true, mode: "forfeit_resolved" };
+      }
+    }
+    await persistMbj(supabaseAdmin, r2.id, s);
+    return { ok: true, mode: "forfeit" };
+  });
+
+export const mbjCleanup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.rpc("cleanup_abandoned_lobbies" as any);
+    if (error) throw error;
+    return data;
   });
 
 async function mbjResolve(adm: any, room: any, s: any) {

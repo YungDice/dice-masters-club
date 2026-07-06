@@ -21,6 +21,9 @@ import { toast } from "sonner";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 import { openBaddieCases, listBaddieForSale } from "@/lib/dice.functions";
 import { motion, AnimatePresence } from "framer-motion";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { YuriCase } from "@/components/dice/YuriCase";
+import { Heart } from "lucide-react";
 
 export const Route = createFileRoute("/baddies")({
   head: () => ({ meta: [{ title: "Baddie Cases — DICE" }] }),
@@ -255,6 +258,16 @@ function Page() {
           </div>
         }
       />
+
+      <Tabs defaultValue="baddies" className="w-full">
+        <TabsList>
+          <TabsTrigger value="baddies"><Sparkles className="size-4 mr-1" />Baddies</TabsTrigger>
+          <TabsTrigger value="yuri"><Heart className="size-4 mr-1" />Yuri Case</TabsTrigger>
+        </TabsList>
+        <TabsContent value="yuri" className="mt-4">
+          <YuriCase />
+        </TabsContent>
+        <TabsContent value="baddies" className="mt-4 space-y-5">
 
       {/* The Case */}
       <Card className="glass p-6">
@@ -563,6 +576,8 @@ function Page() {
         </DialogContent>
       </Dialog>
 
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
