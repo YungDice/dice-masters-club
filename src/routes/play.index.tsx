@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User, Bird, Mountain } from "lucide-react";
+import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User, Bird, Mountain, Swords } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 
 type Mode = "solo" | "pvp" | "both";
@@ -16,6 +16,7 @@ const games: Game[] = [
   { to: "/play/poker",       title: "Video Poker",    icon: Layers,      desc: "Jacks or Better. Hold cards, draw the rest.",       modes: "solo", minBet: 10 },
   { to: "/play/flappy",      title: "Flappy DICE",    icon: Bird,        desc: "Tap to flap. +50 DICE per gate cleared.",          modes: "solo", minBet: 0  },
   { to: "/play/obby",        title: "DICE Obby",      icon: Mountain,    desc: "Run, jump, dodge. +150 DICE per level.",           modes: "solo", minBet: 0  },
+  { to: "/play/dice-dominion", title: "DICE Dominion", icon: Swords,     desc: "Build your district, command your crew, and conquer the board.", modes: "pvp",  minBet: 0 },
 ];
 
 
