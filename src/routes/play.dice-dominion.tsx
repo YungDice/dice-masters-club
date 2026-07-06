@@ -18,7 +18,8 @@ import {
 } from "@/lib/dominion.functions";
 import { BUILDINGS, GRID_SIZE, type BuildingKind } from "@/lib/dominion.config";
 
-const BUILDABLE: BuildingKind[] = ["salvage_yard","power_core","dice_forge","vault","command_center","workshop"];
+type BuildableKind = Exclude<BuildingKind, "headquarters">;
+const BUILDABLE: BuildableKind[] = ["salvage_yard","power_core","dice_forge","vault","command_center","workshop"];
 
 const BUILDING_ICON: Record<BuildingKind, any> = {
   headquarters: Building2, salvage_yard: Wrench, power_core: Zap, dice_forge: Dices,
@@ -92,7 +93,7 @@ function Dominion() {
   });
 
   const build = useMutation({
-    mutationFn: (v: { kind: BuildingKind; slot_x: number; slot_y: number }) =>
+    mutationFn: (v: { kind: BuildableKind; slot_x: number; slot_y: number }) =>
       buildFn({ data: { client_action_id: cid(), ...v } }),
     onSuccess: () => { toast.success("Construction started"); setPlacing(null); qc.invalidateQueries({ queryKey: ["dominion"] }); },
     onError: (e: any) => toast.error(e.message ?? "Build failed"),
