@@ -413,6 +413,25 @@ export function YuriCase() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Sell confirm */}
+      <Dialog open={!!sellTarget} onOpenChange={(o) => !o && setSellTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Sell {sellTarget?.template?.name}?</DialogTitle>
+            <DialogDescription>
+              You'll receive <b>{fmt(Math.max(1, (sellTarget?.template?.income_per_hour ?? 0) * 4))} DICE</b>.
+              This is permanent.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSellTarget(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => sellTarget && sellYuri(sellTarget.id)}>
+              <Coins className="size-4 mr-1" /> Sell
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
