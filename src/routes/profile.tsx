@@ -14,7 +14,7 @@ import { DiceBadge } from "@/components/dice/DiceBadge";
 import { COUNTRIES } from "@/lib/countries";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
-import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { useEquippedFor, TitleBadge, frameClasses } from "@/lib/cosmetics";
 import { LoadoutCard } from "@/components/dice/LoadoutCard";
 import { finalizeMyStaleGames } from "@/lib/stats.functions";
 
@@ -112,10 +112,6 @@ function MyProfile() {
   const banner = (p as any).banner_url as string | null;
   const profileBg = (p as any).profile_bg_url as string | null;
   const tier = tierFor(rank.data?.wins ?? 0, rank.data?.ratio ?? 0);
-  const bannerCosmetic = equipped?.banner;
-  const bannerCss = bannerStyle(bannerCosmetic);
-
-
 
   return (
     <ProfileBackdrop url={vipActive ? profileBg : null}>
@@ -123,9 +119,9 @@ function MyProfile() {
 
 
       <Card className="glass overflow-hidden border-white/10">
-        <div className={`w-full ${(banner && vipActive) || bannerCss ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
-             style={bannerCss ?? (banner && vipActive ? undefined : { background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.35), transparent 70%), linear-gradient(135deg, #0b0a14 0%, #1a1023 100%)" })}>
-          {banner && vipActive && !bannerCss && <img src={banner} alt="banner" className="w-full h-full object-cover" />}
+        <div className={`w-full ${banner && vipActive ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
+             style={banner && vipActive ? undefined : { background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.35), transparent 70%), linear-gradient(135deg, #0b0a14 0%, #1a1023 100%)" }}>
+          {banner && vipActive && <img src={banner} alt="banner" className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
         </div>
         <div className="p-6 -mt-12 relative">

@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Gamepad2, Trophy, Users, Image as ImageIcon, Sparkle, Crown, Palette } from "lucide-react";
-import { useEquippedFor, TitleBadge, bannerStyle } from "@/lib/cosmetics";
+import { Sparkles, Gamepad2, Trophy, Users, Image as ImageIcon } from "lucide-react";
 
 const GAME_LABEL: Record<string, string> = {
   coinflip: "Coin Flip", dice: "Dice", blackjack: "Blackjack", poker: "Poker",
@@ -24,8 +23,6 @@ function Tile({ icon, label, children, empty }: { icon: React.ReactNode; label: 
 }
 
 export function LoadoutCard({ profile }: { profile: any }) {
-  const equipped = useEquippedFor(profile).data;
-
   const favBaddie = useQuery({
     queryKey: ["fav-baddie", profile?.favorite_baddie_id],
     enabled: !!profile?.favorite_baddie_id,
@@ -62,24 +59,6 @@ export function LoadoutCard({ profile }: { profile: any }) {
         <Sparkles className="size-4 text-primary" />Loadout
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Tile icon={<Palette className="size-3" />} label="Banner" empty="No banner">
-          {equipped?.banner ? (
-            <div className="w-full h-10 rounded" style={bannerStyle(equipped.banner)} title={equipped.banner.name} />
-          ) : profile?.banner_url ? (
-            <img src={profile.banner_url} className="w-full h-10 object-cover rounded" alt="banner" />
-          ) : null}
-        </Tile>
-
-        <Tile icon={<Sparkle className="size-3" />} label="Frame" empty="No frame">
-          {equipped?.frame && (
-            <div className="text-xs font-semibold">{equipped.frame.name}</div>
-          )}
-        </Tile>
-
-        <Tile icon={<Crown className="size-3" />} label="Title" empty="No title">
-          {equipped?.title && <TitleBadge title={equipped.title} />}
-        </Tile>
-
         <Tile icon={<Sparkles className="size-3" />} label="Favorite Baddie" empty="Pick a Baddie">
           {favBaddie.data && (
             <div className="flex items-center gap-2">
@@ -125,7 +104,7 @@ export function LoadoutCard({ profile }: { profile: any }) {
           )}
         </Tile>
 
-        <Tile icon={<ImageIcon className="size-3" />} label="Win Pose" empty="Upload a sticker">
+        <Tile icon={<ImageIcon className="size-3" />} label="Win Pose" empty="No sticker">
           {profile?.win_pose_url && (
             <img src={profile.win_pose_url} alt="win pose" className="max-h-14 rounded object-contain" />
           )}

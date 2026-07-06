@@ -4,7 +4,7 @@ import React from "react";
 
 export type Cosmetic = {
   id: string;
-  kind: "title" | "frame" | "banner" | "emote" | "dice_skin";
+  kind: "title" | "frame" | "emote" | "dice_skin";
   slug: string;
   name: string;
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary" | "unreal";
@@ -72,7 +72,6 @@ export function useEquippedFor(profile: any) {
   const ids = [
     profile?.equipped_title_id,
     profile?.equipped_frame_id,
-    profile?.equipped_banner_id,
     profile?.equipped_dice_skin_id,
   ].filter(Boolean) as string[];
   const key = ids.slice().sort().join(",");
@@ -87,7 +86,6 @@ export function useEquippedFor(profile: any) {
       return {
         title: profile?.equipped_title_id ? map[profile.equipped_title_id] : undefined,
         frame: profile?.equipped_frame_id ? map[profile.equipped_frame_id] : undefined,
-        banner: profile?.equipped_banner_id ? map[profile.equipped_banner_id] : undefined,
         dice_skin: profile?.equipped_dice_skin_id ? map[profile.equipped_dice_skin_id] : undefined,
       };
     },
@@ -114,7 +112,3 @@ export function frameClasses(frame?: Cosmetic) {
   return `${frame.meta?.ring ?? ""} ${frame.meta?.glow ?? ""}`;
 }
 
-export function bannerStyle(banner?: Cosmetic): React.CSSProperties | undefined {
-  if (!banner?.meta?.gradient) return undefined;
-  return { background: banner.meta.gradient };
-}

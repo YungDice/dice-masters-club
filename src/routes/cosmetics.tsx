@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile, useWallet } from "@/hooks/use-profile";
 import {
-  useCatalog, useMyCosmetics, RARITY_COLOR, TitleBadge, frameClasses, bannerStyle,
+  useCatalog, useMyCosmetics, RARITY_COLOR, TitleBadge, frameClasses,
   type Cosmetic,
 } from "@/lib/cosmetics";
 import { fmt } from "@/lib/format";
@@ -33,9 +33,9 @@ export const Route = createFileRoute("/cosmetics")({
 });
 
 const KIND_LABEL: Record<Cosmetic["kind"], string> = {
-  title: "Titles", frame: "Avatar Frames", banner: "Profile Banners", emote: "Chat Emotes", dice_skin: "Dice Skins",
+  title: "Titles", frame: "Avatar Frames", emote: "Chat Emotes", dice_skin: "Dice Skins",
 };
-const KIND_ORDER: Cosmetic["kind"][] = ["title", "frame", "banner", "emote", "dice_skin"];
+const KIND_ORDER: Cosmetic["kind"][] = ["title", "frame", "emote", "dice_skin"];
 
 function CosmeticsPage() {
   const { user } = useAuth();
@@ -52,13 +52,12 @@ function CosmeticsPage() {
   const equippedIds: Record<Cosmetic["kind"], string | null> = {
     title:  (profile as any)?.equipped_title_id ?? null,
     frame:  (profile as any)?.equipped_frame_id ?? null,
-    banner: (profile as any)?.equipped_banner_id ?? null,
     emote:  null,
     dice_skin: (profile as any)?.equipped_dice_skin_id ?? null,
   };
 
   const grouped = useMemo(() => {
-    const m: Record<string, Cosmetic[]> = { title: [], frame: [], banner: [], emote: [], dice_skin: [] };
+    const m: Record<string, Cosmetic[]> = { title: [], frame: [], emote: [], dice_skin: [] };
     for (const c of catalog.data ?? []) m[c.kind]?.push(c);
     return m;
   }, [catalog.data]);
@@ -183,10 +182,6 @@ function CosmeticsPage() {
 function CosmeticPreview({ c }: { c: Cosmetic }) {
   const img = (c.meta as any)?.image_url as string | undefined;
   if (c.kind === "title") return <div className="flex items-center gap-2"><TitleBadge title={c} /><span className="text-xs text-muted-foreground">appears next to your name</span></div>;
-  if (c.kind === "banner") {
-    if (img) return <div className="h-16 rounded-md border border-white/10 overflow-hidden"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
-    return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
-  }
   if (c.kind === "frame") return (
     <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
       {img ? <img src={img} alt={c.name} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-80" />}
@@ -269,7 +264,7 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     if (name.trim().length < 2) return toast.error("Name is too short");
     let meta: any = {};
     if (kind === "title") meta = { text: text || name, color };
-    else if (kind === "banner") meta = imageUrl ? { image_url: imageUrl } : { gradient };
+    
     else if (kind === "frame") meta = {
       ring: "ring-2 ring-primary/50",
       glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]",
@@ -319,7 +314,7 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <SelectContent>
                   <SelectItem value="title">Title</SelectItem>
                   <SelectItem value="frame">Avatar Frame</SelectItem>
-                  <SelectItem value="banner">Profile Banner</SelectItem>
+                  
                   <SelectItem value="emote">Chat Emote</SelectItem>
                   <SelectItem value="dice_skin">Dice Skin</SelectItem>
                 </SelectContent>
@@ -355,13 +350,6 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <div><Label>Color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
             </div>
           )}
-          {kind === "banner" && (
-            <div>
-              <Label>CSS gradient</Label>
-              <Input value={gradient} onChange={(e) => setGradient(e.target.value)} placeholder="linear-gradient(135deg,#f472b6,#8b5cf6)" />
-              <div className="mt-2 h-14 rounded-md border border-white/10" style={{ background: gradient }} />
-            </div>
-          )}
           {kind === "emote" && (
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Emoji</Label><Input value={emoji} onChange={(e) => setEmoji(e.target.value.slice(0, 4))} /></div>
@@ -372,10 +360,10 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div><Label>Base color</Label><Input type="color" value={color} onChange={(e) => setColor(e.target.value)} /></div>
           )}
 
-          {(kind === "frame" || kind === "emote" || kind === "dice_skin" || kind === "banner") && (
+          {(kind === "frame" || kind === "emote" || kind === "dice_skin") && (
             <div className="rounded-lg border border-dashed border-white/15 p-3 space-y-2">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : kind === "dice_skin" ? "(dice skin face)" : "(banner)"}
+                Upload image {kind === "frame" ? "(avatar frame)" : kind === "emote" ? "(chat emote)" : "(dice skin face)"}
               </Label>
               <Input
                 type="file"

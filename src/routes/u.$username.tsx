@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
-import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { useEquippedFor, TitleBadge, frameClasses } from "@/lib/cosmetics";
+import { LoadoutCard } from "@/components/dice/LoadoutCard";
 
 
 import { useAuth } from "@/hooks/use-auth";
@@ -106,7 +107,6 @@ function UProfile() {
   const onlineMs = p.last_seen_at ? Date.now() - new Date(p.last_seen_at).getTime() : Infinity;
   const isOnline = onlineMs < 2 * 60 * 1000;
   const dn = p.display_name ?? p.username ?? "User";
-  const bannerCss = bannerStyle(equipped?.banner);
 
 
   async function addFriend() {
@@ -134,9 +134,9 @@ function UProfile() {
     <ProfileBackdrop url={vipActive ? profileBg : null}>
     <div className="space-y-4">
       <Card className="glass overflow-hidden">
-        {(bannerCss || (p.banner_url && vipActive)) && (
-          <div className="h-32 md:h-48 w-full bg-black/40" style={bannerCss}>
-            {!bannerCss && p.banner_url && vipActive && <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />}
+        {p.banner_url && vipActive && (
+          <div className="h-32 md:h-48 w-full bg-black/40">
+            <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />
           </div>
         )}
         <div className="p-6">
@@ -209,8 +209,7 @@ function UProfile() {
         );
       })()}
 
-
-
+      <LoadoutCard profile={p} />
 
 
       <div className="grid gap-4 md:grid-cols-2">
