@@ -91,14 +91,31 @@ export function YuriCase() {
     try {
       const { data, error } = await supabase.rpc("open_yuri_case" as any, { _count: count });
       if (error) throw error;
-      // hydrate with templates
       const rows = (Array.isArray(data) ? data : []) as any[];
       const t = templatesQ.data ?? [];
       const hydrated = rows.map((r: any) => ({
         ...r,
         template: t.find((x: any) => x.id === r.template_id),
       }));
+
+      // VIP autosell — sell rolls whose rarity is in the user's list
+      let autosold = 0; let autoDice = 0;
+      if (isVip && autosellList.length && hydrated.length) {
+        const toSell = hydrated.filter((r: any) => autosellList.includes(r.template?.rarity));
+        for (const r of toSell) {
+          try {
+            const { data: sd } = await supabase.rpc("sell_yuri_tx" as any, { _yuri_id: r.id });
+            const row: any = Array.isArray(sd) ? sd[0] : sd;
+            autoDice += Number(row?.price ?? 0);
+            autosold++;
+            r.autosold = true;
+            r.sell_price = row?.price ?? 0;
+          } catch {}
+        }
+      }
+
       setResults(hydrated);
+      if (autosold) toast.success(`Autosold ${autosold} for +${fmt(autoDice)} DICE`);
       qc.invalidateQueries({ queryKey: ["my-yuri"] });
       qc.invalidateQueries({ queryKey: ["wallet"] });
     } catch (e: any) {
@@ -106,6 +123,27 @@ export function YuriCase() {
     } finally {
       setRolling(false);
     }
+  }
+
+  async function toggleAutosell(rarity: string, on: boolean) {
+    const next = on ? Array.from(new Set([...autosellList, rarity])) : autosellList.filter((r) => r !== rarity);
+    try {
+      const { error } = await supabase.rpc("set_yuri_autosell_rarities" as any, { _rarities: next });
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to update autosell"); }
+  }
+
+  async function sellYuri(yuriId: string) {
+    try {
+      const { data, error } = await supabase.rpc("sell_yuri_tx" as any, { _yuri_id: yuriId });
+      if (error) throw error;
+      const row: any = Array.isArray(data) ? data[0] : data;
+      toast.success(`Sold for +${fmt(row?.price ?? 0)} DICE`);
+      setSellTarget(null);
+      qc.invalidateQueries({ queryKey: ["my-yuri"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+    } catch (e: any) { toast.error(e.message ?? "Failed to sell"); }
   }
 
   async function place(yuriId: string, slot: number) {
