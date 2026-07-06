@@ -300,7 +300,7 @@ function CrewPage() {
                       >
                         <Gift className="size-4" />
                       </Button>
-                      {m.role === "member" ? (
+                      {m.role !== "owner" && (m.role === "member" ? (
                         <Button size="icon" variant="ghost" title="Promote to officer" onClick={() => onSetRole(m.user_id, "officer")}>
                           <ArrowUp className="size-4" />
                         </Button>
@@ -308,10 +308,12 @@ function CrewPage() {
                         <Button size="icon" variant="ghost" title="Demote to member" onClick={() => onSetRole(m.user_id, "member")}>
                           <ArrowDown className="size-4" />
                         </Button>
+                      ))}
+                      {m.role !== "owner" && (
+                        <Button size="icon" variant="ghost" className="text-destructive" title="Kick" onClick={() => onKick(m.user_id)}>
+                          <UserMinus className="size-4" />
+                        </Button>
                       )}
-                      <Button size="icon" variant="ghost" className="text-destructive" title="Kick" onClick={() => onKick(m.user_id)}>
-                        <UserMinus className="size-4" />
-                      </Button>
                     </div>
                   )}
                   {!isOwner && canManage && m.role === "member" && (
