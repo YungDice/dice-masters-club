@@ -2990,6 +2990,7 @@ export type Database = {
         Args: { _room_id: string; _state: Json }
         Returns: undefined
       }
+      season_xp_needed_for_tier: { Args: { _tier: number }; Returns: number }
       seed_daily_missions: {
         Args: { _user: string }
         Returns: {
