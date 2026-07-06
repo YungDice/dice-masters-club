@@ -197,7 +197,13 @@ function Chat() {
                   </Avatar>
                 )}
                 <div className={`max-w-[70%] rounded-lg px-3 py-2 text-sm ${mine ? "bg-primary text-primary-foreground" : "bg-white/5"}`}>
-                  {!mine && <div className="text-[10px] opacity-70 mb-0.5">@{m.user?.username ?? "user"}</div>}
+                  {!mine && (
+                    <div className="text-[10px] opacity-70 mb-0.5 flex items-center gap-1 flex-wrap">
+                      <span>@{m.user?.username ?? "user"}</span>
+                      {(m.user as any)?.tag && <span className="text-primary font-mono">#{(m.user as any).tag}</span>}
+                      <NameBadges userId={m.user_id} emoji={(m.user as any)?.user_emoji} />
+                    </div>
+                  )}
                   <div className="whitespace-pre-wrap break-words">{renderWithEmotes(m.body, emoteMap)}</div>
                 </div>
                 {(mine || isStaff) && (
