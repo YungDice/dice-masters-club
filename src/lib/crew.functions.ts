@@ -85,3 +85,16 @@ export const autofillCrewMissions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => rpc(context, "autofill_crew_missions", {}));
 
+export const awardCrewDice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string; amount: number }) =>
+    z.object({
+      userId: z.string().uuid(),
+      amount: z.number().int().min(10).max(1_000_000),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) =>
+    rpc(context, "award_crew_dice_tx", { _target: data.userId, _amount: data.amount }),
+  );
+
+

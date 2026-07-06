@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Gamepad2, Trophy, Users, Image as ImageIcon } from "lucide-react";
+import { Sparkles, Gamepad2, Trophy, Users, Smile } from "lucide-react";
 
 const GAME_LABEL: Record<string, string> = {
   coinflip: "Coin Flip", dice: "Dice", blackjack: "Blackjack", poker: "Poker",
@@ -104,9 +104,9 @@ export function LoadoutCard({ profile }: { profile: any }) {
           )}
         </Tile>
 
-        <Tile icon={<ImageIcon className="size-3" />} label="Win Pose" empty="No sticker">
-          {profile?.win_pose_url && (
-            <img src={profile.win_pose_url} alt="win pose" className="max-h-14 rounded object-contain" />
+        <Tile icon={<Smile className="size-3" />} label="Your Emoji" empty="No emoji">
+          {profile?.user_emoji && (
+            <div className="text-3xl leading-none" aria-label="user emoji">{profile.user_emoji}</div>
           )}
         </Tile>
       </div>

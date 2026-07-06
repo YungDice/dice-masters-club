@@ -1963,6 +1963,7 @@ export type Database = {
           tag: string | null
           terms_accepted_at: string
           updated_at: string
+          user_emoji: string | null
           username: string
           username_changed_at: string | null
           username_free_change_available: boolean
@@ -2002,6 +2003,7 @@ export type Database = {
           tag?: string | null
           terms_accepted_at?: string
           updated_at?: string
+          user_emoji?: string | null
           username: string
           username_changed_at?: string | null
           username_free_change_available?: boolean
@@ -2041,6 +2043,7 @@ export type Database = {
           tag?: string | null
           terms_accepted_at?: string
           updated_at?: string
+          user_emoji?: string | null
           username?: string
           username_changed_at?: string | null
           username_free_change_available?: boolean
@@ -2611,6 +2614,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      _is_room_host: {
+        Args: { _room_id: string; _uid: string }
+        Returns: boolean
+      }
+      _is_room_participant: {
+        Args: { _room_id: string; _uid: string }
+        Returns: boolean
+      }
       add_season_bonus_xp: { Args: { _amount: number }; Returns: undefined }
       admin_delete_challenge_tx: {
         Args: { _challenge_id: string; _reason: string }
@@ -2625,6 +2636,10 @@ export type Database = {
         Returns: undefined
       }
       autofill_crew_missions: { Args: never; Returns: Json }
+      award_crew_dice_tx: {
+        Args: { _amount: number; _target: string }
+        Returns: Json
+      }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
       baddie_storage_cap: { Args: { _tier: string }; Returns: number }

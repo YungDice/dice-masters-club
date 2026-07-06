@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
-  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown, Target,
+  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown, Target, Gift,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -22,8 +22,9 @@ import {
 import { fmt, handle } from "@/lib/format";
 import { toast } from "sonner";
 import {
-  donateToCrew, leaveCrew, kickCrewMember, setCrewRole, respondCrewJoin,
+  donateToCrew, leaveCrew, kickCrewMember, setCrewRole, respondCrewJoin, awardCrewDice,
 } from "@/lib/crew.functions";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 export const Route = createFileRoute("/crews/$id")({
   head: ({ params }) => ({ meta: [{ title: `Crew — DICE` }] }),
@@ -40,6 +41,7 @@ function CrewPage() {
   const kick = useServerFn(kickCrewMember);
   const setRole = useServerFn(setCrewRole);
   const respond = useServerFn(respondCrewJoin);
+  const award = useServerFn(awardCrewDice);
   const [donateOpen, setDonateOpen] = useState(false);
   const [amount, setAmount] = useState(500);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -47,6 +49,9 @@ function CrewPage() {
   const [cAvatar, setCAvatar] = useState("");
   const [cBanner, setCBanner] = useState("");
   const [cDesc, setCDesc] = useState("");
+  const [awardOpen, setAwardOpen] = useState(false);
+  const [awardTarget, setAwardTarget] = useState<{ id: string; name: string } | null>(null);
+  const [awardAmount, setAwardAmount] = useState(500);
 
   const crew = useQuery({
     queryKey: ["crew", id],
@@ -155,6 +160,19 @@ function CrewPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function onAward() {
+    if (!awardTarget) return;
+    if (awardAmount < 10) return toast.error("Minimum 10 DICE");
+    try {
+      await award({ data: { userId: awardTarget.id, amount: awardAmount } });
+      toast.success(`Awarded ${fmt(awardAmount)} DICE to ${awardTarget.name}`);
+      setAwardOpen(false);
+      setAwardTarget(null);
+      qc.invalidateQueries({ queryKey: ["crew", id] });
+      qc.invalidateQueries({ queryKey: ["crew-members", id] });
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   return (
     <div className="space-y-6">
       <Card
@@ -248,10 +266,13 @@ function CrewPage() {
                     <Link
                       to="/u/$username"
                       params={{ username: m.profile?.username ?? "" }}
-                      className="font-semibold hover:underline truncate block"
+                      className="font-semibold hover:underline truncate flex items-center gap-1"
                     >
-                      {m.profile?.display_name ?? m.profile?.username}
-                      {m.profile?.tag && <span className="text-primary font-mono ml-0.5">#{m.profile.tag}</span>}
+                      <span className="truncate">
+                        {m.profile?.display_name ?? m.profile?.username}
+                        {m.profile?.tag && <span className="text-primary font-mono ml-0.5">#{m.profile.tag}</span>}
+                      </span>
+                      <NameBadges userId={m.user_id} />
                     </Link>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
                       {m.role === "owner" && <span className="text-amber-300 inline-flex items-center gap-1"><Crown className="size-3" /> Owner</span>}
@@ -266,6 +287,19 @@ function CrewPage() {
                   </div>
                   {isOwner && m.role !== "owner" && (
                     <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title="Award DICE from crew bank"
+                        className="text-amber-300"
+                        onClick={() => {
+                          setAwardTarget({ id: m.user_id, name: m.profile?.display_name ?? m.profile?.username ?? "member" });
+                          setAwardAmount(500);
+                          setAwardOpen(true);
+                        }}
+                      >
+                        <Gift className="size-4" />
+                      </Button>
                       {m.role === "member" ? (
                         <Button size="icon" variant="ghost" title="Promote to officer" onClick={() => onSetRole(m.user_id, "officer")}>
                           <ArrowUp className="size-4" />
@@ -436,6 +470,51 @@ function CrewPage() {
                 qc.invalidateQueries({ queryKey: ["crew", id] });
               } catch (e: any) { toast.error(e.message); }
             }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Award DICE from crew bank */}
+      <Dialog open={awardOpen} onOpenChange={(o) => { setAwardOpen(o); if (!o) setAwardTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Award DICE to {awardTarget?.name}</DialogTitle>
+            <DialogDescription>
+              Only the crew owner can award DICE. The amount is deducted from the crew bank
+              (total pts: <b className="text-amber-200">{fmt(c.total_score)}</b>) and credited to the member's wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="number"
+              min={10}
+              max={Math.max(10, c.total_score)}
+              value={awardAmount}
+              onChange={(e) => setAwardAmount(Math.max(0, Number(e.target.value)))}
+            />
+            <div className="flex flex-wrap gap-2">
+              {[100, 500, 1000, 5000, 10000].map((v) => (
+                <Button
+                  key={v}
+                  size="sm"
+                  variant="outline"
+                  disabled={v > c.total_score}
+                  onClick={() => setAwardAmount(v)}
+                >
+                  {fmt(v)}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAwardOpen(false)}>Cancel</Button>
+            <Button
+              onClick={onAward}
+              disabled={awardAmount < 10 || awardAmount > c.total_score}
+              className="glow-red"
+            >
+              <Gift className="size-4 mr-1.5" /> Award {fmt(awardAmount)} DICE
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

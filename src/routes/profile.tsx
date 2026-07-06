@@ -17,6 +17,7 @@ import { AchievementGrid } from "@/components/dice/AchievementGrid";
 import { useEquippedFor, TitleBadge, frameClasses } from "@/lib/cosmetics";
 import { LoadoutCard } from "@/components/dice/LoadoutCard";
 import { finalizeMyStaleGames } from "@/lib/stats.functions";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 
 
@@ -133,6 +134,7 @@ function MyProfile() {
             <div className="flex-1">
               <h1 className="font-display text-3xl font-bold flex items-center gap-2 flex-wrap">
                 <span>{p.display_name}{tag && <span className="text-primary font-mono">#{tag}</span>}</span>
+                <NameBadges userId={p.id} emoji={(p as any).user_emoji} />
                 <TitleBadge title={equipped?.title} />
                 {vipActive && <Crown className="size-5 text-amber-400" />}
               </h1>
