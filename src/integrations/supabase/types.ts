@@ -1562,6 +1562,9 @@ export type Database = {
           equipped_dice_skin_id: string | null
           equipped_frame_id: string | null
           equipped_title_id: string | null
+          favorite_achievement_id: string | null
+          favorite_baddie_id: string | null
+          favorite_game: string | null
           id: string
           is_18_plus: boolean
           last_login_at: string | null
@@ -1581,6 +1584,7 @@ export type Database = {
           username_changed_at: string | null
           username_free_change_available: boolean
           vip_until: string | null
+          win_pose_url: string | null
           xp: number
         }
         Insert: {
@@ -1597,6 +1601,9 @@ export type Database = {
           equipped_dice_skin_id?: string | null
           equipped_frame_id?: string | null
           equipped_title_id?: string | null
+          favorite_achievement_id?: string | null
+          favorite_baddie_id?: string | null
+          favorite_game?: string | null
           id: string
           is_18_plus?: boolean
           last_login_at?: string | null
@@ -1616,6 +1623,7 @@ export type Database = {
           username_changed_at?: string | null
           username_free_change_available?: boolean
           vip_until?: string | null
+          win_pose_url?: string | null
           xp?: number
         }
         Update: {
@@ -1632,6 +1640,9 @@ export type Database = {
           equipped_dice_skin_id?: string | null
           equipped_frame_id?: string | null
           equipped_title_id?: string | null
+          favorite_achievement_id?: string | null
+          favorite_baddie_id?: string | null
+          favorite_game?: string | null
           id?: string
           is_18_plus?: boolean
           last_login_at?: string | null
@@ -1651,6 +1662,7 @@ export type Database = {
           username_changed_at?: string | null
           username_free_change_available?: boolean
           vip_until?: string | null
+          win_pose_url?: string | null
           xp?: number
         }
         Relationships: [
