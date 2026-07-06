@@ -2,9 +2,11 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useWallet } from "@/hooks/use-profile";
+import { useMyProfile, useWallet } from "@/hooks/use-profile";
+import { isVipActive } from "@/lib/limits";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
 import {
@@ -12,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { fmt } from "@/lib/format";
 import { toast } from "sonner";
-import { Heart, Sparkles, PackageOpen, X, Users2 } from "lucide-react";
+import { Heart, Sparkles, PackageOpen, X, Users2, Coins, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const RARITY_STYLE: Record<string, string> = {
