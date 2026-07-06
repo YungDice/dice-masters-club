@@ -576,6 +576,8 @@ function Page() {
         </DialogContent>
       </Dialog>
 
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
