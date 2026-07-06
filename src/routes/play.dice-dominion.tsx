@@ -60,6 +60,14 @@ function Dominion() {
   const upgradeFn = useServerFn(dominionUpgrade);
   const collectFn = useServerFn(dominionCollect);
   const finishFn = useServerFn(dominionFinishJobs);
+  const trainFn = useServerFn(dominionTrain);
+  const researchFn = useServerFn(dominionResearch);
+  const attackFn = useServerFn(dominionAttack);
+  const listSectorsFn = useServerFn(dominionListSectors);
+  const listBattlesFn = useServerFn(dominionListBattles);
+
+  const sectorsQ = useQuery({ queryKey: ["dominion", "sectors"], queryFn: () => listSectorsFn() });
+  const battlesQ = useQuery({ queryKey: ["dominion", "battles"], queryFn: () => listBattlesFn() });
 
   const q = useQuery({ queryKey: ["dominion"], queryFn: () => getState(), refetchInterval: 15000 });
 
@@ -106,8 +114,39 @@ function Dominion() {
     onError: (e: any) => toast.error(e.message ?? "Upgrade failed"),
   });
 
+  const upgrade = useMutation({
+    mutationFn: (id: string) => upgradeFn({ data: { client_action_id: cid(), building_id: id } }),
+    onSuccess: () => { toast.success("Upgrade queued"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Upgrade failed"),
+  });
+
+  const train = useMutation({
+    mutationFn: (v: { kind: UnitKind; qty: number }) => trainFn({ data: { client_action_id: cid(), ...v } }),
+    onSuccess: () => { toast.success("Training started"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Training failed"),
+  });
+
+  const research = useMutation({
+    mutationFn: (node: ResearchNodeId) => researchFn({ data: { client_action_id: cid(), node } }),
+    onSuccess: () => { toast.success("Research started"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Research failed"),
+  });
+
+  const [battleResult, setBattleResult] = useState<any>(null);
+  const attack = useMutation({
+    mutationFn: (v: { sector_id: number; units: Record<string, number> }) => attackFn({ data: { client_action_id: cid(), ...v } }),
+    onSuccess: (r: any) => {
+      setBattleResult(r);
+      setAttackTarget(null);
+      qc.invalidateQueries({ queryKey: ["dominion"] });
+      qc.invalidateQueries({ queryKey: ["dominion", "battles"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Attack failed"),
+  });
+
   const [placing, setPlacing] = useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [attackTarget, setAttackTarget] = useState<any>(null);
 
   if (q.isLoading) {
     return <div className="grid place-items-center py-20 text-amber-100/60"><RefreshCw className="size-5 animate-spin" /></div>;
