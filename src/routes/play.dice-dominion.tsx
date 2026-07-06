@@ -108,11 +108,6 @@ function Dominion() {
     onError: (e: any) => toast.error(e.message ?? "Build failed"),
   });
 
-  const upgrade = useMutation({
-    mutationFn: (id: string) => upgradeFn({ data: { client_action_id: cid(), building_id: id } }),
-    onSuccess: () => { toast.success("Upgrade queued"); qc.invalidateQueries({ queryKey: ["dominion"] }); },
-    onError: (e: any) => toast.error(e.message ?? "Upgrade failed"),
-  });
 
   const upgrade = useMutation({
     mutationFn: (id: string) => upgradeFn({ data: { client_action_id: cid(), building_id: id } }),
