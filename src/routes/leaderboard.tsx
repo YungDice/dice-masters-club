@@ -205,7 +205,7 @@ function WinsBoard() {
   const q = useQuery({
     queryKey: ["lb", "wins"],
     queryFn: async (): Promise<Row[]> => {
-      const { data } = await supabase.from("user_game_stats" as any).select("user_id,wins,rank_score").order("rank_score", { ascending: false }).limit(50);
+      const { data } = await (supabase.rpc as any)("leaderboard_wins", { _limit: 50 });
       const list = ((data as any[]) ?? []).filter((r) => Number(r.wins) > 0);
       const ids = list.map((r) => r.user_id);
       const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
