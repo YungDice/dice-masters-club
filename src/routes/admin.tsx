@@ -152,13 +152,22 @@ function Stats() {
       return { users: users.count, chals: chals.count, listings: listings.count, txs: txs.count };
     },
   });
+  const items = [
+    { l: "Users",        v: stats.data?.users,    icon: Users,      tone: "from-sky-500/20 to-sky-500/5 text-sky-300 ring-sky-400/30" },
+    { l: "Challenges",   v: stats.data?.chals,    icon: Sparkles,   tone: "from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300 ring-fuchsia-400/30" },
+    { l: "Listings",     v: stats.data?.listings, icon: Store,      tone: "from-emerald-500/20 to-emerald-500/5 text-emerald-300 ring-emerald-400/30" },
+    { l: "Transactions", v: stats.data?.txs,      icon: Coins,      tone: "from-amber-500/20 to-amber-500/5 text-amber-300 ring-amber-400/30" },
+  ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {[
-        { l: "Users", v: stats.data?.users }, { l: "Challenges", v: stats.data?.chals },
-        { l: "Listings", v: stats.data?.listings }, { l: "Transactions", v: stats.data?.txs },
-      ].map((s) => (
-        <Card key={s.l} className="glass p-5"><div className="text-xs uppercase text-muted-foreground">{s.l}</div><div className="font-display text-3xl font-bold">{s.v ?? "—"}</div></Card>
+      {items.map((s) => (
+        <Card key={s.l} className={`p-5 border-0 bg-gradient-to-br ${s.tone} ring-1`}>
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-widest font-semibold opacity-80">{s.l}</div>
+            <s.icon className="size-4 opacity-80" />
+          </div>
+          <div className="font-display text-3xl font-bold mt-2 text-foreground">{s.v?.toLocaleString() ?? "—"}</div>
+        </Card>
       ))}
     </div>
   );
