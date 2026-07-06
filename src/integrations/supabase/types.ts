@@ -1070,6 +1070,195 @@ export type Database = {
         }
         Relationships: []
       }
+      dominion_buildings: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["dominion_building_kind"]
+          last_collected_at: string
+          level: number
+          slot_x: number
+          slot_y: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["dominion_building_kind"]
+          last_collected_at?: string
+          level?: number
+          slot_x: number
+          slot_y: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["dominion_building_kind"]
+          last_collected_at?: string
+          level?: number
+          slot_x?: number
+          slot_y?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dominion_daily_rewards: {
+        Row: {
+          day: string
+          dice_amount: number
+          granted_at: string
+          kind: string
+          op_id: string
+          user_id: string
+        }
+        Insert: {
+          day: string
+          dice_amount: number
+          granted_at?: string
+          kind: string
+          op_id: string
+          user_id: string
+        }
+        Update: {
+          day?: string
+          dice_amount?: number
+          granted_at?: string
+          kind?: string
+          op_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dominion_jobs: {
+        Row: {
+          client_action_id: string
+          created_at: string
+          ends_at: string
+          finished: boolean
+          id: string
+          kind: Database["public"]["Enums"]["dominion_job_kind"]
+          payload: Json
+          ref_id: string | null
+          starts_at: string
+          user_id: string
+        }
+        Insert: {
+          client_action_id: string
+          created_at?: string
+          ends_at: string
+          finished?: boolean
+          id?: string
+          kind: Database["public"]["Enums"]["dominion_job_kind"]
+          payload?: Json
+          ref_id?: string | null
+          starts_at?: string
+          user_id: string
+        }
+        Update: {
+          client_action_id?: string
+          created_at?: string
+          ends_at?: string
+          finished?: boolean
+          id?: string
+          kind?: Database["public"]["Enums"]["dominion_job_kind"]
+          payload?: Json
+          ref_id?: string | null
+          starts_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dominion_profiles: {
+        Row: {
+          command_energy: number
+          command_energy_updated_at: string
+          created_at: string
+          hq_level: number
+          initialized_at: string
+          power: number
+          roll_credits: number
+          scrap: number
+          updated_at: string
+          user_id: string
+          workers: number
+          xp: number
+        }
+        Insert: {
+          command_energy?: number
+          command_energy_updated_at?: string
+          created_at?: string
+          hq_level?: number
+          initialized_at?: string
+          power?: number
+          roll_credits?: number
+          scrap?: number
+          updated_at?: string
+          user_id: string
+          workers?: number
+          xp?: number
+        }
+        Update: {
+          command_energy?: number
+          command_energy_updated_at?: string
+          created_at?: string
+          hq_level?: number
+          initialized_at?: string
+          power?: number
+          roll_credits?: number
+          scrap?: number
+          updated_at?: string
+          user_id?: string
+          workers?: number
+          xp?: number
+        }
+        Relationships: []
+      }
+      dominion_research: {
+        Row: {
+          branch: Database["public"]["Enums"]["dominion_research_branch"]
+          level: number
+          node: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          branch: Database["public"]["Enums"]["dominion_research_branch"]
+          level?: number
+          node: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          branch?: Database["public"]["Enums"]["dominion_research_branch"]
+          level?: number
+          node?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dominion_units: {
+        Row: {
+          count: number
+          kind: Database["public"]["Enums"]["dominion_unit_kind"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          kind: Database["public"]["Enums"]["dominion_unit_kind"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          kind?: Database["public"]["Enums"]["dominion_unit_kind"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -2810,6 +2999,21 @@ export type Database = {
       crew_mission_metric: "donations" | "new_members"
       crew_role: "owner" | "officer" | "member"
       difficulty: "easy" | "medium" | "hard" | "extreme"
+      dominion_building_kind:
+        | "headquarters"
+        | "salvage_yard"
+        | "power_core"
+        | "dice_forge"
+        | "vault"
+        | "command_center"
+        | "workshop"
+      dominion_job_kind: "build" | "upgrade" | "train" | "research"
+      dominion_research_branch: "industry" | "tactics" | "logistics"
+      dominion_unit_kind:
+        | "scout_roller"
+        | "shield_guard"
+        | "crusher_tank"
+        | "sky_drone"
       friend_status: "pending" | "accepted" | "blocked"
       game_kind:
         | "dice"
@@ -3045,6 +3249,23 @@ export const Constants = {
       crew_mission_metric: ["donations", "new_members"],
       crew_role: ["owner", "officer", "member"],
       difficulty: ["easy", "medium", "hard", "extreme"],
+      dominion_building_kind: [
+        "headquarters",
+        "salvage_yard",
+        "power_core",
+        "dice_forge",
+        "vault",
+        "command_center",
+        "workshop",
+      ],
+      dominion_job_kind: ["build", "upgrade", "train", "research"],
+      dominion_research_branch: ["industry", "tactics", "logistics"],
+      dominion_unit_kind: [
+        "scout_roller",
+        "shield_guard",
+        "crusher_tank",
+        "sky_drone",
+      ],
       friend_status: ["pending", "accepted", "blocked"],
       game_kind: [
         "dice",
