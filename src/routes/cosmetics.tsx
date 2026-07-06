@@ -314,7 +314,7 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <SelectContent>
                   <SelectItem value="title">Title</SelectItem>
                   <SelectItem value="frame">Avatar Frame</SelectItem>
-                  <SelectItem value="banner">Profile Banner</SelectItem>
+                  
                   <SelectItem value="emote">Chat Emote</SelectItem>
                   <SelectItem value="dice_skin">Dice Skin</SelectItem>
                 </SelectContent>
