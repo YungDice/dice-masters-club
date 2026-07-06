@@ -236,10 +236,18 @@ function CosmeticsQueue() {
   const q = useQuery({
     queryKey: ["admin-cosmetics"],
     queryFn: async () => {
-      const { data } = await supabase.from("cosmetic_submissions" as any)
-        .select("*, profiles!cosmetic_submissions_submitter_id_fkey(username,display_name)")
+      const { data: subs, error } = await supabase.from("cosmetic_submissions" as any)
+        .select("*")
         .eq("status", "pending").order("created_at", { ascending: true });
-      return (data ?? []) as any[];
+      if (error) throw error;
+      const rows = (subs ?? []) as any[];
+      const ids = Array.from(new Set(rows.map((r) => r.submitter_id).filter(Boolean)));
+      let map: Record<string, any> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,username,display_name").in("id", ids);
+        map = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      }
+      return rows.map((r) => ({ ...r, profiles: map[r.submitter_id] ?? null }));
     },
   });
   async function decide(id: string, approve: boolean) {

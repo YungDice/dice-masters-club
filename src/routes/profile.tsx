@@ -15,6 +15,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
 import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { LoadoutCard } from "@/components/dice/LoadoutCard";
 import { finalizeMyStaleGames } from "@/lib/stats.functions";
 
 
@@ -183,6 +184,10 @@ function MyProfile() {
         </div>
         <p className="text-xs text-muted-foreground mt-3">Computed from your full game history ({rank.data?.total ?? 0} games tracked · net {fmt(rank.data?.net ?? 0)} DICE).</p>
       </Card>
+
+      <LoadoutCard profile={p} />
+
+
 
 
       <Card className="glass p-5">
