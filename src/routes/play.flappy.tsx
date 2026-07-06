@@ -209,7 +209,7 @@ function FlappyGame() {
     };
     raf = requestAnimationFrame(loop);
     return () => { alive = false; cancelAnimationFrame(raf); };
-  }, [status]);
+  }, [status, skinColor, skinPip]);
 
   return (
     <div className="space-y-4">
