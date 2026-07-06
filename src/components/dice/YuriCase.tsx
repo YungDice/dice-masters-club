@@ -40,11 +40,16 @@ type Yuri = {
 export function YuriCase() {
   const { user } = useAuth();
   const walletQ = useWallet(user?.id);
+  const prof = useMyProfile(user?.id);
   const qc = useQueryClient();
   const [rolling, setRolling] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [placeTarget, setPlaceTarget] = useState<{ slot: number } | null>(null);
   const [unpairConfirm, setUnpairConfirm] = useState<{ group: number } | null>(null);
+  const [sellTarget, setSellTarget] = useState<any>(null);
+
+  const isVip = isVipActive((prof.data as any)?.vip_until);
+  const autosellList: string[] = (prof.data as any)?.yuri_autosell_rarities ?? [];
 
   const yuriQ = useQuery({
     queryKey: ["my-yuri", user?.id],
