@@ -221,7 +221,7 @@ function SeasonPassPage() {
               </div>
               <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
                 <span>Tier {currentTier}</span>
-                <span>Tier {Math.min(season.data.tier_count, currentTier + 1)}</span>
+                <span>Tier {currentTier + 1}</span>
               </div>
             </div>
           </div>
