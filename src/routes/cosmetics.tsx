@@ -264,7 +264,7 @@ function SubmitCosmeticDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     if (name.trim().length < 2) return toast.error("Name is too short");
     let meta: any = {};
     if (kind === "title") meta = { text: text || name, color };
-    else if (kind === "banner") meta = imageUrl ? { image_url: imageUrl } : { gradient };
+    
     else if (kind === "frame") meta = {
       ring: "ring-2 ring-primary/50",
       glow: "shadow-[0_0_20px_-5px_rgba(244,114,182,0.6)]",
