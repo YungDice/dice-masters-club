@@ -160,6 +160,19 @@ function CrewPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
+  async function onAward() {
+    if (!awardTarget) return;
+    if (awardAmount < 10) return toast.error("Minimum 10 DICE");
+    try {
+      await award({ data: { userId: awardTarget.id, amount: awardAmount } });
+      toast.success(`Awarded ${fmt(awardAmount)} DICE to ${awardTarget.name}`);
+      setAwardOpen(false);
+      setAwardTarget(null);
+      qc.invalidateQueries({ queryKey: ["crew", id] });
+      qc.invalidateQueries({ queryKey: ["crew-members", id] });
+    } catch (e: any) { toast.error(e.message); }
+  }
+
   return (
     <div className="space-y-6">
       <Card
