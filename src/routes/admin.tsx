@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { Shield, Sparkles, FileWarning } from "lucide-react";
+import { Shield, Sparkles, FileWarning, Users, ListChecks, Store, Palette, Flag, ScrollText, Activity, Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyRoles } from "@/hooks/use-profile";
@@ -27,28 +27,53 @@ function Admin() {
 
   if (!isStaff) {
     return (
-      <Card className="glass p-8 text-center max-w-xl mx-auto">
-        <Shield className="size-10 mx-auto text-muted-foreground" />
-        <h1 className="mt-3 font-display text-2xl font-bold">Admin panel</h1>
+      <Card className="glass p-10 text-center max-w-xl mx-auto">
+        <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 ring-1 ring-primary/30">
+          <Shield className="size-7 text-primary" />
+        </div>
+        <h1 className="mt-4 font-display text-2xl font-bold">Admin panel</h1>
         <p className="text-sm text-muted-foreground mt-2">You don't have staff access. Ask an owner to grant you a role.</p>
       </Card>
     );
   }
 
-
   return (
-    <div className="space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Shield className="text-primary" />Admin {isAdmin ? "(admin)" : "(moderator)"}</h1>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/20 via-fuchsia-500/10 to-transparent p-6">
+        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="grid size-14 place-items-center rounded-2xl bg-primary/20 ring-1 ring-primary/40">
+              <Shield className="size-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl font-bold">Admin Console</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Signed in as <b className="text-foreground">@{(user?.email ?? "").split("@")[0]}</b> · Role:{" "}
+                <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase tracking-wider">
+                  {isAdmin ? "Admin" : "Moderator"}
+                </span>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Activity className="size-3.5" /> Live queue
+          </div>
+        </div>
+      </div>
+
       <Stats />
+
       <Tabs defaultValue="proofs">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="proofs">Proofs <QueueBadge kind="proofs" /></TabsTrigger>
-          <TabsTrigger value="challenges">Challenges <QueueBadge kind="challenges" /></TabsTrigger>
-          <TabsTrigger value="listings">Listings <QueueBadge kind="listings" /></TabsTrigger>
-          <TabsTrigger value="cosmetics">Cosmetics <QueueBadge kind="cosmetics" /></TabsTrigger>
-          <TabsTrigger value="reports">Reports <QueueBadge kind="reports" /></TabsTrigger>
-          {isAdmin && <TabsTrigger value="users">Users</TabsTrigger>}
-          {isAdmin && <TabsTrigger value="mod-log">Mod log</TabsTrigger>}
+        <TabsList className="w-full flex-wrap h-auto gap-1 bg-white/5 p-1 rounded-xl">
+          <TabsTrigger value="proofs" className="gap-1.5"><ListChecks className="size-3.5" />Proofs<QueueBadge kind="proofs" /></TabsTrigger>
+          <TabsTrigger value="challenges" className="gap-1.5"><Sparkles className="size-3.5" />Challenges<QueueBadge kind="challenges" /></TabsTrigger>
+          <TabsTrigger value="listings" className="gap-1.5"><Store className="size-3.5" />Listings<QueueBadge kind="listings" /></TabsTrigger>
+          <TabsTrigger value="cosmetics" className="gap-1.5"><Palette className="size-3.5" />Cosmetics<QueueBadge kind="cosmetics" /></TabsTrigger>
+          <TabsTrigger value="reports" className="gap-1.5"><Flag className="size-3.5" />Reports<QueueBadge kind="reports" /></TabsTrigger>
+          {isAdmin && <TabsTrigger value="users" className="gap-1.5"><Users className="size-3.5" />Users</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="mod-log" className="gap-1.5"><ScrollText className="size-3.5" />Mod log</TabsTrigger>}
         </TabsList>
         <TabsContent value="proofs"><ProofQueue /></TabsContent>
         <TabsContent value="challenges"><ChallengeQueue /></TabsContent>
@@ -127,13 +152,22 @@ function Stats() {
       return { users: users.count, chals: chals.count, listings: listings.count, txs: txs.count };
     },
   });
+  const items = [
+    { l: "Users",        v: stats.data?.users,    icon: Users,      tone: "from-sky-500/20 to-sky-500/5 text-sky-300 ring-sky-400/30" },
+    { l: "Challenges",   v: stats.data?.chals,    icon: Sparkles,   tone: "from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300 ring-fuchsia-400/30" },
+    { l: "Listings",     v: stats.data?.listings, icon: Store,      tone: "from-emerald-500/20 to-emerald-500/5 text-emerald-300 ring-emerald-400/30" },
+    { l: "Transactions", v: stats.data?.txs,      icon: Coins,      tone: "from-amber-500/20 to-amber-500/5 text-amber-300 ring-amber-400/30" },
+  ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {[
-        { l: "Users", v: stats.data?.users }, { l: "Challenges", v: stats.data?.chals },
-        { l: "Listings", v: stats.data?.listings }, { l: "Transactions", v: stats.data?.txs },
-      ].map((s) => (
-        <Card key={s.l} className="glass p-5"><div className="text-xs uppercase text-muted-foreground">{s.l}</div><div className="font-display text-3xl font-bold">{s.v ?? "—"}</div></Card>
+      {items.map((s) => (
+        <Card key={s.l} className={`p-5 border-0 bg-gradient-to-br ${s.tone} ring-1`}>
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-widest font-semibold opacity-80">{s.l}</div>
+            <s.icon className="size-4 opacity-80" />
+          </div>
+          <div className="font-display text-3xl font-bold mt-2 text-foreground">{s.v?.toLocaleString() ?? "—"}</div>
+        </Card>
       ))}
     </div>
   );

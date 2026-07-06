@@ -148,17 +148,24 @@ function Dominion() {
   }
   if (!q.data?.initialized) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-amber-400/30 bg-black/40 p-8 text-center">
-        <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-amber-400/10 ring-1 ring-amber-400/30">
-          <Dices className="size-8 text-amber-300" />
+      <div className="mx-auto max-w-2xl space-y-5">
+        <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-fuchsia-500/10 to-emerald-500/10 p-8 text-center">
+          <div className="absolute -right-16 -top-16 size-64 rounded-full bg-amber-400/20 blur-3xl" />
+          <div className="absolute -left-16 -bottom-16 size-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+          <div className="relative">
+            <div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-orange-500 text-black text-4xl shadow-lg shadow-amber-500/30">
+              🏰
+            </div>
+            <h2 className="font-display text-4xl font-black text-amber-100">DICE Dominion</h2>
+            <p className="mt-2 text-amber-100/80 max-w-md mx-auto">
+              Build your own tiny city, train a crew, and conquer the map to stack up loot!
+            </p>
+            <Button onClick={() => init.mutate()} disabled={init.isPending} size="lg" className="mt-6 bg-amber-400 text-black hover:bg-amber-300 font-bold text-base">
+              {init.isPending ? "Deploying…" : "🚀 Start My District"}
+            </Button>
+          </div>
         </div>
-        <h2 className="font-display text-2xl font-bold text-amber-100">Claim your District</h2>
-        <p className="mt-2 text-sm text-amber-100/70">
-          Build production, forge Roll Credits, command a crew, and conquer the board.
-        </p>
-        <Button onClick={() => init.mutate()} disabled={init.isPending} className="mt-6 bg-amber-400 text-black hover:bg-amber-300">
-          {init.isPending ? "Deploying…" : "Deploy District"}
-        </Button>
+        <HowItWorks />
       </div>
     );
   }
@@ -172,6 +179,8 @@ function Dominion() {
   for (const b of buildings) if (b.slot_x < GRID_SIZE && b.slot_y < GRID_SIZE) grid[b.slot_y][b.slot_x] = b;
 
   return (
+    <div className="space-y-4">
+      <TipBanner />
     <div className="grid gap-4 lg:grid-cols-[280px_1fr_320px]">
       {/* LEFT — profile & resources */}
       <aside className="space-y-3">
@@ -364,6 +373,21 @@ function Dominion() {
           </DialogContent>
         )}
       </Dialog>
+    </div>
+    </div>
+  );
+}
+
+function TipBanner() {
+  const [open, setOpen] = useState(true);
+  if (!open) return null;
+  return (
+    <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-fuchsia-500/10 to-emerald-500/10 p-3 flex items-start gap-3">
+      <div className="text-2xl shrink-0">💡</div>
+      <div className="flex-1 text-sm text-amber-100/90">
+        <b className="text-amber-100">How to play:</b> Tap empty tiles to <b>build</b> · come back to <b>collect</b> resources · train units in <b>Units</b> · attack sectors on the <b>Map</b> to grab loot & DICE 🎲
+      </div>
+      <button onClick={() => setOpen(false)} className="text-amber-100/50 hover:text-amber-100 text-lg leading-none px-1">×</button>
     </div>
   );
 }
@@ -638,6 +662,41 @@ function BattleResultPanel({ result, onClose }: { result: any; onClose: () => vo
         <Button onClick={onClose} className="bg-amber-400 text-black hover:bg-amber-300">Continue</Button>
       </DialogFooter>
     </>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    { emoji: "🏗️", title: "1. Build", text: "Tap empty tiles to place buildings like the Salvage Yard, Power Core & Dice Forge. They make resources for you 24/7." },
+    { emoji: "💰", title: "2. Collect", text: "Come back and hit Collect to grab all the Scrap, Power and Roll Credits your buildings made while you were gone." },
+    { emoji: "⚔️", title: "3. Conquer", text: "Train units, then attack sectors on the Map for big rewards. Stronger sectors drop bigger loot." },
+    { emoji: "🎲", title: "4. Level up", text: "Upgrade your HQ and unlock Research to unlock stronger buildings, faster training and better payouts." },
+  ];
+  return (
+    <div className="rounded-3xl border border-amber-400/20 bg-black/40 p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="grid size-8 place-items-center rounded-full bg-amber-400/20 ring-1 ring-amber-400/30">💡</div>
+        <h3 className="font-display text-xl font-bold text-amber-100">How it works</h3>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {steps.map((s) => (
+          <div key={s.title} className="rounded-2xl border border-amber-400/15 bg-gradient-to-br from-white/[0.04] to-transparent p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl">{s.emoji}</span>
+              <div className="font-display font-bold text-amber-100">{s.title}</div>
+            </div>
+            <p className="text-sm text-amber-100/70 leading-snug">{s.text}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100/90 flex gap-3">
+        <div className="text-2xl">🎁</div>
+        <div>
+          <div className="font-semibold text-amber-100">Earn free DICE from your district</div>
+          <p className="text-amber-100/70 text-xs mt-0.5">Conquering sectors, finishing daily objectives and leveling up your HQ pay out DICE straight to your wallet. The bigger your district, the bigger the rewards!</p>
+        </div>
+      </div>
+    </div>
   );
 }
 

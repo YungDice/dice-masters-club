@@ -1175,9 +1175,8 @@ export const grantAchievement = createServerFn({ method: "POST" })
 export const setActiveTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { tag: string | null }) => z.object({ tag: z.string().nullable() }).parse(d))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: res, error } = await supabaseAdmin.rpc("set_active_tag" as any, { _tag: data.tag });
+  .handler(async ({ data, context }) => {
+    const { data: res, error } = await (context.supabase.rpc as any)("set_active_tag", { _tag: data.tag });
     if (error) throw new Error(error.message);
     return res as any;
   });
@@ -1185,9 +1184,8 @@ export const setActiveTag = createServerFn({ method: "POST" })
 export const deleteTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { tag: string }) => z.object({ tag: z.string().min(2).max(6) }).parse(d))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: res, error } = await supabaseAdmin.rpc("delete_tag_tx" as any, { _tag: data.tag });
+  .handler(async ({ data, context }) => {
+    const { data: res, error } = await (context.supabase.rpc as any)("delete_tag_tx", { _tag: data.tag });
     if (error) throw new Error(error.message);
     return res as any;
   });
