@@ -33,9 +33,9 @@ export const Route = createFileRoute("/cosmetics")({
 });
 
 const KIND_LABEL: Record<Cosmetic["kind"], string> = {
-  title: "Titles", frame: "Avatar Frames", banner: "Profile Banners", emote: "Chat Emotes", dice_skin: "Dice Skins",
+  title: "Titles", frame: "Avatar Frames", emote: "Chat Emotes", dice_skin: "Dice Skins",
 };
-const KIND_ORDER: Cosmetic["kind"][] = ["title", "frame", "banner", "emote", "dice_skin"];
+const KIND_ORDER: Cosmetic["kind"][] = ["title", "frame", "emote", "dice_skin"];
 
 function CosmeticsPage() {
   const { user } = useAuth();
