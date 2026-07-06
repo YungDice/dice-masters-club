@@ -374,6 +374,21 @@ function Dominion() {
         )}
       </Dialog>
     </div>
+    </div>
+  );
+}
+
+function TipBanner() {
+  const [open, setOpen] = useState(true);
+  if (!open) return null;
+  return (
+    <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-fuchsia-500/10 to-emerald-500/10 p-3 flex items-start gap-3">
+      <div className="text-2xl shrink-0">💡</div>
+      <div className="flex-1 text-sm text-amber-100/90">
+        <b className="text-amber-100">How to play:</b> Tap empty tiles to <b>build</b> · come back to <b>collect</b> resources · train units in <b>Units</b> · attack sectors on the <b>Map</b> to grab loot & DICE 🎲
+      </div>
+      <button onClick={() => setOpen(false)} className="text-amber-100/50 hover:text-amber-100 text-lg leading-none px-1">×</button>
+    </div>
   );
 }
 
