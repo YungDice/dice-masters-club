@@ -259,6 +259,16 @@ function Page() {
         }
       />
 
+      <Tabs defaultValue="baddies" className="w-full">
+        <TabsList>
+          <TabsTrigger value="baddies"><Sparkles className="size-4 mr-1" />Baddies</TabsTrigger>
+          <TabsTrigger value="yuri"><Heart className="size-4 mr-1" />Yuri Case</TabsTrigger>
+        </TabsList>
+        <TabsContent value="yuri" className="mt-4">
+          <YuriCase />
+        </TabsContent>
+        <TabsContent value="baddies" className="mt-4 space-y-5">
+
       {/* The Case */}
       <Card className="glass p-6">
         <div className="grid md:grid-cols-[1fr_320px] gap-6 items-center">
