@@ -266,10 +266,13 @@ function CrewPage() {
                     <Link
                       to="/u/$username"
                       params={{ username: m.profile?.username ?? "" }}
-                      className="font-semibold hover:underline truncate block"
+                      className="font-semibold hover:underline truncate flex items-center gap-1"
                     >
-                      {m.profile?.display_name ?? m.profile?.username}
-                      {m.profile?.tag && <span className="text-primary font-mono ml-0.5">#{m.profile.tag}</span>}
+                      <span className="truncate">
+                        {m.profile?.display_name ?? m.profile?.username}
+                        {m.profile?.tag && <span className="text-primary font-mono ml-0.5">#{m.profile.tag}</span>}
+                      </span>
+                      <NameBadges userId={m.user_id} />
                     </Link>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
                       {m.role === "owner" && <span className="text-amber-300 inline-flex items-center gap-1"><Crown className="size-3" /> Owner</span>}
@@ -284,6 +287,19 @@ function CrewPage() {
                   </div>
                   {isOwner && m.role !== "owner" && (
                     <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title="Award DICE from crew bank"
+                        className="text-amber-300"
+                        onClick={() => {
+                          setAwardTarget({ id: m.user_id, name: m.profile?.display_name ?? m.profile?.username ?? "member" });
+                          setAwardAmount(500);
+                          setAwardOpen(true);
+                        }}
+                      >
+                        <Gift className="size-4" />
+                      </Button>
                       {m.role === "member" ? (
                         <Button size="icon" variant="ghost" title="Promote to officer" onClick={() => onSetRole(m.user_id, "officer")}>
                           <ArrowUp className="size-4" />
