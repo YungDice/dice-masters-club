@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ProfileBackdrop } from "@/components/dice/ProfileBackdrop";
 import { AchievementGrid } from "@/components/dice/AchievementGrid";
-import { useEquippedFor, TitleBadge, frameClasses, bannerStyle } from "@/lib/cosmetics";
+import { useEquippedFor, TitleBadge, frameClasses } from "@/lib/cosmetics";
+import { LoadoutCard } from "@/components/dice/LoadoutCard";
 
 
 import { useAuth } from "@/hooks/use-auth";
