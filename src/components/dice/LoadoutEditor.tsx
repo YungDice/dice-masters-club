@@ -20,13 +20,14 @@ const EMOJI_QUICK = ["🔥", "😎", "👑", "💎", "🎲", "🃏", "⚡", "�
 // Roughly detects a single grapheme emoji. Keeps it simple & permissive.
 function isSingleEmoji(s: string): boolean {
   if (!s) return true;
-  // Use Intl.Segmenter when available for accurate grapheme count.
   try {
-    // @ts-expect-error - Intl.Segmenter may not be typed everywhere
-    const seg = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-    // @ts-expect-error - Segmenter iterable
-    const count = [...seg.segment(s)].length;
-    return count === 1 && s.length <= 12;
+    const Seg = (Intl as any).Segmenter;
+    if (typeof Seg === "function") {
+      const seg = new Seg(undefined, { granularity: "grapheme" });
+      const count = [...seg.segment(s)].length;
+      return count === 1 && s.length <= 12;
+    }
+    return s.length <= 8;
   } catch {
     return s.length <= 8;
   }
