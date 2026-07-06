@@ -182,10 +182,6 @@ function CosmeticsPage() {
 function CosmeticPreview({ c }: { c: Cosmetic }) {
   const img = (c.meta as any)?.image_url as string | undefined;
   if (c.kind === "title") return <div className="flex items-center gap-2"><TitleBadge title={c} /><span className="text-xs text-muted-foreground">appears next to your name</span></div>;
-  if (c.kind === "banner") {
-    if (img) return <div className="h-16 rounded-md border border-white/10 overflow-hidden"><img src={img} alt={c.name} className="w-full h-full object-cover" /></div>;
-    return <div className="h-16 rounded-md border border-white/10" style={bannerStyle(c)} />;
-  }
   if (c.kind === "frame") return (
     <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
       {img ? <img src={img} alt={c.name} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-80" />}
