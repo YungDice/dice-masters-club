@@ -179,6 +179,8 @@ function Dominion() {
   for (const b of buildings) if (b.slot_x < GRID_SIZE && b.slot_y < GRID_SIZE) grid[b.slot_y][b.slot_x] = b;
 
   return (
+    <div className="space-y-4">
+      <TipBanner />
     <div className="grid gap-4 lg:grid-cols-[280px_1fr_320px]">
       {/* LEFT — profile & resources */}
       <aside className="space-y-3">
