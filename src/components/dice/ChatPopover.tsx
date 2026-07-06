@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { sendChatMessage } from "@/lib/dice.functions";
 import { toast } from "sonner";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 const LAST_SEEN_KEY = "dice:chat:last_seen_at";
 
@@ -39,7 +40,7 @@ export function ChatPopover() {
       const list = (data ?? []).reverse();
       const ids = Array.from(new Set(list.map((m: any) => m.user_id)));
       const { data: profs } = ids.length
-        ? await supabase.from("profiles").select("id,username,display_name,avatar_url,vip_until").in("id", ids)
+        ? await supabase.from("profiles").select("id,username,display_name,avatar_url,vip_until,user_emoji").in("id", ids)
         : { data: [] };
       const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
       return list.map((row: any) => ({ ...row, user: m[row.user_id] }));
@@ -169,6 +170,7 @@ export function ChatPopover() {
                     <div className="text-[10px] opacity-70 mb-0.5 flex items-center gap-1">
                       @{m.user?.username ?? "user"}
                       {senderVip && <Crown className="size-2.5 text-amber-400" />}
+                      <NameBadges userId={m.user_id} emoji={m.user?.user_emoji} />
                     </div>
                   )}
                   {m.body && <div className="whitespace-pre-wrap break-words">{m.body}</div>}
