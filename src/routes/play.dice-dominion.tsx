@@ -291,19 +291,13 @@ function Dominion() {
           </TabsContent>
 
           <TabsContent value="units">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              Unit training unlocks in Phase 2.
-            </div>
+            <UnitsPanel units={q.data.units} onTrain={(k, qty) => train.mutate({ kind: k, qty })} pending={train.isPending} />
           </TabsContent>
           <TabsContent value="research">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              Research tree unlocks in Phase 2.
-            </div>
+            <ResearchPanel research={q.data.research} onResearch={(n) => research.mutate(n)} pending={research.isPending} jobs={jobs} />
           </TabsContent>
           <TabsContent value="territory">
-            <div className="rounded-xl border border-amber-400/15 bg-black/30 p-6 text-center text-sm text-amber-100/60">
-              World map opens in Phase 3.
-            </div>
+            <TerritoryPanel sectors={sectorsQ.data ?? []} battles={battlesQ.data ?? []} onAttack={(s) => setAttackTarget(s)} energy={derived.commandEnergy} />
           </TabsContent>
         </Tabs>
       </aside>
