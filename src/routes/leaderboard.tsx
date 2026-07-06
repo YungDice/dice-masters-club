@@ -336,7 +336,7 @@ function LB() {
     <div className="space-y-4">
       <PageHeader
         icon={Trophy}
-        title="Leaderboard"
+        title="Players Leaderboard"
         subtitle="Top 3 each day earn DICE & VIP — climb the ranks."
         accent="gold"
       />
@@ -345,16 +345,16 @@ function LB() {
         <span><span className="text-amber-300 font-bold">#1</span> 1,500 DICE + 1 Day VIP</span>
         <span><span className="text-slate-300 font-bold">#2</span> 750 DICE + 12h VIP</span>
         <span><span className="text-orange-400 font-bold">#3</span> 500 DICE</span>
+        <Link to="/leaderboard/crews" className="ml-auto text-amber-300 hover:underline inline-flex items-center gap-1"><Users className="size-4" /> Crews leaderboard →</Link>
       </div>
       <Tabs defaultValue="xp">
-        <TabsList className="mx-auto grid w-full max-w-4xl grid-cols-4 sm:grid-cols-7 h-auto sm:h-14 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl">
+        <TabsList className="mx-auto grid w-full max-w-4xl grid-cols-3 sm:grid-cols-6 h-auto sm:h-14 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl">
           <TabsTrigger value="xp" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> XP</TabsTrigger>
           <TabsTrigger value="dice" className={tabTrigger}><Coins className="size-4 mr-1.5" /> DICE</TabsTrigger>
           <TabsTrigger value="wins" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> Wins</TabsTrigger>
           <TabsTrigger value="losses" className={tabTrigger}><Skull className="size-4 mr-1.5" /> Losses</TabsTrigger>
           <TabsTrigger value="level" className={tabTrigger}><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
           <TabsTrigger value="season" className={tabTrigger}><Star className="size-4 mr-1.5" /> Season</TabsTrigger>
-          <TabsTrigger value="crews" className={tabTrigger}><Users className="size-4 mr-1.5" /> Crews</TabsTrigger>
         </TabsList>
         <TabsContent value="xp" className="mt-4"><ProfileBoard orderBy="xp" unit="XP" /></TabsContent>
         <TabsContent value="dice" className="mt-4"><DiceBoard /></TabsContent>
@@ -362,8 +362,10 @@ function LB() {
         <TabsContent value="losses" className="mt-4"><LossesBoard /></TabsContent>
         <TabsContent value="level" className="mt-4"><ProfileBoard orderBy="level" unit="LVL" /></TabsContent>
         <TabsContent value="season" className="mt-4"><SeasonPassBoard /></TabsContent>
-        <TabsContent value="crews" className="mt-4"><CrewsSection /></TabsContent>
       </Tabs>
     </div>
   );
 }
+
+// Export components used by the crews sub-route
+export { CrewsSection, CrewBoard };
