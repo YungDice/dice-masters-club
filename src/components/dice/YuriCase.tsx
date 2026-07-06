@@ -207,6 +207,26 @@ export function YuriCase() {
             ))}
           </div>
         </div>
+
+        {/* Autosell — VIP only */}
+        <div className="mt-4 border-t border-border/40 pt-3">
+          <div className="text-xs font-semibold flex items-center gap-2 mb-2">
+            <Crown className="size-3.5 text-amber-300" />
+            Autosell by rarity {isVip ? <span className="text-emerald-300">(VIP)</span> : <span className="text-muted-foreground">— VIP only</span>}
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs">
+            {(["common","uncommon","rare","epic","legendary"] as const).map((rar) => {
+              const on = autosellList.includes(rar);
+              return (
+                <label key={rar} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 cursor-pointer transition ${on ? "border-pink-300/60 bg-pink-500/10" : "border-border/60 bg-white/5"} ${!isVip ? "opacity-50 pointer-events-none" : ""}`}>
+                  <Checkbox checked={on} onCheckedChange={(v) => toggleAutosell(rar, !!v)} disabled={!isVip} />
+                  <span className="capitalize">{rar}</span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-1.5">New Yuri pulls of these rarities are auto-sold on roll. Sell price ≈ 4h income.</p>
+        </div>
       </Card>
 
       {/* Reveal */}
