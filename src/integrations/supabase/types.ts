@@ -2252,7 +2252,7 @@ export type Database = {
       }
       equip_cosmetic_tx: { Args: { _cosmetic_id: string }; Returns: Json }
       evaluate_user_achievements: { Args: { _uid: string }; Returns: undefined }
-      expire_auctions: { Args: never; Returns: number }
+      expire_auctions: { Args: never; Returns: undefined }
       expire_trades: { Args: never; Returns: number }
       expire_vip_status: { Args: never; Returns: number }
       finalize_weekly_crew_rankings: { Args: never; Returns: Json }
@@ -2308,6 +2308,15 @@ export type Database = {
       is_vip: { Args: { _uid: string }; Returns: boolean }
       join_crew_tx: { Args: { _crew_id: string }; Returns: Json }
       kick_crew_member_tx: { Args: { _target: string }; Returns: Json }
+      leaderboard_wins: {
+        Args: { _limit?: number }
+        Returns: {
+          losses: number
+          rank_score: number
+          user_id: string
+          wins: number
+        }[]
+      }
       leave_crew_tx: { Args: never; Returns: Json }
       list_baddie_for_sale_tx: {
         Args: { _baddie_id: string; _price: number }

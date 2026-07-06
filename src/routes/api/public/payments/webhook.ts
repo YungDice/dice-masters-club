@@ -29,7 +29,18 @@ async function handlePaymentEvent(obj: any) {
   const diceAmount = Number(md.dice_amount);
   const kind = md.kind;
   if (kind !== "dice_topup" || !userId || !diceAmount) return;
-  const refId = obj?.id ?? obj?.payment_intent ?? `${Date.now()}`;
+  // Normalize idempotency key across event types: prefer the PaymentIntent id
+  // (present on payment_intent.*, charge.*, and checkout.session.* events),
+  // then the Charge id, then the object id itself. This prevents a single
+  // purchase being credited multiple times when Stripe fires more than one
+  // event carrying the same dice_topup metadata.
+  const refId =
+    obj?.payment_intent ??
+    (typeof obj?.id === "string" && obj.id.startsWith("pi_") ? obj.id : null) ??
+    obj?.latest_charge ??
+    (typeof obj?.id === "string" && obj.id.startsWith("ch_") ? obj.id : null) ??
+    obj?.id;
+  if (!refId) return;
   await creditDice(userId, diceAmount, String(refId));
 }
 
