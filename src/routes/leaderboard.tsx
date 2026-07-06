@@ -216,6 +216,116 @@ function WinsBoard() {
   return <Board rows={q.data ?? []} unit="WINS" />;
 }
 
+function LossesBoard() {
+  const q = useQuery({
+    queryKey: ["lb", "losses"],
+    queryFn: async (): Promise<Row[]> => {
+      const { data } = await (supabase.rpc as any)("leaderboard_wins", { _limit: 200 });
+      const list = ((data as any[]) ?? [])
+        .filter((r) => Number(r.losses) > 0)
+        .sort((a: any, b: any) => Number(b.losses) - Number(a.losses))
+        .slice(0, 50);
+      const ids = list.map((r) => r.user_id);
+      const { data: profs } = ids.length ? await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag").in("id", ids) : { data: [] };
+      const m = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return list.filter((r) => m[r.user_id]).map((r: any) => ({ ...m[r.user_id], points: Number(r.losses) }));
+    },
+  });
+  return <Board rows={q.data ?? []} unit="LOSSES" />;
+}
+
+function SeasonPassBoard() {
+  const q = useQuery({
+    queryKey: ["lb", "season-pass"],
+    queryFn: async (): Promise<Row[]> => {
+      const { data: season } = await supabase.from("seasons" as any).select("id,xp_per_tier")
+        .eq("active", true).order("starts_at", { ascending: false }).limit(1).maybeSingle();
+      if (!season) return [];
+      const xpPer = Number((season as any).xp_per_tier) || 1000;
+      const { data: prog } = await supabase.from("season_progress" as any).select("user_id,baseline_xp,bonus_xp")
+        .eq("season_id", (season as any).id);
+      const progRows = (prog ?? []) as any[];
+      const ids = progRows.map((p) => p.user_id);
+      if (!ids.length) return [];
+      const { data: profs } = await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag,xp").in("id", ids);
+      const pm = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
+      return progRows
+        .map((r: any) => {
+          const p = pm[r.user_id]; if (!p) return null;
+          const sXp = Math.max(0, (p.xp ?? 0) - (r.baseline_xp ?? 0)) + (r.bonus_xp ?? 0);
+          const tier = Math.floor(sXp / xpPer);
+          return { ...p, points: tier };
+        })
+        .filter(Boolean)
+        .sort((a: any, b: any) => b.points - a.points)
+        .slice(0, 50) as Row[];
+    },
+  });
+  return <Board rows={q.data ?? []} unit="TIER" />;
+}
+
+type CrewRow = { id: string; name: string; tag: string; avatar_url: string | null; level: number; total_score: number; weekly_score: number; member_count: number; points: number };
+function CrewBoard({ orderBy, unit }: { orderBy: "level" | "total" | "weekly"; unit: string }) {
+  const q = useQuery({
+    queryKey: ["lb", "crews", orderBy],
+    queryFn: async (): Promise<CrewRow[]> => {
+      const { data } = await (supabase.rpc as any)("leaderboard_crews", { _order: orderBy, _limit: 50 });
+      const list = ((data as any[]) ?? []);
+      return list.map((c) => ({
+        ...c,
+        points: orderBy === "level" ? c.level : orderBy === "weekly" ? c.weekly_score : c.total_score,
+      }));
+    },
+  });
+  const rows = q.data ?? [];
+  return (
+    <Card className="glass p-4 md:p-6 overflow-hidden">
+      <h2 className="font-display text-base md:text-lg font-semibold flex items-center gap-2 mb-4">
+        <Users className="size-4 text-amber-300" /> Top Crews · {unit}
+      </h2>
+      {rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-6">No crews yet.</p>
+      ) : (
+        <ol className="space-y-1">
+          {rows.map((c, i) => (
+            <li key={c.id} className={`flex items-center gap-3 rounded-md p-2 ${i < 3 ? "bg-amber-400/5 border border-amber-400/20" : "hover:bg-white/5"}`}>
+              <span className={`w-8 text-right font-display font-bold ${i === 0 ? "text-amber-300" : i === 1 ? "text-slate-300" : i === 2 ? "text-orange-400" : "text-muted-foreground"}`}>#{i + 1}</span>
+              <Avatar className="size-9">
+                <AvatarImage src={c.avatar_url ?? undefined} />
+                <AvatarFallback>{c.name[0]}</AvatarFallback>
+              </Avatar>
+              <Link to="/crews/$id" params={{ id: c.id }} className="flex-1 hover:underline min-w-0">
+                <div className="font-semibold truncate">{c.name} <span className="text-primary font-mono text-xs">#{c.tag}</span></div>
+                <div className="text-[11px] text-muted-foreground">Lvl {c.level} · {c.member_count} members</div>
+              </Link>
+              <span className="text-sm font-bold text-foreground w-28 text-right">
+                {fmt(c.points)} <span className="text-xs text-muted-foreground font-normal">{unit}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
+  );
+}
+
+function CrewsSection() {
+  return (
+    <Tabs defaultValue="total">
+      <TabsList className="mx-auto flex w-full max-w-lg h-11 p-1 bg-card/50 border border-amber-300/20 rounded-lg">
+        <TabsTrigger value="total" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Trophy className="size-4 mr-1.5" /> Total</TabsTrigger>
+        <TabsTrigger value="weekly" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Clock className="size-4 mr-1.5" /> Weekly</TabsTrigger>
+        <TabsTrigger value="level" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
+      </TabsList>
+      <TabsContent value="total" className="mt-4"><CrewBoard orderBy="total" unit="PTS" /></TabsContent>
+      <TabsContent value="weekly" className="mt-4"><CrewBoard orderBy="weekly" unit="PTS" /></TabsContent>
+      <TabsContent value="level" className="mt-4"><CrewBoard orderBy="level" unit="LVL" /></TabsContent>
+    </Tabs>
+  );
+}
+
+const tabTrigger = "flex-1 h-full text-sm md:text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]";
+
 function LB() {
   return (
     <div className="space-y-4">
@@ -232,36 +342,22 @@ function LB() {
         <span><span className="text-orange-400 font-bold">#3</span> 500 DICE</span>
       </div>
       <Tabs defaultValue="xp">
-        <TabsList className="mx-auto flex w-full max-w-2xl h-14 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-          <TabsTrigger
-            value="xp"
-            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
-          >
-            <Trophy className="size-5 mr-2" /> XP
-          </TabsTrigger>
-          <TabsTrigger
-            value="dice"
-            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
-          >
-            <Coins className="size-5 mr-2" /> DICE
-          </TabsTrigger>
-          <TabsTrigger
-            value="wins"
-            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
-          >
-            <Trophy className="size-5 mr-2" /> Wins
-          </TabsTrigger>
-          <TabsTrigger
-            value="level"
-            className="flex-1 h-full text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]"
-          >
-            <Crown className="size-5 mr-2" /> Level
-          </TabsTrigger>
+        <TabsList className="mx-auto grid w-full max-w-4xl grid-cols-4 sm:grid-cols-7 h-auto sm:h-14 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl">
+          <TabsTrigger value="xp" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> XP</TabsTrigger>
+          <TabsTrigger value="dice" className={tabTrigger}><Coins className="size-4 mr-1.5" /> DICE</TabsTrigger>
+          <TabsTrigger value="wins" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> Wins</TabsTrigger>
+          <TabsTrigger value="losses" className={tabTrigger}><Skull className="size-4 mr-1.5" /> Losses</TabsTrigger>
+          <TabsTrigger value="level" className={tabTrigger}><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
+          <TabsTrigger value="season" className={tabTrigger}><Star className="size-4 mr-1.5" /> Season</TabsTrigger>
+          <TabsTrigger value="crews" className={tabTrigger}><Users className="size-4 mr-1.5" /> Crews</TabsTrigger>
         </TabsList>
         <TabsContent value="xp" className="mt-4"><ProfileBoard orderBy="xp" unit="XP" /></TabsContent>
         <TabsContent value="dice" className="mt-4"><DiceBoard /></TabsContent>
         <TabsContent value="wins" className="mt-4"><WinsBoard /></TabsContent>
+        <TabsContent value="losses" className="mt-4"><LossesBoard /></TabsContent>
         <TabsContent value="level" className="mt-4"><ProfileBoard orderBy="level" unit="LVL" /></TabsContent>
+        <TabsContent value="season" className="mt-4"><SeasonPassBoard /></TabsContent>
+        <TabsContent value="crews" className="mt-4"><CrewsSection /></TabsContent>
       </Tabs>
     </div>
   );
