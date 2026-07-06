@@ -21,6 +21,9 @@ import { toast } from "sonner";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 import { openBaddieCases, listBaddieForSale } from "@/lib/dice.functions";
 import { motion, AnimatePresence } from "framer-motion";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { YuriCase } from "@/components/dice/YuriCase";
+import { Heart } from "lucide-react";
 
 export const Route = createFileRoute("/baddies")({
   head: () => ({ meta: [{ title: "Baddie Cases — DICE" }] }),
