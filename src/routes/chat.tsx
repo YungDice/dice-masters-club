@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useEmoteMap, renderWithEmotes } from "@/lib/cosmetics";
+import { NameBadges } from "@/components/dice/NameBadges";
 
 const PAGE_SIZE = 40;
 const NEAR_BOTTOM_PX = 80;
