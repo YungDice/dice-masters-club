@@ -42,12 +42,13 @@ function Admin() {
       <Stats />
       <Tabs defaultValue="proofs">
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="proofs">Proof queue</TabsTrigger>
-          <TabsTrigger value="challenges">Challenge queue</TabsTrigger>
-          <TabsTrigger value="listings">Listings queue</TabsTrigger>
-          <TabsTrigger value="cosmetics">Cosmetics queue</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="proofs">Proofs <QueueBadge kind="proofs" /></TabsTrigger>
+          <TabsTrigger value="challenges">Challenges <QueueBadge kind="challenges" /></TabsTrigger>
+          <TabsTrigger value="listings">Listings <QueueBadge kind="listings" /></TabsTrigger>
+          <TabsTrigger value="cosmetics">Cosmetics <QueueBadge kind="cosmetics" /></TabsTrigger>
+          <TabsTrigger value="reports">Reports <QueueBadge kind="reports" /></TabsTrigger>
           {isAdmin && <TabsTrigger value="users">Users</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="mod-log">Mod log</TabsTrigger>}
         </TabsList>
         <TabsContent value="proofs"><ProofQueue /></TabsContent>
         <TabsContent value="challenges"><ChallengeQueue /></TabsContent>
@@ -55,10 +56,63 @@ function Admin() {
         <TabsContent value="cosmetics"><CosmeticsQueue /></TabsContent>
         <TabsContent value="reports"><ReportsQueue /></TabsContent>
         {isAdmin && <TabsContent value="users"><UsersAdmin /></TabsContent>}
+        {isAdmin && <TabsContent value="mod-log"><ModLog /></TabsContent>}
       </Tabs>
     </div>
   );
 }
+
+function QueueBadge({ kind }: { kind: "proofs" | "challenges" | "listings" | "cosmetics" | "reports" }) {
+  const { data } = useQuery({
+    queryKey: ["admin-queue-count", kind],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const map: Record<string, any> = {
+        proofs: { table: "challenge_proofs", filter: (q: any) => q.eq("status", "pending") },
+        challenges: { table: "challenges", filter: (q: any) => q.eq("status", "pending_review") },
+        listings: { table: "marketplace_listings", filter: (q: any) => q.eq("status", "pending_review") },
+        cosmetics: { table: "cosmetic_submissions", filter: (q: any) => q.eq("status", "pending") },
+        reports: { table: "reports", filter: (q: any) => q.in("status", ["open", "reviewing"]) },
+      };
+      const cfg = map[kind];
+      const { count } = await cfg.filter(supabase.from(cfg.table).select("id", { count: "exact", head: true }));
+      return count ?? 0;
+    },
+  });
+  if (!data) return null;
+  return <span className="ml-1.5 inline-flex items-center justify-center rounded-full bg-primary/20 text-primary text-[10px] px-1.5 min-w-[18px] h-[18px]">{data}</span>;
+}
+
+function ModLog() {
+  const q = useQuery({
+    queryKey: ["admin-mod-log"],
+    queryFn: async () => {
+      const { data } = await supabase.from("moderation_actions").select("*").order("created_at", { ascending: false }).limit(50);
+      const ids = Array.from(new Set((data ?? []).map((r: any) => r.moderator_id).filter(Boolean)));
+      let map: Record<string, any> = {};
+      if (ids.length) {
+        const { data: p } = await supabase.from("profiles").select("id,username,display_name").in("id", ids as any);
+        map = Object.fromEntries((p ?? []).map((r: any) => [r.id, r]));
+      }
+      return (data ?? []).map((r: any) => ({ ...r, moderator: map[r.moderator_id] }));
+    },
+  });
+  return (
+    <Card className="glass p-4 mt-3 space-y-2">
+      {q.data?.length === 0 && <p className="text-sm text-muted-foreground p-4">No recent actions.</p>}
+      {(q.data ?? []).map((r: any) => (
+        <div key={r.id} className="rounded-md border border-border/60 p-3 text-sm flex items-center justify-between gap-3">
+          <div>
+            <div><span className="text-primary font-mono">{r.action}</span> · {r.target_kind}</div>
+            <div className="text-xs text-muted-foreground">by @{r.moderator?.username ?? "?"} {r.reason ? `— ${r.reason}` : ""}</div>
+          </div>
+          <div className="text-xs text-muted-foreground shrink-0">{new Date(r.created_at).toLocaleString()}</div>
+        </div>
+      ))}
+    </Card>
+  );
+}
+
 
 function Stats() {
   const stats = useQuery({

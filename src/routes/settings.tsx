@@ -21,6 +21,7 @@ import { BuyCoinsCard } from "@/components/dice/BuyCoins";
 import { PaymentTestModeBanner } from "@/components/dice/PaymentTestModeBanner";
 import { COUNTRIES } from "@/lib/countries";
 import { LoadoutEditor } from "@/components/dice/LoadoutEditor";
+import { ImageCropper, readFileAsDataURL } from "@/components/dice/ImageCropper";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — DICE" }] }),
@@ -104,6 +105,23 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
     refetch();
   }
 
+  const [avatarSrc, setAvatarSrc] = useState<string>("");
+  const [avatarOpen, setAvatarOpen] = useState(false);
+
+  async function saveCroppedAvatar(blob: Blob) {
+    if (!user) return;
+    const path = `${user.id}/avatar-${Date.now()}.jpg`;
+    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    if (up.error) { toast.error(up.error.message); return; }
+    const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
+    const { error } = await supabase.from("profiles").update({ avatar_url: signed.data.signedUrl }).eq("id", user.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Profile picture updated");
+    refetch();
+    qc.invalidateQueries({ queryKey: ["profile", user.id] });
+  }
+
   return (
     <>
       <Card className="glass p-6 space-y-4">
@@ -123,24 +141,27 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file || !user) return;
-                if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
-                const ext = file.name.split(".").pop() || "jpg";
-                const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-                const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-                if (up.error) return toast.error(up.error.message);
-                const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-                if (signed.error || !signed.data) return toast.error("Could not load image");
-                const { error } = await supabase.from("profiles").update({ avatar_url: signed.data.signedUrl }).eq("id", user.id);
-                if (error) return toast.error(error.message);
-                toast.success("Profile picture updated");
-                refetch();
-                qc.invalidateQueries({ queryKey: ["profile", user.id] });
+                if (file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+                setAvatarSrc(await readFileAsDataURL(file));
+                setAvatarOpen(true);
+                e.currentTarget.value = "";
               }}
             />
-            <p className="text-xs text-muted-foreground">JPG/PNG/GIF, up to 5MB.</p>
+            <p className="text-xs text-muted-foreground">JPG/PNG/GIF, up to 8MB. You'll be able to crop &amp; reposition it.</p>
           </div>
         </div>
+        <ImageCropper
+          open={avatarOpen}
+          onOpenChange={setAvatarOpen}
+          imageSrc={avatarSrc}
+          aspect={1}
+          cropShape="round"
+          outputWidth={512}
+          title="Crop profile picture"
+          onCropped={saveCroppedAvatar}
+        />
       </Card>
+
 
       <BannerCard user={user} profile={profile} refetch={refetch} qc={qc} />
       <ProfileBgCard user={user} profile={profile} refetch={refetch} qc={qc} />
@@ -422,19 +443,18 @@ function BannerCard({ user, profile, refetch, qc }: any) {
   const vipUntil = profile?.vip_until ? new Date(profile.vip_until) : null;
   const vipActive = !!(vipUntil && vipUntil > new Date());
   const bannerUrl: string | null = profile?.banner_url ?? null;
+  const [src, setSrc] = useState<string>("");
+  const [open, setOpen] = useState(false);
 
-  async function upload(file: File) {
+  async function save(blob: Blob) {
     if (!user) return;
-    if (!vipActive) return toast.error("VIP only — unlock VIP first");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${user.id}/banner-${Date.now()}.${ext}`;
-    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (up.error) return toast.error(up.error.message);
+    const path = `${user.id}/banner-${Date.now()}.jpg`;
+    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    if (up.error) { toast.error(up.error.message); return; }
     const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signed.error || !signed.data) return toast.error("Could not load image");
+    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
     const { error } = await supabase.from("profiles").update({ banner_url: signed.data.signedUrl }).eq("id", user.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Banner updated");
     refetch();
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
@@ -468,15 +488,23 @@ function BannerCard({ user, profile, refetch, qc }: any) {
           type="file"
           accept="image/*"
           disabled={!vipActive}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }}
+          onChange={async (e) => {
+            const f = e.target.files?.[0]; if (!f) return;
+            if (!vipActive) return toast.error("VIP only");
+            if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+            setSrc(await readFileAsDataURL(f)); setOpen(true);
+            e.currentTarget.value = "";
+          }}
         />
         {bannerUrl && <Button variant="outline" size="sm" onClick={clear}>Remove</Button>}
       </div>
       <p className="text-xs text-muted-foreground">
         {vipActive
-          ? "Wide image recommended (1500×400). Up to 8MB."
+          ? "Wide banner — you'll crop & reposition. Up to 8MB."
           : "Unlock VIP (5,000 DICE) in the Coins & VIP tab to upload a banner."}
       </p>
+      <ImageCropper open={open} onOpenChange={setOpen} imageSrc={src} aspect={4} outputWidth={1600}
+        title="Crop banner" onCropped={save} />
     </Card>
   );
 }
@@ -485,19 +513,18 @@ function ProfileBgCard({ user, profile, refetch, qc }: any) {
   const vipUntil = profile?.vip_until ? new Date(profile.vip_until) : null;
   const vipActive = !!(vipUntil && vipUntil > new Date());
   const bgUrl: string | null = profile?.profile_bg_url ?? null;
+  const [src, setSrc] = useState<string>("");
+  const [open, setOpen] = useState(false);
 
-  async function upload(file: File) {
+  async function save(blob: Blob) {
     if (!user) return;
-    if (!vipActive) return toast.error("VIP only — unlock VIP first");
-    if (file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
-    const ext = file.name.split(".").pop() || "jpg";
-    const path = `${user.id}/profile-bg-${Date.now()}.${ext}`;
-    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (up.error) return toast.error(up.error.message);
+    const path = `${user.id}/profile-bg-${Date.now()}.jpg`;
+    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    if (up.error) { toast.error(up.error.message); return; }
     const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signed.error || !signed.data) return toast.error("Could not load image");
+    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
     const { error } = await supabase.from("profiles").update({ profile_bg_url: signed.data.signedUrl }).eq("id", user.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     toast.success("Profile background updated");
     refetch();
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
@@ -528,12 +555,21 @@ function ProfileBgCard({ user, profile, refetch, qc }: any) {
       )}
       <div className="flex items-center gap-2">
         <Input type="file" accept="image/*" disabled={!vipActive}
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} />
+          onChange={async (e) => {
+            const f = e.target.files?.[0]; if (!f) return;
+            if (!vipActive) return toast.error("VIP only");
+            if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+            setSrc(await readFileAsDataURL(f)); setOpen(true);
+            e.currentTarget.value = "";
+          }} />
         {bgUrl && <Button variant="outline" size="sm" onClick={clear}>Remove</Button>}
       </div>
       <p className="text-xs text-muted-foreground">
-        {vipActive ? "Used as a subtle background on your profile page. Up to 8MB." : "Unlock VIP to add a custom profile background."}
+        {vipActive ? "Used as a subtle background on your profile. You can crop & reposition it. Up to 8MB." : "Unlock VIP to add a custom profile background."}
       </p>
+      <ImageCropper open={open} onOpenChange={setOpen} imageSrc={src} aspect={16 / 9} outputWidth={1600}
+        title="Crop background" onCropped={save} />
     </Card>
   );
 }
+

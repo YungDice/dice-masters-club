@@ -71,3 +71,17 @@ export const donateToCrew = createServerFn({ method: "POST" })
     z.object({ amount: z.number().int().min(100).max(1_000_000) }).parse(d),
   )
   .handler(async ({ data, context }) => rpc(context, "donate_to_crew_tx", { _amount: data.amount }));
+
+export const setCrewMission = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { slot: number; templateId: string }) =>
+    z.object({ slot: z.number().int().min(1).max(3), templateId: z.string().uuid() }).parse(d),
+  )
+  .handler(async ({ data, context }) =>
+    rpc(context, "set_crew_mission", { _slot: data.slot, _template_id: data.templateId }),
+  );
+
+export const autofillCrewMissions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => rpc(context, "autofill_crew_missions", {}));
+

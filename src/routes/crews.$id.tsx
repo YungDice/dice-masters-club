@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
-  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown,
+  Users, Crown, Shield, LogOut, Coins, Sparkles, Check, X, UserMinus, ArrowUp, ArrowDown, Target,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/dice/EmptyState";
+import { CrewMissions } from "@/components/dice/CrewMissions";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -215,8 +216,9 @@ function CrewPage() {
         </div>
       </Card>
 
-      <Tabs defaultValue="members">
+      <Tabs defaultValue="missions">
         <TabsList>
+          <TabsTrigger value="missions"><Target className="size-4 mr-1.5" /> Missions</TabsTrigger>
           <TabsTrigger value="members"><Users className="size-4 mr-1.5" /> Members ({c.member_count})</TabsTrigger>
           <TabsTrigger value="donations"><Coins className="size-4 mr-1.5" /> Donations</TabsTrigger>
           {canManage && (
@@ -225,6 +227,13 @@ function CrewPage() {
             </TabsTrigger>
           )}
         </TabsList>
+
+        <TabsContent value="missions" className="mt-4">
+          <Card className="p-6">
+            <CrewMissions crewId={id} canManage={!!canManage} />
+          </Card>
+        </TabsContent>
+
 
         <TabsContent value="members" className="mt-4">
           <Card className="p-0 overflow-hidden">

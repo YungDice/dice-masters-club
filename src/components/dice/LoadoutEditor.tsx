@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
+import { ImageCropper, readFileAsDataURL } from "@/components/dice/ImageCropper";
 
 const GAMES = [
   { v: "coinflip", n: "Coin Flip" }, { v: "dice", n: "Dice" }, { v: "blackjack", n: "Blackjack" },
@@ -22,6 +23,8 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
   const [achId, setAchId] = useState<string>("");
   const [poseUrl, setPoseUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [poseSrc, setPoseSrc] = useState<string>("");
+  const [poseOpen, setPoseOpen] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -69,15 +72,13 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
-  async function uploadPose(file: File) {
+  async function uploadPose(blob: Blob) {
     if (!user) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
-    const ext = file.name.split(".").pop() || "png";
-    const path = `${user.id}/win-pose-${Date.now()}.${ext}`;
-    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (up.error) return toast.error(up.error.message);
+    const path = `${user.id}/win-pose-${Date.now()}.jpg`;
+    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    if (up.error) { toast.error(up.error.message); return; }
     const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signed.error || !signed.data) return toast.error("Could not load image");
+    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
     setPoseUrl(signed.data.signedUrl);
     toast.success("Sticker uploaded — click Save loadout");
   }
