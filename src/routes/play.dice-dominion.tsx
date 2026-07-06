@@ -15,8 +15,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { fmt } from "@/lib/format";
 import {
   dominionGetState, dominionInit, dominionBuild, dominionUpgrade, dominionCollect, dominionFinishJobs,
+  dominionTrain, dominionResearch, dominionListSectors, dominionAttack, dominionListBattles,
 } from "@/lib/dominion.functions";
-import { BUILDINGS, GRID_SIZE, type BuildingKind } from "@/lib/dominion.config";
+import { BUILDINGS, UNITS, RESEARCH, GRID_SIZE, type BuildingKind, type UnitKind, type ResearchNodeId } from "@/lib/dominion.config";
 
 type BuildableKind = Exclude<BuildingKind, "headquarters">;
 const BUILDABLE: BuildableKind[] = ["salvage_yard","power_core","dice_forge","vault","command_center","workshop"];
