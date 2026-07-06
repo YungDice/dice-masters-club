@@ -1182,6 +1182,16 @@ export const setActiveTag = createServerFn({ method: "POST" })
     return res as any;
   });
 
+export const deleteTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { tag: string }) => z.object({ tag: z.string().min(2).max(6) }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("delete_tag_tx" as any, { _tag: data.tag });
+    if (error) throw new Error(error.message);
+    return res as any;
+  });
+
 // ---------- Baddie Marketplace ----------
 export const listBaddieForSale = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

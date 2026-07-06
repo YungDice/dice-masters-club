@@ -62,17 +62,17 @@ function UProfile() {
     queryKey: ["u-rank", pid],
     enabled: !!pid,
     queryFn: async () => {
-      const { data } = await supabase.from("game_results").select("outcome,delta,wagered,payout").eq("user_id", pid!).limit(5000);
-      const rows = (data ?? []) as any[];
-      const wins = rows.filter((r) => r.outcome === "win").length;
-      const losses = rows.filter((r) => r.outcome === "loss").length;
-      const draws = rows.filter((r) => r.outcome === "draw").length;
-      const total = rows.length;
-      const wagered = rows.reduce((s, r) => s + Number(r.wagered ?? 0), 0);
-      const won = rows.reduce((s, r) => s + Math.max(Number(r.payout ?? 0), Number(r.delta ?? 0) > 0 ? Number(r.delta) : 0), 0);
-      const lost = rows.reduce((s, r) => s + (Number(r.delta ?? 0) < 0 ? -Number(r.delta) : 0), 0);
-      const ratio = losses === 0 ? (wins > 0 ? wins : 0) : wins / losses;
-      return { wins, losses, draws, total, wagered, won, lost, ratio };
+      const { data } = await (supabase.rpc as any)("get_user_profile_stats", { _uid: pid! });
+      const row = (Array.isArray(data) ? data[0] : data) ?? {};
+      const wins = Number(row.wins ?? 0);
+      const losses = Number(row.losses ?? 0);
+      const draws = Number(row.draws ?? 0);
+      const total = Number(row.games_played ?? 0);
+      const wagered = Number(row.wagered ?? 0);
+      const payout = Number(row.payout ?? 0);
+      const net = Number(row.net ?? 0);
+      const ratio = Number(row.win_loss_ratio ?? (losses === 0 ? (wins > 0 ? wins : 0) : wins / losses));
+      return { wins, losses, draws, total, wagered, won: payout, lost: Math.max(0, -net), ratio };
     },
   });
 
