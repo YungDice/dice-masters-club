@@ -2237,6 +2237,71 @@ export type Database = {
         }
         Relationships: []
       }
+      user_yuri: {
+        Row: {
+          acquired_at: string
+          case_slot: number | null
+          id: string
+          last_collected_at: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          case_slot?: number | null
+          id?: string
+          last_collected_at?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          case_slot?: number | null
+          id?: string
+          last_collected_at?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_yuri_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "yuri_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      yuri_templates: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          income_per_hour: number
+          name: string
+          rarity: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          image_url?: string | null
+          income_per_hour?: number
+          name: string
+          rarity: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          income_per_hour?: number
+          name?: string
+          rarity?: string
+          weight?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       user_game_stats: {
@@ -2315,6 +2380,13 @@ export type Database = {
         Returns: Json
       }
       claim_weekly_streak_tx: { Args: never; Returns: Json }
+      cleanup_abandoned_lobbies: {
+        Args: never
+        Returns: {
+          cancelled_waiting: number
+          finished_active: number
+        }[]
+      }
       cleanup_stale_data: { Args: never; Returns: undefined }
       collect_baddie_tx: {
         Args: { _baddie_id: string }
@@ -2517,6 +2589,23 @@ export type Database = {
           user_baddie_id: string
         }[]
       }
+      open_yuri_case: {
+        Args: { _count: number }
+        Returns: {
+          acquired_at: string
+          case_slot: number | null
+          id: string
+          last_collected_at: string
+          template_id: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_yuri"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       place_bid_tx: {
         Args: { _amount: number; _bidder: string; _listing_id: string }
         Returns: Json
@@ -2683,6 +2772,17 @@ export type Database = {
         }
         Returns: number
       }
+      yuri_collect_duo: {
+        Args: { _group: number }
+        Returns: {
+          amount: number
+        }[]
+      }
+      yuri_place: {
+        Args: { _slot: number; _yuri_id: string }
+        Returns: undefined
+      }
+      yuri_unplace: { Args: { _yuri_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "user" | "moderator" | "admin" | "owner"

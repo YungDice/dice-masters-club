@@ -311,8 +311,19 @@ function Room({ roomId, onLeave, userId }: { roomId: string; onLeave: () => void
   const isMyTurn = view.phase === "playing" && view.turn === mySeatIdx;
   const mySeat = view.seats[mySeatIdx];
 
+  const [confirmForfeit, setConfirmForfeit] = useState(false);
   async function doStart() { setBusy(true); try { await startFn({ data: { roomId } }); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }
-  async function doLeave() { setBusy(true); try { await leaveFn({ data: { roomId } }); qc.invalidateQueries({ queryKey: ["wallet"] }); onLeave(); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }
+  async function doLeave() {
+    setBusy(true);
+    try {
+      const res: any = await leaveFn({ data: { roomId } });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      if (res?.mode === "refunded") toast.success("Left lobby — stake refunded");
+      else if (res?.mode === "forfeit") toast("Forfeited — the game continues for other players");
+      else if (res?.mode === "forfeit_resolved") toast("Forfeited — round resolved");
+      onLeave();
+    } catch (e: any) { toast.error(e.message); } finally { setBusy(false); setConfirmForfeit(false); }
+  }
   async function doAct(a: "hit" | "stand" | "double") { setBusy(true); try { await actFn({ data: { roomId, action: a } }); qc.invalidateQueries({ queryKey: ["wallet"] }); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }
 
   return (
@@ -366,16 +377,34 @@ function Room({ roomId, onLeave, userId }: { roomId: string; onLeave: () => void
             </div>
           </div>
         )}
-        {view.phase === "playing" && (
-          isMyTurn ? (
-            <div className="grid grid-cols-3 gap-2">
-              <Button onClick={() => doAct("hit")} disabled={busy} className="glow-red">Hit</Button>
-              <Button onClick={() => doAct("stand")} disabled={busy} variant="outline">Stand</Button>
-              <Button onClick={() => doAct("double")} disabled={busy || !mySeat || mySeat.hand.length !== 2 || mySeat.doubled} variant="outline">Double</Button>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center">Waiting for <b>{view.seats[view.turn]?.displayName ?? "..."}</b> to act…</p>
-          )
+        {view.phase === "playing" && mySeat && !mySeat.leftEarly && !mySeat.outcome && (
+          <div className="space-y-3">
+            {isMyTurn ? (
+              <div className="grid grid-cols-3 gap-2">
+                <Button onClick={() => doAct("hit")} disabled={busy} className="glow-red">Hit</Button>
+                <Button onClick={() => doAct("stand")} disabled={busy} variant="outline">Stand</Button>
+                <Button onClick={() => doAct("double")} disabled={busy || !mySeat || mySeat.hand.length !== 2 || mySeat.doubled} variant="outline">Double</Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center">Waiting for <b>{view.seats[view.turn]?.displayName ?? "..."}</b> to act…</p>
+            )}
+            {!confirmForfeit ? (
+              <Button variant="ghost" size="sm" onClick={() => setConfirmForfeit(true)} disabled={busy} className="w-full text-muted-foreground">
+                <LogOut className="size-4 mr-1" />Forfeit hand
+              </Button>
+            ) : (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+                <p className="text-xs">Forfeit forfeits your stake and lets the other players finish the round. Continue?</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="destructive" onClick={doLeave} disabled={busy}>Yes, forfeit</Button>
+                  <Button size="sm" variant="outline" onClick={() => setConfirmForfeit(false)} disabled={busy}>Cancel</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        {view.phase === "playing" && mySeat && (mySeat.leftEarly || mySeat.outcome) && (
+          <p className="text-sm text-muted-foreground text-center">You forfeited. Waiting for the round to finish…</p>
         )}
         {view.phase === "finished" && (
           <Button onClick={onLeave} className="w-full">Back to lobbies</Button>
