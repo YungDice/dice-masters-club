@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { flappyStart, flappyGate, flappyEnd } from "@/lib/minigame.functions";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { useMyProfile } from "@/hooks/use-profile";
+import { useEquippedFor } from "@/lib/cosmetics";
 
 // Visual constants
 const W = 480, H = 640;
