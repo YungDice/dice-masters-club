@@ -133,14 +133,30 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
           <div className="flex items-center gap-3">
             {poseUrl && <img src={poseUrl} className="size-16 rounded object-contain bg-black/30" alt="pose" />}
             <div className="flex-1 space-y-2">
-              <Input type="file" accept="image/*,image/gif" onChange={(e) => {
-                const f = e.target.files?.[0]; if (f) uploadPose(f);
+              <Input type="file" accept="image/*" onChange={async (e) => {
+                const f = e.target.files?.[0]; if (!f || !user) return;
+                if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+                if (f.type === "image/gif") {
+                  const path = `${user.id}/win-pose-${Date.now()}.gif`;
+                  const up = await supabase.storage.from("avatars").upload(path, f, { upsert: true, contentType: "image/gif" });
+                  if (up.error) return toast.error(up.error.message);
+                  const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+                  if (signed.error || !signed.data) return toast.error("Could not load image");
+                  setPoseUrl(signed.data.signedUrl);
+                  toast.success("Sticker uploaded — click Save loadout");
+                } else {
+                  setPoseSrc(await readFileAsDataURL(f)); setPoseOpen(true);
+                }
+                e.currentTarget.value = "";
               }} />
-              <p className="text-[11px] text-muted-foreground">PNG, GIF or WebP — up to 5MB. Animated stickers welcome.</p>
+              <p className="text-[11px] text-muted-foreground">PNG/WebP get cropped as a square. GIFs upload as-is (animated).</p>
               {poseUrl && <Button size="sm" variant="ghost" onClick={() => setPoseUrl("")}>Remove sticker</Button>}
             </div>
           </div>
+          <ImageCropper open={poseOpen} onOpenChange={setPoseOpen} imageSrc={poseSrc} aspect={1}
+            outputWidth={512} title="Crop sticker" onCropped={uploadPose} />
         </div>
+
       </div>
 
       <Button onClick={save} disabled={saving} className="glow-red">
