@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { BuyCoinsCard } from "@/components/dice/BuyCoins";
 import { PaymentTestModeBanner } from "@/components/dice/PaymentTestModeBanner";
 import { COUNTRIES } from "@/lib/countries";
+import { LoadoutEditor } from "@/components/dice/LoadoutEditor";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — DICE" }] }),
