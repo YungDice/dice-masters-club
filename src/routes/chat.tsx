@@ -32,7 +32,7 @@ type ChatRow = {
 async function fetchProfilesFor(rows: ChatRow[]) {
   const ids = Array.from(new Set(rows.map((m) => m.user_id)));
   if (!ids.length) return {};
-  const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url").in("id", ids);
+  const { data } = await supabase.from("profiles").select("id,username,display_name,avatar_url,tag,user_emoji").in("id", ids);
   return Object.fromEntries((data ?? []).map((p: any) => [p.id, p]));
 }
 
