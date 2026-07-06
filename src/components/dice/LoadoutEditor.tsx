@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
+import { ImageCropper, readFileAsDataURL } from "@/components/dice/ImageCropper";
 
 const GAMES = [
   { v: "coinflip", n: "Coin Flip" }, { v: "dice", n: "Dice" }, { v: "blackjack", n: "Blackjack" },
@@ -22,6 +23,8 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
   const [achId, setAchId] = useState<string>("");
   const [poseUrl, setPoseUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [poseSrc, setPoseSrc] = useState<string>("");
+  const [poseOpen, setPoseOpen] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -69,15 +72,13 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
     qc.invalidateQueries({ queryKey: ["profile", user.id] });
   }
 
-  async function uploadPose(file: File) {
+  async function uploadPose(blob: Blob) {
     if (!user) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
-    const ext = file.name.split(".").pop() || "png";
-    const path = `${user.id}/win-pose-${Date.now()}.${ext}`;
-    const up = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (up.error) return toast.error(up.error.message);
+    const path = `${user.id}/win-pose-${Date.now()}.jpg`;
+    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    if (up.error) { toast.error(up.error.message); return; }
     const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (signed.error || !signed.data) return toast.error("Could not load image");
+    if (signed.error || !signed.data) { toast.error("Could not load image"); return; }
     setPoseUrl(signed.data.signedUrl);
     toast.success("Sticker uploaded — click Save loadout");
   }
@@ -132,14 +133,30 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
           <div className="flex items-center gap-3">
             {poseUrl && <img src={poseUrl} className="size-16 rounded object-contain bg-black/30" alt="pose" />}
             <div className="flex-1 space-y-2">
-              <Input type="file" accept="image/*,image/gif" onChange={(e) => {
-                const f = e.target.files?.[0]; if (f) uploadPose(f);
+              <Input type="file" accept="image/*" onChange={async (e) => {
+                const f = e.target.files?.[0]; if (!f || !user) return;
+                if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
+                if (f.type === "image/gif") {
+                  const path = `${user.id}/win-pose-${Date.now()}.gif`;
+                  const up = await supabase.storage.from("avatars").upload(path, f, { upsert: true, contentType: "image/gif" });
+                  if (up.error) return toast.error(up.error.message);
+                  const signed = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60 * 24 * 365);
+                  if (signed.error || !signed.data) return toast.error("Could not load image");
+                  setPoseUrl(signed.data.signedUrl);
+                  toast.success("Sticker uploaded — click Save loadout");
+                } else {
+                  setPoseSrc(await readFileAsDataURL(f)); setPoseOpen(true);
+                }
+                e.currentTarget.value = "";
               }} />
-              <p className="text-[11px] text-muted-foreground">PNG, GIF or WebP — up to 5MB. Animated stickers welcome.</p>
+              <p className="text-[11px] text-muted-foreground">PNG/WebP get cropped as a square. GIFs upload as-is (animated).</p>
               {poseUrl && <Button size="sm" variant="ghost" onClick={() => setPoseUrl("")}>Remove sticker</Button>}
             </div>
           </div>
+          <ImageCropper open={poseOpen} onOpenChange={setPoseOpen} imageSrc={poseSrc} aspect={1}
+            outputWidth={512} title="Crop sticker" onCropped={uploadPose} />
         </div>
+
       </div>
 
       <Button onClick={save} disabled={saving} className="glow-red">

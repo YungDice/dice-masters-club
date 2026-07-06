@@ -696,6 +696,111 @@ export type Database = {
           },
         ]
       }
+      crew_mission_templates: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          description: string
+          id: string
+          metric: Database["public"]["Enums"]["crew_mission_metric"]
+          name: string
+          reward_dice: number
+          reward_points: number
+          target: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          description: string
+          id?: string
+          metric: Database["public"]["Enums"]["crew_mission_metric"]
+          name: string
+          reward_dice?: number
+          reward_points?: number
+          target: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          metric?: Database["public"]["Enums"]["crew_mission_metric"]
+          name?: string
+          reward_dice?: number
+          reward_points?: number
+          target?: number
+        }
+        Relationships: []
+      }
+      crew_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          crew_id: string
+          id: string
+          metric: Database["public"]["Enums"]["crew_mission_metric"]
+          progress: number
+          reward_dice: number
+          reward_points: number
+          slot: number
+          source: string
+          target: number
+          template_id: string
+          updated_at: string
+          week_start: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          crew_id: string
+          id?: string
+          metric: Database["public"]["Enums"]["crew_mission_metric"]
+          progress?: number
+          reward_dice?: number
+          reward_points?: number
+          slot: number
+          source?: string
+          target: number
+          template_id: string
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          crew_id?: string
+          id?: string
+          metric?: Database["public"]["Enums"]["crew_mission_metric"]
+          progress?: number
+          reward_dice?: number
+          reward_points?: number
+          slot?: number
+          source?: string
+          target?: number
+          template_id?: string
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_missions_crew_id_fkey"
+            columns: ["crew_id"]
+            isOneToOne: false
+            referencedRelation: "crews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crew_missions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "crew_mission_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crew_weekly_rankings: {
         Row: {
           created_at: string
@@ -2151,6 +2256,18 @@ export type Database = {
       }
     }
     Functions: {
+      _crew_mission_award: {
+        Args: { _mission: Database["public"]["Tables"]["crew_missions"]["Row"] }
+        Returns: undefined
+      }
+      _crew_missions_bump: {
+        Args: {
+          _crew_id: string
+          _delta: number
+          _metric: Database["public"]["Enums"]["crew_mission_metric"]
+        }
+        Returns: undefined
+      }
       add_season_bonus_xp: { Args: { _amount: number }; Returns: undefined }
       admin_delete_challenge_tx: {
         Args: { _challenge_id: string; _reason: string }
@@ -2164,6 +2281,7 @@ export type Database = {
         Args: { _amount: number; _uid: string }
         Returns: undefined
       }
+      autofill_crew_missions: { Args: never; Returns: Json }
       award_daily_leaderboard_rewards: { Args: never; Returns: Json }
       award_idle_xp: { Args: { _uid: string }; Returns: Json }
       baddie_tier_mult_bp: { Args: { _tier: string }; Returns: number }
@@ -2225,6 +2343,24 @@ export type Database = {
         }
         Returns: Json
       }
+      crew_missions_this_week: {
+        Args: { _crew_id: string }
+        Returns: {
+          code: string
+          completed_at: string
+          description: string
+          id: string
+          metric: Database["public"]["Enums"]["crew_mission_metric"]
+          name: string
+          progress: number
+          reward_dice: number
+          reward_points: number
+          slot: number
+          source: string
+          target: number
+          template_id: string
+        }[]
+      }
       current_season: {
         Args: never
         Returns: {
@@ -2244,6 +2380,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_week_start: { Args: never; Returns: string }
       donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
       ensure_season_progress: {
         Args: never
@@ -2467,6 +2604,10 @@ export type Database = {
         Args: { _rarities: string[] }
         Returns: string[]
       }
+      set_crew_mission: {
+        Args: { _slot: number; _template_id: string }
+        Returns: Json
+      }
       set_crew_role_tx: {
         Args: {
           _role: Database["public"]["Enums"]["crew_role"]
@@ -2549,6 +2690,7 @@ export type Database = {
         | "closed"
         | "archived"
       crew_join_status: "pending" | "accepted" | "rejected" | "cancelled"
+      crew_mission_metric: "donations" | "new_members"
       crew_role: "owner" | "officer" | "member"
       difficulty: "easy" | "medium" | "hard" | "extreme"
       friend_status: "pending" | "accepted" | "blocked"
@@ -2777,6 +2919,7 @@ export const Constants = {
         "archived",
       ],
       crew_join_status: ["pending", "accepted", "rejected", "cancelled"],
+      crew_mission_metric: ["donations", "new_members"],
       crew_role: ["owner", "officer", "member"],
       difficulty: ["easy", "medium", "hard", "extreme"],
       friend_status: ["pending", "accepted", "blocked"],
