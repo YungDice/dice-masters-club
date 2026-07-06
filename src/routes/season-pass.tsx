@@ -119,7 +119,8 @@ function SeasonPassPage() {
     return Math.max(0, ((profile as any).xp ?? 0) - base) + bonus;
   }, [profile, progress.data]);
 
-  const currentTier = season.data ? Math.min(season.data.tier_count, Math.floor(seasonXp / season.data.xp_per_tier)) : 0;
+  // Infinite tiers: level keeps climbing past tier_count for prestige/flex.
+  const currentTier = season.data ? Math.floor(seasonXp / season.data.xp_per_tier) : 0;
   const nextTierXp = season.data ? (currentTier + 1) * season.data.xp_per_tier : 0;
   const xpIntoTier = season.data ? seasonXp - currentTier * season.data.xp_per_tier : 0;
   const pctToNext = season.data ? (xpIntoTier / season.data.xp_per_tier) * 100 : 0;
