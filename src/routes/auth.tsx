@@ -14,7 +14,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DiceLogo } from "@/components/dice/Logo";
 import { toast } from "sonner";
 
+// Preserve a `next` search param so consent/OAuth flows redirect back to the
+// originating page (e.g. /.lovable/oauth/consent?authorization_id=...) after
+// sign-in. Validate as a same-origin relative path before using.
+function safeNext(next: string | undefined): string {
+  if (!next || typeof next !== "string") return "/";
+  if (!next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — DICE" },
@@ -27,9 +39,14 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/" });
-  }, [user, loading, navigate]);
+    if (!loading && user) {
+      if (target.startsWith("/") && target !== "/") window.location.href = target;
+      else navigate({ to: "/" });
+    }
+  }, [user, loading, navigate, target]);
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
@@ -83,18 +100,25 @@ function SignInForm() {
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
+  function goNext() {
+    if (target.startsWith("/") && target !== "/") window.location.href = target;
+    else navigate({ to: "/" });
+  }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     setBusy(false);
     if (error) toast.error(error.message);
-    else navigate({ to: "/" });
+    else goNext();
   }
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const redirectUri = `${window.location.origin}${target}`;
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: redirectUri });
     if (r.error) toast.error(r.error.message);
-    else if (!r.redirected) navigate({ to: "/" });
+    else if (!r.redirected) goNext();
   }
   return (
     <form onSubmit={submit} className="space-y-4 mt-4">
@@ -119,6 +143,8 @@ function SignUpForm() {
   const [terms, setTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
+  const target = safeNext(next);
 
   function ageOk(d: string) {
     if (!d) return false;
@@ -136,13 +162,17 @@ function SignUpForm() {
     const { error } = await supabase.auth.signUp({
       email, password: pw,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}${target}`,
         data: { username, display_name: displayName || username, dob, is_18_plus: true },
       },
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else { toast.success("Welcome to DICE! You earned a 2500 DICE welcome bonus."); navigate({ to: "/" }); }
+    else {
+      toast.success("Welcome to DICE! You earned a 2500 DICE welcome bonus.");
+      if (target.startsWith("/") && target !== "/") window.location.href = target;
+      else navigate({ to: "/" });
+    }
   }
 
   return (
