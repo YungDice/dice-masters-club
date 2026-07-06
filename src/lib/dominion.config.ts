@@ -103,3 +103,32 @@ export function baseCommandEnergyCap(cmdLevel: number) {
 export function workshopSpeedMultiplier(workshopLevel: number) {
   return Math.max(0.5, 1 - 0.03 * workshopLevel);
 }
+
+// ============================================================
+// RESEARCH TREE
+// ============================================================
+export type ResearchBranch = "industry" | "tactics" | "logistics";
+export type ResearchNodeId =
+  | "yield" | "capacity" | "conversion"          // industry
+  | "attack" | "unit_cap" | "energy_efficiency"  // tactics
+  | "build_speed" | "train_speed" | "sector_rewards"; // logistics
+
+export const RESEARCH: Record<ResearchNodeId, {
+  branch: ResearchBranch; label: string; desc: string; maxLevel: number;
+  cost: (level: number) => number; // roll_credits to reach this level
+  seconds: (level: number) => number;
+}> = {
+  yield:            { branch: "industry",  label: "Yield Optimization",  desc: "+5% resource production per level.",          maxLevel: 10, cost: (l) => 200 * l, seconds: (l) => 30 + l * 20 },
+  capacity:         { branch: "industry",  label: "Reinforced Vaults",   desc: "+2,000 resource capacity per level.",         maxLevel: 10, cost: (l) => 250 * l, seconds: (l) => 40 + l * 20 },
+  conversion:       { branch: "industry",  label: "Forge Tuning",        desc: "+5% Roll Credit conversion per level.",       maxLevel: 8,  cost: (l) => 300 * l, seconds: (l) => 45 + l * 25 },
+  attack:           { branch: "tactics",   label: "Combat Doctrine",     desc: "+4% attack power per level.",                 maxLevel: 10, cost: (l) => 250 * l, seconds: (l) => 40 + l * 25 },
+  unit_cap:         { branch: "tactics",   label: "Barracks Expansion",  desc: "+10 unit capacity per level.",                maxLevel: 10, cost: (l) => 300 * l, seconds: (l) => 50 + l * 25 },
+  energy_efficiency:{ branch: "tactics",   label: "Command Uplink",      desc: "-5% Command Energy cost per level.",          maxLevel: 6,  cost: (l) => 400 * l, seconds: (l) => 60 + l * 30 },
+  build_speed:      { branch: "logistics", label: "Rapid Deployment",    desc: "-3% construction time per level.",            maxLevel: 10, cost: (l) => 220 * l, seconds: (l) => 40 + l * 20 },
+  train_speed:      { branch: "logistics", label: "Drill Instructors",   desc: "-3% training time per level.",                maxLevel: 10, cost: (l) => 220 * l, seconds: (l) => 40 + l * 20 },
+  sector_rewards:   { branch: "logistics", label: "Salvage Networks",    desc: "+5% territory reward per level.",             maxLevel: 10, cost: (l) => 300 * l, seconds: (l) => 50 + l * 25 },
+};
+
+export const BASE_UNIT_CAP = 30;
+export const BASE_ATTACK_COST = 5; // command energy
+
