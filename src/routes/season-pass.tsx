@@ -204,12 +204,10 @@ function SeasonPassPage() {
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground">Tier</span>
                   <span className="font-display text-3xl font-black text-[color:var(--gold)]">{currentTier}</span>
-                  <span className="text-sm text-muted-foreground">/ {season.data.tier_count}</span>
+                  <span className="text-sm text-muted-foreground">∞ (infinite)</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {currentTier >= season.data.tier_count
-                    ? <span className="text-emerald-400 font-semibold">Max tier reached</span>
-                    : <>Next: <b className="text-foreground">{fmt(nextTierXp - seasonXp)} XP</b></>}
+                  Next: <b className="text-foreground">{fmt(nextTierXp - seasonXp)} XP</b>
                 </div>
               </div>
               <div className="relative h-3 rounded-full bg-black/40 overflow-hidden border border-white/5">
