@@ -473,6 +473,51 @@ function CrewPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Award DICE from crew bank */}
+      <Dialog open={awardOpen} onOpenChange={(o) => { setAwardOpen(o); if (!o) setAwardTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Award DICE to {awardTarget?.name}</DialogTitle>
+            <DialogDescription>
+              Only the crew owner can award DICE. The amount is deducted from the crew bank
+              (total pts: <b className="text-amber-200">{fmt(c.total_score)}</b>) and credited to the member's wallet.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="number"
+              min={10}
+              max={Math.max(10, c.total_score)}
+              value={awardAmount}
+              onChange={(e) => setAwardAmount(Math.max(0, Number(e.target.value)))}
+            />
+            <div className="flex flex-wrap gap-2">
+              {[100, 500, 1000, 5000, 10000].map((v) => (
+                <Button
+                  key={v}
+                  size="sm"
+                  variant="outline"
+                  disabled={v > c.total_score}
+                  onClick={() => setAwardAmount(v)}
+                >
+                  {fmt(v)}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAwardOpen(false)}>Cancel</Button>
+            <Button
+              onClick={onAward}
+              disabled={awardAmount < 10 || awardAmount > c.total_score}
+              className="glow-red"
+            >
+              <Gift className="size-4 mr-1.5" /> Award {fmt(awardAmount)} DICE
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
