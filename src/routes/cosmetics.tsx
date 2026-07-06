@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyProfile, useWallet } from "@/hooks/use-profile";
 import {
-  useCatalog, useMyCosmetics, RARITY_COLOR, TitleBadge, frameClasses, bannerStyle,
+  useCatalog, useMyCosmetics, RARITY_COLOR, TitleBadge, frameClasses,
   type Cosmetic,
 } from "@/lib/cosmetics";
 import { fmt } from "@/lib/format";
