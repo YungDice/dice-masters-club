@@ -15,6 +15,16 @@ type Props = {
   onCropped: (blob: Blob) => Promise<void> | void;
 };
 
+function isGifDataUrl(imageSrc: string) {
+  return /^data:image\/gif(?:;|,)/i.test(imageSrc);
+}
+
+async function gifDataUrlToBlob(imageSrc: string): Promise<Blob> {
+  const response = await fetch(imageSrc);
+  const blob = await response.blob();
+  return blob.type ? blob : new Blob([blob], { type: "image/gif" });
+}
+
 async function cropToBlob(imageSrc: string, area: Area, outW: number, aspect: number): Promise<Blob> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const el = new Image();
@@ -38,14 +48,18 @@ export function ImageCropper({ open, onOpenChange, imageSrc, aspect, cropShape =
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
   const [busy, setBusy] = useState(false);
+  const animatedGif = isGifDataUrl(imageSrc);
 
   const onCropComplete = useCallback((_c: Area, pixels: Area) => setArea(pixels), []);
 
   async function save() {
-    if (!area) return;
+    if (!animatedGif && !area) return;
     setBusy(true);
     try {
-      const blob = await cropToBlob(imageSrc, area, outputWidth, aspect);
+      // Canvas export flattens GIFs to one frame. Keep the original bytes instead.
+      const blob = animatedGif
+        ? await gifDataUrlToBlob(imageSrc)
+        : await cropToBlob(imageSrc, area!, outputWidth, aspect);
       await onCropped(blob);
       onOpenChange(false);
     } finally {
@@ -58,29 +72,41 @@ export function ImageCropper({ open, onOpenChange, imageSrc, aspect, cropShape =
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>Drag to reposition, pinch or use the slider to zoom.</DialogDescription>
+          <DialogDescription>
+            {animatedGif
+              ? "Animated GIFs are uploaded unchanged so their animation stays intact."
+              : "Drag to reposition, pinch or use the slider to zoom."}
+          </DialogDescription>
         </DialogHeader>
         <div className="relative w-full h-72 sm:h-80 bg-black rounded-lg overflow-hidden">
-          <Cropper
-            image={imageSrc}
-            crop={crop}
-            zoom={zoom}
-            aspect={aspect}
-            cropShape={cropShape}
-            showGrid
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
-            onCropComplete={onCropComplete}
-          />
+          {animatedGif ? (
+            <img src={imageSrc} alt="Animated GIF preview" className="w-full h-full object-contain" />
+          ) : (
+            <Cropper
+              image={imageSrc}
+              crop={crop}
+              zoom={zoom}
+              aspect={aspect}
+              cropShape={cropShape}
+              showGrid
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+            />
+          )}
         </div>
-        <div className="space-y-1 pt-2">
-          <Label className="text-xs">Zoom</Label>
-          <input type="range" min={1} max={4} step={0.02} value={zoom}
-            onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
-        </div>
+        {!animatedGif && (
+          <div className="space-y-1 pt-2">
+            <Label className="text-xs">Zoom</Label>
+            <input type="range" min={1} max={4} step={0.02} value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))} className="w-full" />
+          </div>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
-          <Button onClick={save} disabled={busy} className="glow-red">{busy ? "Saving..." : "Save"}</Button>
+          <Button onClick={save} disabled={busy} className="glow-red">
+            {busy ? "Saving..." : animatedGif ? "Upload GIF" : "Save"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
