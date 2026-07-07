@@ -59,23 +59,7 @@ function UProfile() {
       return data ?? [];
     },
   });
-  const rankStats = useQuery({
-    queryKey: ["u-rank", pid],
-    enabled: !!pid,
-    queryFn: async () => {
-      const { data } = await (supabase.rpc as any)("get_user_profile_stats", { _uid: pid! });
-      const row = (Array.isArray(data) ? data[0] : data) ?? {};
-      const wins = Number(row.wins ?? 0);
-      const losses = Number(row.losses ?? 0);
-      const draws = Number(row.draws ?? 0);
-      const total = Number(row.games_played ?? 0);
-      const wagered = Number(row.wagered ?? 0);
-      const payout = Number(row.payout ?? 0);
-      const net = Number(row.net ?? 0);
-      const ratio = Number(row.win_loss_ratio ?? (losses === 0 ? (wins > 0 ? wins : 0) : wins / losses));
-      return { wins, losses, draws, total, wagered, won: payout, lost: Math.max(0, -net), ratio };
-    },
-  });
+  const rankStats = useCompetitiveStats(pid);
 
   const friendship = useQuery({
     queryKey: ["friendship", user?.id, pid],
