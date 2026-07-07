@@ -86,23 +86,17 @@ function MyProfile() {
     },
   });
 
-  const rank = useQuery({
-    queryKey: ["rank-stats", user?.id],
-    enabled: !!user?.id,
-    staleTime: 30_000,
-    queryFn: async () => {
-      try { await finalizeStaleGames({ data: { olderThanSeconds: 30 } }); } catch { /* stats still load */ }
-      const { data } = await (supabase.rpc as any)("get_user_profile_stats", { _uid: user!.id });
-      const row = (Array.isArray(data) ? data[0] : data) ?? {};
-      const wins = Number(row.wins ?? 0);
-      const losses = Number(row.losses ?? 0);
-      const total = Number(row.games_played ?? 0);
-      const ratio = Number(row.win_loss_ratio ?? (losses > 0 ? wins / losses : (wins > 0 ? wins : 0)));
-      return { wins, losses, total, ratio, rank_score: Number(row.rank_score ?? 0), net: Number(row.net ?? 0) };
-    },
-  });
+  const { data: stats } = useCompetitiveStats(user?.id);
 
   const equipped = useEquippedFor(p).data;
+
+  useEffect(() => {
+    // Kick a one-off finalize so any dangling games get counted before stats render.
+    if (!user?.id) return;
+    void finalizeStaleGames({ data: { olderThanSeconds: 30 } })
+      .then(() => qc.invalidateQueries({ queryKey: ["competitive-stats", user.id] }))
+      .catch(() => {});
+  }, [user?.id, qc, finalizeStaleGames]);
 
   if (!p) return <div className="text-center text-muted-foreground py-10">Loading profile…</div>;
 
@@ -111,7 +105,6 @@ function MyProfile() {
   const vipActive = vipUntil && vipUntil > new Date();
   const banner = (p as any).banner_url as string | null;
   const profileBg = (p as any).profile_bg_url as string | null;
-  const tier = tierFor(rank.data?.wins ?? 0, rank.data?.ratio ?? 0);
 
   return (
     <ProfileBackdrop url={vipActive ? profileBg : null}>
@@ -157,30 +150,7 @@ function MyProfile() {
         </div>
       </Card>
 
-      <Card className={`glass p-5 ${tier.glow ? `shadow-lg ${tier.glow}` : ""}`}>
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Swords className="size-4 text-primary" />Rank</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">Tier</div>
-            <div className={`text-2xl font-display font-bold ${tier.color}`}>{tier.name}</div>
-          </div>
-          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">Wins</div>
-            <div className="text-2xl font-display font-bold text-emerald-400">{rank.data?.wins ?? 0}</div>
-          </div>
-          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">Losses</div>
-            <div className="text-2xl font-display font-bold text-rose-400">{rank.data?.losses ?? 0}</div>
-          </div>
-          <div className="rounded-md border border-border/60 p-3 text-center bg-black/20">
-            <div className="text-xs text-muted-foreground uppercase tracking-wider">Rank Score</div>
-            <div className="text-2xl font-display font-bold text-primary">
-              {rank.data?.total ? fmt(Math.round(rank.data.rank_score)) : "—"}
-            </div>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground mt-3">Computed from your full game history ({rank.data?.total ?? 0} games tracked · net {fmt(rank.data?.net ?? 0)} DICE).</p>
-      </Card>
+      <CompetitiveStatsCard stats={stats} />
 
       <LoadoutCard profile={p} />
 
