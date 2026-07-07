@@ -150,39 +150,53 @@ function CrewsIndex() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((c: any) => (
-                <Card key={c.id} className="p-4 flex flex-col gap-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="size-11 ring-1 ring-amber-400/40">
-                      <AvatarFallback className="font-mono text-xs">{c.tag}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <Link to="/crews/$id" params={{ id: c.id }} className="font-semibold truncate hover:underline block">
-                        {c.name}
-                      </Link>
-                      <div className="text-xs text-muted-foreground">
-                        <span className="font-mono text-primary">[{c.tag}]</span> · Lvl {c.level}
+                <Card key={c.id} className="p-0 flex flex-col gap-0 overflow-hidden">
+                  <Link to="/crews/$id" params={{ id: c.id }} className="relative block h-24 w-full">
+                    {c.banner_url ? (
+                      <img src={c.banner_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div
+                        className="w-full h-full"
+                        style={{ background: "radial-gradient(ellipse at top, rgba(252,211,77,0.25), transparent 70%), linear-gradient(135deg,#0b0a14,#1a1023)" }}
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
+                    {c.is_open ? (
+                      <span className="absolute top-2 right-2 text-[10px] uppercase tracking-widest text-emerald-300/90 bg-black/50 rounded px-1.5 py-0.5">Open</span>
+                    ) : (
+                      <span className="absolute top-2 right-2 text-[10px] uppercase tracking-widest text-amber-200/80 bg-black/50 rounded px-1.5 py-0.5">Request</span>
+                    )}
+                  </Link>
+                  <div className="p-4 pt-0 -mt-8 relative flex flex-col gap-3">
+                    <div className="flex items-end gap-3">
+                      <Avatar className="size-14 ring-2 ring-background bg-background">
+                        <AvatarImage src={c.avatar_url ?? undefined} />
+                        <AvatarFallback className="font-mono text-xs">{c.tag}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <Link to="/crews/$id" params={{ id: c.id }} className="font-semibold truncate hover:underline block">
+                          {c.name}
+                        </Link>
+                        <div className="text-xs text-muted-foreground">
+                          <span className="font-mono text-primary">[{c.tag}]</span> · Lvl {c.level}
+                        </div>
                       </div>
                     </div>
-                    {c.is_open ? (
-                      <span className="text-[10px] uppercase tracking-widest text-emerald-300/80">Open</span>
-                    ) : (
-                      <span className="text-[10px] uppercase tracking-widest text-amber-200/70">Request</span>
-                    )}
+                    {c.description && <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div><div className="text-muted-foreground">Members</div><div className="font-semibold">{c.member_count}/{c.max_members}</div></div>
+                      <div><div className="text-muted-foreground">Weekly</div><div className="font-semibold text-amber-200">{fmt(c.weekly_score)}</div></div>
+                      <div><div className="text-muted-foreground">Min lvl</div><div className="font-semibold">{c.min_level}</div></div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={myCrew ? "outline" : "default"}
+                      disabled={!!myCrew || c.member_count >= c.max_members}
+                      onClick={() => onJoin(c.id)}
+                    >
+                      {myCrew ? "Already in a crew" : c.is_open ? "Join" : "Request to join"}
+                    </Button>
                   </div>
-                  {c.description && <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
-                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div><div className="text-muted-foreground">Members</div><div className="font-semibold">{c.member_count}/{c.max_members}</div></div>
-                    <div><div className="text-muted-foreground">Weekly</div><div className="font-semibold text-amber-200">{fmt(c.weekly_score)}</div></div>
-                    <div><div className="text-muted-foreground">Min lvl</div><div className="font-semibold">{c.min_level}</div></div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant={myCrew ? "outline" : "default"}
-                    disabled={!!myCrew || c.member_count >= c.max_members}
-                    onClick={() => onJoin(c.id)}
-                  >
-                    {myCrew ? "Already in a crew" : c.is_open ? "Join" : "Request to join"}
-                  </Button>
                 </Card>
               ))}
             </div>
