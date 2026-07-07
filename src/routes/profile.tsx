@@ -18,12 +18,11 @@ import { useEquippedFor, TitleBadge, frameClasses } from "@/lib/cosmetics";
 import { LoadoutCard } from "@/components/dice/LoadoutCard";
 import { finalizeMyStaleGames } from "@/lib/stats.functions";
 import { NameBadges } from "@/components/dice/NameBadges";
+import { CompetitiveStatsCard, useCompetitiveStats } from "@/components/dice/CompetitiveStatsCard";
 
 
 
 import { fmt, timeAgo } from "@/lib/format";
-
-import { RANK_TIERS, tierFor } from "@/lib/rank";
 
 
 
