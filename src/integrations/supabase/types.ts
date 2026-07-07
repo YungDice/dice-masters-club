@@ -1543,7 +1543,7 @@ export type Database = {
           details: Json | null
           id: string
           kind: Database["public"]["Enums"]["game_kind"]
-          outcome: string | null
+          outcome: string
           payout: number
           room_id: string | null
           user_id: string
@@ -1555,7 +1555,7 @@ export type Database = {
           details?: Json | null
           id?: string
           kind: Database["public"]["Enums"]["game_kind"]
-          outcome?: string | null
+          outcome: string
           payout?: number
           room_id?: string | null
           user_id: string
@@ -1567,7 +1567,7 @@ export type Database = {
           details?: Json | null
           id?: string
           kind?: Database["public"]["Enums"]["game_kind"]
-          outcome?: string | null
+          outcome?: string
           payout?: number
           room_id?: string | null
           user_id?: string
