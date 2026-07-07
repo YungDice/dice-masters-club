@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Trophy, Flame, Star, Calendar, Award, Swords, Shield, Circle, Check, X, UserMinus, UserPlus } from "lucide-react";
+import { Flame, Star, Calendar, Award, Shield, Circle, Check, X, UserMinus, UserPlus } from "lucide-react";
+import { CompetitiveStatsCard, useCompetitiveStats } from "@/components/dice/CompetitiveStatsCard";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/dice/TopNav";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
