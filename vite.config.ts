@@ -30,6 +30,16 @@ async function userHasOwnerRole(userId: string) {
 }
 `;
 
+  const profileMediaFormatHelper = `
+function profileMediaUploadFormat(blob: Blob) {
+  const isAnimatedGif = blob.type === "image/gif";
+  return {
+    extension: isAnimatedGif ? "gif" : "jpg",
+    contentType: isAnimatedGif ? "image/gif" : "image/jpeg",
+  };
+}
+`;
+
   return {
     name: "owner-role-media-upload-limit",
     enforce: "pre" as const,
@@ -37,12 +47,12 @@ async function userHasOwnerRole(userId: string) {
       const sourcePath = id.split("?", 1)[0].replaceAll("\\", "/");
 
       if (sourcePath.endsWith("/src/routes/settings.tsx")) {
-        const withHelper = code.replace(
+        const withHelpers = code.replace(
           "const BIO_MAX = 200;",
-          `const BIO_MAX = 200;${ownerRoleHelper}`,
+          `const BIO_MAX = 200;${ownerRoleHelper}${profileMediaFormatHelper}`,
         );
 
-        const updated = withHelper
+        const updated = withHelpers
           .replace(
             'if (!isOwner && file.size > 8 * 1024 * 1024) return toast.error("Max 8MB");',
             'if (file.size > MAX_MEDIA_UPLOAD_BYTES && !(isOwner || await userHasOwnerRole(user.id))) return toast.error("Max 8MB");',
@@ -50,6 +60,18 @@ async function userHasOwnerRole(userId: string) {
           .replaceAll(
             'if (!isOwner && f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");',
             'if (f.size > MAX_MEDIA_UPLOAD_BYTES && !(isOwner || await userHasOwnerRole(user.id))) return toast.error("Max 8MB");',
+          )
+          .replace(
+            'const path = `${user.id}/avatar-${Date.now()}.jpg`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });',
+            'const media = profileMediaUploadFormat(blob);\n    const path = `${user.id}/avatar-${Date.now()}.${media.extension}`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: media.contentType });',
+          )
+          .replace(
+            'const path = `${user.id}/banner-${Date.now()}.jpg`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });',
+            'const media = profileMediaUploadFormat(blob);\n    const path = `${user.id}/banner-${Date.now()}.${media.extension}`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: media.contentType });',
+          )
+          .replace(
+            'const path = `${user.id}/profile-bg-${Date.now()}.jpg`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });',
+            'const media = profileMediaUploadFormat(blob);\n    const path = `${user.id}/profile-bg-${Date.now()}.${media.extension}`;\n    const up = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: media.contentType });',
           );
 
         return updated === code ? null : { code: updated, map: null };
