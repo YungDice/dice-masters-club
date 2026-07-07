@@ -16,7 +16,7 @@ import { LoadoutCard } from "@/components/dice/LoadoutCard";
 
 import { useAuth } from "@/hooks/use-auth";
 import { fmt, timeAgo } from "@/lib/format";
-import { tierFor } from "@/lib/rank";
+
 import { isVipActive } from "@/lib/limits";
 import { respondFriendRequest, sendFriendRequest } from "@/lib/dice.functions";
 import { toast } from "sonner";
