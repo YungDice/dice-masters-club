@@ -1,0 +1,1 @@
+ALTER TYPE public.game_kind ADD VALUE IF NOT EXISTS 'numguess';
