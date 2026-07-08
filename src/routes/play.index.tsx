@@ -17,6 +17,7 @@ const games: Game[] = [
   { to: "/play/flappy",      title: "Flappy DICE",    icon: Bird,        desc: "Tap to flap. +50 DICE per gate cleared.",          modes: "solo", minBet: 0  },
   { to: "/play/obby",        title: "DICE Obby",      icon: Mountain,    desc: "Run, jump, dodge. +150 DICE per level.",           modes: "solo", minBet: 0  },
   { to: "/play/dice-dominion", title: "DICE Dominion", icon: Swords,     desc: "Build your district, command your crew, and conquer the board.", modes: "pvp",  minBet: 0 },
+  { to: "/play/numguess",    title: "Number Guess",   icon: Target,      desc: "Pick a mode, guess the number, win up to 100x.",    modes: "solo", minBet: 1  },
 ];
 
 
