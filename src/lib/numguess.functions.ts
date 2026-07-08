@@ -28,7 +28,7 @@ export const guess10Start = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -data.bet, _type: "game_stake",
-      _source: "numguess", _ref_kind: "numguess", _ref_id: null as any, _note: "Guess 1-10 stake",
+      _source: "numguess" as any, _ref_kind: "numguess" as any as any as any, _ref_id: null as any, _note: "Guess 1-10 stake",
     });
     const secret = cryptoRandInt(1, 10);
     const state = {
@@ -36,7 +36,7 @@ export const guess10Start = createServerFn({ method: "POST" })
       attempts: [] as number[], finished: false, startedAt: Date.now(),
     };
     const { data: room, error } = await supabaseAdmin.from("game_rooms").insert({
-      kind: "numguess", host_id: context.userId, stake: data.bet,
+      kind: "numguess" as any, host_id: context.userId, stake: data.bet,
       max_players: 1, is_private: true, status: "active", state,
     } as any).select("id").single();
     if (error) throw error;
@@ -75,7 +75,7 @@ export const guess10Attempt = createServerFn({ method: "POST" })
       if (payout > 0) {
         await supabaseAdmin.rpc("wallet_adjust", {
           _user: context.userId, _delta: payout, _type: "game_payout",
-          _source: "numguess", _ref_kind: "numguess", _ref_id: room.id,
+          _source: "numguess" as any, _ref_kind: "numguess" as any as any as any, _ref_id: room.id,
           _note: `Guess 1-10 win (try ${attempts.length})`,
         });
       }
@@ -91,7 +91,7 @@ export const guess10Attempt = createServerFn({ method: "POST" })
     if (finished) {
       const net = payout - s.bet;
       await supabaseAdmin.rpc("record_game_result" as any, {
-        _uid: context.userId, _kind: "numguess", _delta: net,
+        _uid: context.userId, _kind: "numguess" as any as any, _delta: net,
         _outcome: net > 0 ? "win" : net < 0 ? "loss" : "tie",
         _room_id: room.id,
         _details: { mode: "10", secret: s.secret, attempts, payout } as any,
@@ -160,7 +160,7 @@ export const guessOneShot = createServerFn({ method: "POST" })
     // Take bet
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -data.bet, _type: "game_stake",
-      _source: "numguess", _ref_kind: "numguess", _ref_id: null as any,
+      _source: "numguess" as any, _ref_kind: "numguess" as any as any as any, _ref_id: null as any,
       _note: `Guess 1-${maxN} stake`,
     });
 
@@ -175,14 +175,14 @@ export const guessOneShot = createServerFn({ method: "POST" })
       payout = data.bet * multiplier;
       await supabaseAdmin.rpc("wallet_adjust", {
         _user: context.userId, _delta: payout, _type: "game_payout",
-        _source: "numguess", _ref_kind: "numguess", _ref_id: null as any,
+        _source: "numguess" as any, _ref_kind: "numguess" as any as any as any, _ref_id: null as any,
         _note: `Guess 1-${maxN} win ${multiplier}x`,
       });
     }
 
     const net = payout - data.bet;
     await supabaseAdmin.rpc("record_game_result" as any, {
-      _uid: context.userId, _kind: "numguess", _delta: net,
+      _uid: context.userId, _kind: "numguess" as any as any, _delta: net,
       _outcome: net > 0 ? "win" : net < 0 ? "loss" : "tie",
       _room_id: null,
       _details: { mode: data.mode, secret, choice: data.choice, multiplier, payout } as any,
