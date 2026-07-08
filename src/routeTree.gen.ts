@@ -37,6 +37,7 @@ import { Route as PlaySlotsRouteImport } from './routes/play.slots'
 import { Route as PlayRouletteRouteImport } from './routes/play.roulette'
 import { Route as PlayPokerRouteImport } from './routes/play.poker'
 import { Route as PlayObbyRouteImport } from './routes/play.obby'
+import { Route as PlayNumguessRouteImport } from './routes/play.numguess'
 import { Route as PlayFlappyRouteImport } from './routes/play.flappy'
 import { Route as PlayDiceDominionRouteImport } from './routes/play.dice-dominion'
 import { Route as PlayDiceRouteImport } from './routes/play.dice'
@@ -196,6 +197,11 @@ const PlayObbyRoute = PlayObbyRouteImport.update({
   path: '/play/obby',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayNumguessRoute = PlayNumguessRouteImport.update({
+  id: '/play/numguess',
+  path: '/play/numguess',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayFlappyRoute = PlayFlappyRouteImport.update({
   id: '/play/flappy',
   path: '/play/flappy',
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/play/dice': typeof PlayDiceRoute
   '/play/dice-dominion': typeof PlayDiceDominionRoute
   '/play/flappy': typeof PlayFlappyRoute
+  '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
   '/play/roulette': typeof PlayRouletteRoute
@@ -371,6 +378,7 @@ export interface FileRoutesByTo {
   '/play/dice': typeof PlayDiceRoute
   '/play/dice-dominion': typeof PlayDiceDominionRoute
   '/play/flappy': typeof PlayFlappyRoute
+  '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
   '/play/roulette': typeof PlayRouletteRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/play/dice': typeof PlayDiceRoute
   '/play/dice-dominion': typeof PlayDiceDominionRoute
   '/play/flappy': typeof PlayFlappyRoute
+  '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
   '/play/roulette': typeof PlayRouletteRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/play/dice'
     | '/play/dice-dominion'
     | '/play/flappy'
+    | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
     | '/play/roulette'
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/play/dice'
     | '/play/dice-dominion'
     | '/play/flappy'
+    | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
     | '/play/roulette'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/play/dice'
     | '/play/dice-dominion'
     | '/play/flappy'
+    | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
     | '/play/roulette'
@@ -615,6 +627,7 @@ export interface RootRouteChildren {
   PlayDiceRoute: typeof PlayDiceRoute
   PlayDiceDominionRoute: typeof PlayDiceDominionRoute
   PlayFlappyRoute: typeof PlayFlappyRoute
+  PlayNumguessRoute: typeof PlayNumguessRoute
   PlayObbyRoute: typeof PlayObbyRoute
   PlayPokerRoute: typeof PlayPokerRoute
   PlayRouletteRoute: typeof PlayRouletteRoute
@@ -829,6 +842,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayObbyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/numguess': {
+      id: '/play/numguess'
+      path: '/play/numguess'
+      fullPath: '/play/numguess'
+      preLoaderRoute: typeof PlayNumguessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/flappy': {
       id: '/play/flappy'
       path: '/play/flappy'
@@ -1003,6 +1023,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlayDiceRoute: PlayDiceRoute,
   PlayDiceDominionRoute: PlayDiceDominionRoute,
   PlayFlappyRoute: PlayFlappyRoute,
+  PlayNumguessRoute: PlayNumguessRoute,
   PlayObbyRoute: PlayObbyRoute,
   PlayPokerRoute: PlayPokerRoute,
   PlayRouletteRoute: PlayRouletteRoute,
