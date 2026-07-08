@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User, Bird, Mountain, Swords } from "lucide-react";
+import { Dices, Coins, Spade, Cherry, HandHelping, Layers, CircleDot, Gamepad2, Users, User, Bird, Mountain, Swords, Target } from "lucide-react";
 import { AppShell } from "@/components/dice/TopNav";
 
 type Mode = "solo" | "pvp" | "both";
