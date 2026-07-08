@@ -53,7 +53,7 @@ export const guess10Attempt = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*")
-      .eq("id", data.roomId).eq("host_id", context.userId).eq("kind", "numguess").single();
+      .eq("id", data.roomId).eq("host_id", context.userId).eq("kind", "numguess" as any).single();
     if (!room) throw new Error("Session not found");
     if (room.status !== "active") throw new Error("Round already ended");
     const s: any = room.state ?? {};
