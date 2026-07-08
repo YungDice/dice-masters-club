@@ -3156,6 +3156,7 @@ export type Database = {
         | "split_steal"
         | "flappy"
         | "obby"
+        | "numguess"
       listing_status:
         | "draft"
         | "pending_review"
@@ -3409,6 +3410,7 @@ export const Constants = {
         "split_steal",
         "flappy",
         "obby",
+        "numguess",
       ],
       listing_status: [
         "draft",
