@@ -11,7 +11,7 @@ import { fmt } from "@/lib/format";
 import { PageHeader } from "@/components/dice/PageHeader";
 import { useEffect, useState } from "react";
 
-export const Route = createFileRoute("/leaderboard")({
+export const Route = createFileRoute("/leaderboard/")({
   head: () => ({ meta: [{ title: "Leaderboard — DICE" }] }),
   component: () => <AppShell><LB /></AppShell>,
 });
