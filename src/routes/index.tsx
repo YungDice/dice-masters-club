@@ -41,7 +41,7 @@ function Landing() {
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6">
         <DiceLogo />
-        <Link to="/auth"><Button variant="outline">Sign in</Button></Link>
+        <Link to="/auth" search={{}}><Button variant="outline">Sign in</Button></Link>
       </header>
       <section className="mx-auto max-w-7xl px-4 pt-12 pb-24 text-center">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -57,8 +57,8 @@ function Landing() {
             DICE has no real-world value — it's pure play.
           </p>
           <div className="mt-8 flex justify-center gap-3">
-            <Link to="/auth"><Button size="lg" className="glow-red">Get started — 2500 DICE bonus</Button></Link>
-            <Link to="/auth"><Button variant="outline" size="lg">Sign in</Button></Link>
+            <Link to="/auth" search={{}}><Button size="lg" className="glow-red">Get started — 2500 DICE bonus</Button></Link>
+            <Link to="/auth" search={{}}><Button variant="outline" size="lg">Sign in</Button></Link>
           </div>
         </motion.div>
         <div className="mt-20 grid md:grid-cols-4 gap-4">
