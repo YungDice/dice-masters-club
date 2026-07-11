@@ -116,7 +116,7 @@ export function TopNav() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/auth", replace: true, search: {} });
   }
 
   const isActive = (to: string, exact?: boolean) =>
@@ -322,7 +322,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   if (!loading && !user) {
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth", search: {} });
     return null;
   }
   return (
