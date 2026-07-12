@@ -1,0 +1,113 @@
+name: Telegram Changelog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: telegram-changelog-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  send-changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Telegram secrets
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ]; then
+            echo "Missing GitHub Actions secret: TELEGRAM_BOT_TOKEN"
+            exit 1
+          fi
+
+          if [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "Missing GitHub Actions secret: TELEGRAM_CHAT_ID"
+            exit 1
+          fi
+
+      - name: Send changelog to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python <<'PYTHON'
+          import json
+          import os
+          import subprocess
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          chat_id = os.environ["TELEGRAM_CHAT_ID"]
+          before = os.environ.get("BEFORE_SHA", "")
+          current = os.environ["CURRENT_SHA"]
+          repository = os.environ["REPOSITORY"]
+          event_name = os.environ.get("EVENT_NAME", "push")
+
+          zero_sha = "0" * 40
+
+          if event_name == "push" and before and before != zero_sha:
+              log_range = f"{before}..{current}"
+              command = ["git", "log", "--reverse", "--pretty=format:• %s", log_range]
+          else:
+              command = ["git", "log", "-1", "--pretty=format:• %s", current]
+
+          try:
+              changes = subprocess.check_output(command, text=True).strip()
+          except (subprocess.CalledProcessError, FileNotFoundError):
+              changes = "• Сайт был обновлён"
+
+          if not changes:
+              changes = "• Сайт был обновлён"
+
+          commit_url = f"https://github.com/{repository}/commit/{current}"
+          message = (
+              "🚀 Обновление сайта\n\n"
+              f"{changes}\n\n"
+              f"🔗 Подробнее: {commit_url}"
+          )
+
+          # Telegram limits a text message to 4096 characters.
+          message = message[:4000]
+
+          endpoint = f"https://api.telegram.org/bot{token}/sendMessage"
+          payload = urllib.parse.urlencode(
+              {
+                  "chat_id": chat_id,
+                  "text": message,
+                  "disable_web_page_preview": "true",
+              }
+          ).encode("utf-8")
+
+          request = urllib.request.Request(endpoint, data=payload, method="POST")
+
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+          except urllib.error.HTTPError as error:
+              details = error.read().decode("utf-8", errors="replace")
+              raise RuntimeError(f"Telegram HTTP error {error.code}: {details}") from error
+
+          if not result.get("ok"):
+              raise RuntimeError(f"Telegram API error: {result}")
+
+          print("Changelog sent to Telegram successfully.")
+          PYTHON
