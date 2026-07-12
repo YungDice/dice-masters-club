@@ -80,9 +80,9 @@ jobs:
 
           commit_url = f"https://github.com/{repository}/commit/{current}"
           message = (
-              "🚀 Обновление сайта\n\n"
+              "🚀 Website Update\n\n"
               f"{changes}\n\n"
-              f"🔗 Подробнее: {commit_url}"
+              f"🔗 More info here: {commit_url}"
           )
 
           # Telegram limits a text message to 4096 characters.
