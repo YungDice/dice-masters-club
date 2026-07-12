@@ -1940,7 +1940,6 @@ export type Database = {
           country: string | null
           created_at: string
           display_name: string
-          dob: string
           equipped_banner_id: string | null
           equipped_dice_skin_id: string | null
           equipped_frame_id: string | null
@@ -1949,7 +1948,6 @@ export type Database = {
           favorite_baddie_id: string | null
           favorite_game: string | null
           id: string
-          is_18_plus: boolean
           last_login_at: string | null
           last_seen_at: string | null
           last_streak_date: string | null
@@ -1961,7 +1959,6 @@ export type Database = {
           reputation: number
           streak_days: number
           tag: string | null
-          terms_accepted_at: string
           updated_at: string
           user_emoji: string | null
           username: string
@@ -1981,7 +1978,6 @@ export type Database = {
           country?: string | null
           created_at?: string
           display_name: string
-          dob: string
           equipped_banner_id?: string | null
           equipped_dice_skin_id?: string | null
           equipped_frame_id?: string | null
@@ -1990,7 +1986,6 @@ export type Database = {
           favorite_baddie_id?: string | null
           favorite_game?: string | null
           id: string
-          is_18_plus?: boolean
           last_login_at?: string | null
           last_seen_at?: string | null
           last_streak_date?: string | null
@@ -2002,7 +1997,6 @@ export type Database = {
           reputation?: number
           streak_days?: number
           tag?: string | null
-          terms_accepted_at?: string
           updated_at?: string
           user_emoji?: string | null
           username: string
@@ -2022,7 +2016,6 @@ export type Database = {
           country?: string | null
           created_at?: string
           display_name?: string
-          dob?: string
           equipped_banner_id?: string | null
           equipped_dice_skin_id?: string | null
           equipped_frame_id?: string | null
@@ -2031,7 +2024,6 @@ export type Database = {
           favorite_baddie_id?: string | null
           favorite_game?: string | null
           id?: string
-          is_18_plus?: boolean
           last_login_at?: string | null
           last_seen_at?: string | null
           last_streak_date?: string | null
@@ -2043,7 +2035,6 @@ export type Database = {
           reputation?: number
           streak_days?: number
           tag?: string | null
-          terms_accepted_at?: string
           updated_at?: string
           user_emoji?: string | null
           username?: string
