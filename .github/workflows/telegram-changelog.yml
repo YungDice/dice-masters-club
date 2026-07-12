@@ -111,3 +111,5 @@ jobs:
 
           print("Changelog sent to Telegram successfully.")
           PYTHON
+
+# Test commit created after Telegram secrets were configured.
