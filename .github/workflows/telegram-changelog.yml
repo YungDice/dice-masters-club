@@ -111,7 +111,3 @@ jobs:
 
           print("Changelog sent to Telegram successfully.")
           PYTHON
-
-# Test commit created after Telegram secrets were configured.
-# Second test after TELEGRAM_CHAT_ID was changed to @username.
-# Third test after GitHub Actions settings were fixed.
