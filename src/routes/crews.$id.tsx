@@ -27,7 +27,48 @@ import {
 import { NameBadges } from "@/components/dice/NameBadges";
 
 export const Route = createFileRoute("/crews/$id")({
-  head: ({ params }) => ({ meta: [{ title: `Crew — DICE` }] }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("crews" as any)
+      .select("name,tag,description,member_count,level,total_score")
+      .eq("id", params.id)
+      .maybeSingle();
+    return { crew: data as { name?: string; tag?: string; description?: string; member_count?: number; level?: number; total_score?: number } | null };
+  },
+  head: ({ params, loaderData }) => {
+    const c = loaderData?.crew;
+    const name = c?.name ?? "Crew";
+    const tag = c?.tag ? ` [${c.tag}]` : "";
+    const title = `${name}${tag} — DICE Crew`;
+    const description = c?.description?.trim()
+      ? c.description.trim().slice(0, 155)
+      : `${name} — a DICE crew with ${c?.member_count ?? 0} members at level ${c?.level ?? 1}. Join, donate, and compete on the crew leaderboard.`;
+    const url = `https://yungdice.com/crews/${params.id}`;
+    return {
+      meta: [
+        { title: title.slice(0, 60) },
+        { name: "description", content: description },
+        { property: "og:title", content: title.slice(0, 60) },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name,
+            alternateName: c?.tag,
+            description,
+            url,
+          }),
+        },
+      ],
+    };
+  },
   component: () => <AppShell><CrewPage /></AppShell>,
 });
 

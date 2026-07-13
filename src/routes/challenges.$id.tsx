@@ -18,28 +18,48 @@ import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/challenges/$id")({
-  head: ({ params }) => ({
-    meta: [
-      { title: "Challenge — DICE" },
-      { name: "description", content: "View challenge details, submissions, and leaderboard on DICE. Complete it to earn DICE and XP." },
-      { property: "og:title", content: "Challenge — DICE" },
-      { property: "og:description", content: "Complete this DICE challenge to earn virtual currency and XP." },
-      { property: "og:type", content: "article" },
-      { property: "og:url", content: `https://yungdice.com/challenges/${params.id}` },
-    ],
-    links: [{ rel: "canonical", href: `https://yungdice.com/challenges/${params.id}` }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: "DICE Challenge",
-          description: "A challenge on the DICE social gaming platform.",
-        }),
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("challenges")
+      .select("title,description,dice_reward,category")
+      .eq("id", params.id)
+      .maybeSingle();
+    return { challenge: data };
+  },
+  head: ({ params, loaderData }) => {
+    const c = loaderData?.challenge as { title?: string; description?: string; dice_reward?: number; category?: string } | null | undefined;
+    const rawTitle = c?.title?.trim();
+    const title = rawTitle ? `${rawTitle.slice(0, 45)} — DICE Challenge` : "Challenge — DICE";
+    const rawDesc = c?.description?.trim();
+    const description = rawDesc
+      ? rawDesc.slice(0, 155)
+      : "View challenge details, submissions, and comments on DICE. Complete it to earn DICE and XP.";
+    const url = `https://yungdice.com/challenges/${params.id}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: rawTitle ?? "DICE Challenge",
+            description,
+            url,
+            articleSection: c?.category ?? "Challenge",
+          }),
+        },
+      ],
+    };
+  },
   component: () => <AppShell><Detail /></AppShell>,
 });
 

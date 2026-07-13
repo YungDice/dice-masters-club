@@ -16,29 +16,68 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/$id")({
-  head: ({ params }) => ({
-    meta: [
-      { title: "Listing — DICE Marketplace" },
-      { name: "description", content: "View marketplace listing details on DICE. Buy or bid using DICE virtual currency. 18+ only." },
-      { property: "og:title", content: "Listing — DICE Marketplace" },
-      { property: "og:description", content: "Buy or bid on this DICE marketplace listing using virtual currency." },
-      { property: "og:type", content: "product" },
-      { property: "og:url", content: `https://yungdice.com/marketplace/${params.id}` },
-    ],
-    links: [{ rel: "canonical", href: `https://yungdice.com/marketplace/${params.id}` }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: "DICE Marketplace Listing",
-          description: "Digital item traded for DICE virtual currency.",
-          offers: { "@type": "Offer", priceCurrency: "DICE", availability: "https://schema.org/InStock" },
-        }),
-      },
-    ],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("marketplace_listings")
+      .select("title,description,price,category,sale_type,min_bid,current_bid,status")
+      .eq("id", params.id)
+      .maybeSingle();
+    return { listing: data };
+  },
+  head: ({ params, loaderData }) => {
+    const l = loaderData?.listing as
+      | { title?: string; description?: string; price?: number; category?: string; sale_type?: string; min_bid?: number; current_bid?: number; status?: string }
+      | null
+      | undefined;
+    const rawTitle = l?.title?.trim();
+    const title = rawTitle ? `${rawTitle.slice(0, 40)} — DICE Marketplace` : "Listing — DICE Marketplace";
+    const rawDesc = l?.description?.trim();
+    const price =
+      l?.sale_type === "auction"
+        ? Number(l?.current_bid ?? l?.min_bid ?? 0)
+        : Number(l?.price ?? 0);
+    const description = rawDesc
+      ? rawDesc.slice(0, 155)
+      : `Buy or bid on this ${l?.category ?? "digital"} listing for ${price || "—"} DICE on the DICE Marketplace.`;
+    const url = `https://yungdice.com/marketplace/${params.id}`;
+    const availability =
+      l?.status === "sold"
+        ? "https://schema.org/SoldOut"
+        : l?.status === "expired"
+          ? "https://schema.org/Discontinued"
+          : "https://schema.org/InStock";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: rawTitle ?? "DICE Marketplace Listing",
+            description,
+            url,
+            category: l?.category ?? "digital",
+            offers: {
+              "@type": "Offer",
+              price: price || 0,
+              priceCurrency: "DICE",
+              availability,
+              url,
+            },
+          }),
+        },
+      ],
+    };
+  },
   component: () => <AppShell><Detail /></AppShell>,
 });
 

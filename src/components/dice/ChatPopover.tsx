@@ -186,6 +186,7 @@ export function ChatPopover() {
           <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) pickImage(f); if (fileRef.current) fileRef.current.value=""; }} />
           <Button type="button" size="icon" variant="ghost" className="size-8 shrink-0"
             disabled={!user || !isVip}
+            aria-label={isVip ? "Upload image" : "Upload image (VIP only)"}
             title={isVip ? "Send image" : "VIP only"}
             onClick={() => fileRef.current?.click()}>
             <ImageIcon className="size-4" />
