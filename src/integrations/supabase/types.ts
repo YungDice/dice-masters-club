@@ -2845,6 +2845,18 @@ export type Database = {
           weekly_score: number
         }[]
       }
+      leaderboard_season_pass: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          level: number
+          season_xp: number
+          tag: string
+          user_id: string
+          username: string
+        }[]
+      }
       leaderboard_wins: {
         Args: { _limit?: number }
         Returns: {
