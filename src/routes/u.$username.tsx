@@ -23,7 +23,51 @@ import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/u/$username")({
-  head: () => ({ meta: [{ title: "Profile — DICE" }] }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name,username,bio,level,xp")
+      .eq("username", params.username)
+      .maybeSingle();
+    return { profile: data };
+  },
+  head: ({ params, loaderData }) => {
+    const p = loaderData?.profile as { display_name?: string; username?: string; bio?: string; level?: number; xp?: number } | null | undefined;
+    const dn = p?.display_name ?? p?.username ?? params.username;
+    const title = `${dn} (@${params.username}) — DICE Profile`;
+    const description = p?.bio?.trim()
+      ? p.bio.trim().slice(0, 155)
+      : `See ${dn}'s DICE profile — Level ${p?.level ?? 1}, achievements, recent games, and marketplace activity.`;
+    const url = `https://yungdice.com/u/${params.username}`;
+    return {
+      meta: [
+        { title: title.slice(0, 60) },
+        { name: "description", content: description },
+        { property: "og:title", content: title.slice(0, 60) },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "profile" },
+        { property: "og:url", content: url },
+        { property: "profile:username", content: params.username },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            url,
+            mainEntity: {
+              "@type": "Person",
+              name: dn,
+              alternateName: `@${params.username}`,
+              description,
+            },
+          }),
+        },
+      ],
+    };
+  },
   component: () => <AppShell><UProfile /></AppShell>,
 });
 
