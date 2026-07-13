@@ -123,7 +123,7 @@ function MyProfile() {
       <Card className="glass overflow-hidden border-white/10">
         <div className={`w-full ${banner && vipActive ? "h-32 md:h-48" : "h-24 md:h-32"} relative`}
              style={banner && vipActive ? undefined : { background: "radial-gradient(ellipse at top, hsl(var(--primary) / 0.35), transparent 70%), linear-gradient(135deg, #0b0a14 0%, #1a1023 100%)" }}>
-          {banner && vipActive && <img src={banner} alt="banner" className="w-full h-full object-cover" />}
+          {banner && vipActive && <img src={banner} alt="Player VIP profile banner" className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/80" />
         </div>
         <div className="p-6 -mt-12 relative">
@@ -183,7 +183,7 @@ function MyProfile() {
                 <div className="aspect-square bg-black/30 grid place-items-center">
                   {l.category === "tag"
                     ? <div className="text-2xl font-mono font-bold text-primary">#{l.tag_value}</div>
-                    : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" loading="lazy" /> : <ShoppingBag className="size-10 text-muted-foreground" />}
+                    : l.preview_url ? <img src={l.preview_url} alt={`${l.title ?? "Marketplace listing"} preview`} className="w-full h-full object-cover" loading="lazy" /> : <ShoppingBag className="size-10 text-muted-foreground" />}
                 </div>
                 <div className="p-2 space-y-1">
                   <div className="text-xs text-muted-foreground capitalize">{l.category} · sold {timeAgo(l.updated_at)}</div>

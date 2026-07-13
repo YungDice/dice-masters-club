@@ -176,7 +176,7 @@ function ItemForm({ user, onDone }: any) {
             {preview?.type.startsWith("video") ? (
               <video src={previewUrl} className="w-full h-full object-cover" muted autoPlay loop />
             ) : (
-              <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
+              <img src={previewUrl} className="w-full h-full object-cover" alt="New listing preview" />
             )}
             <button type="button" onClick={() => onPick(null)} className="absolute top-1 right-1 size-7 grid place-items-center rounded-full bg-black/70 text-white hover:bg-black"><X className="size-4" /></button>
           </div>
