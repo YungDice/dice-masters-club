@@ -6,6 +6,8 @@ Disallow: /auth
 Disallow: /settings
 Disallow: /notifications
 Disallow: /chat
+Disallow: /friends
+Disallow: /mcp
 Disallow: /.lovable/
 Disallow: /.mcp/
 Disallow: /.well-known/

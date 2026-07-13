@@ -75,7 +75,7 @@ function Landing() {
           ].map((f) => (
             <Card key={f.t} className="glass p-5 text-left">
               <div className="grid size-10 place-items-center rounded-md bg-primary/15 text-primary"><f.i className="size-5" /></div>
-              <h3 className="mt-3 font-display font-semibold">{f.t}</h3>
+              <h2 className="mt-3 font-display font-semibold">{f.t}</h2>
               <p className="mt-1 text-sm text-muted-foreground">{f.d}</p>
             </Card>
           ))}
@@ -245,7 +245,7 @@ function Dashboard() {
           <div className="min-w-0">
             <div className="text-xs uppercase tracking-widest text-amber-200/60">Welcome back</div>
             <h1 className="font-display text-2xl md:text-3xl font-bold truncate">
-              {profile?.display_name ?? "Player"}
+              Your DICE Dashboard — {profile?.display_name ?? "Player"}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-4">
               <div className="flex items-baseline gap-2">

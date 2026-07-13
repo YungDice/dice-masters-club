@@ -45,7 +45,7 @@ function GameTile({ g }: { g: Game }) {
             <span className="text-sm font-bold text-amber-100">{g.minBet} DICE</span>
           </div>
         </div>
-        <h3 className="relative mt-4 font-display text-lg font-bold text-amber-50">{g.title}</h3>
+        <h2 className="relative mt-4 font-display text-lg font-bold text-amber-50">{g.title}</h2>
         <p className="relative text-xs text-amber-100/60 mt-1 line-clamp-2">{g.desc}</p>
         <div className="relative mt-3 flex gap-1.5">
           {(g.modes === "solo" || g.modes === "both") && (
