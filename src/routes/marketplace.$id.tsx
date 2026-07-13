@@ -105,7 +105,7 @@ function Detail() {
     catch (e: any) { toast.error(e.message); } finally { setBusy(false); }
   }
   async function fav() { if (!user) return; await supabase.from("marketplace_favorites").upsert({ user_id: user.id, listing_id: id }); toast.success("Saved"); }
-  async function report() { if (!user) return; await supabase.from("reports").insert({ reporter_id: user.id, target_kind: "listing", target_id: id, reason: "review" }); toast.success("Reported"); }
+  async function report() { if (!user) return; const { error } = await supabase.from("reports").insert({ reporter_id: user.id, target_kind: "listing", target_id: id, reason: "review" }); if (error) toast.error(error.message.includes("rate") ? "You've reported too many items. Try again later." : error.message.includes("duplicate") || error.code === "23505" ? "You already reported this listing." : "Could not submit report"); else toast.success("Reported"); }
   async function setAsAvatar() {
     if (!user) return;
     const url = l.file_url ?? l.preview_url;
