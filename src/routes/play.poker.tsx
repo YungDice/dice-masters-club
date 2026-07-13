@@ -47,7 +47,7 @@ function VPCard({ c, held, onClick, index, replaced }: { c: CardT; held: boolean
           <span className="text-3xl leading-none">{c.s}</span>
         </div>
       </motion.button>
-      <span className={`text-[10px] uppercase font-bold tracking-wider ${held ? "text-primary" : "text-muted-foreground/40"}`}>
+      <span className={`text-[10px] uppercase font-bold tracking-wider ${held ? "text-primary" : "text-muted-foreground"}`}>
         {held ? "HELD" : "—"}
       </span>
     </div>
