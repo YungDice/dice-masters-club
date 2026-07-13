@@ -16,7 +16,29 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/$id")({
-  head: () => ({ meta: [{ title: "Listing — DICE" }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "Listing — DICE Marketplace" },
+      { name: "description", content: "View marketplace listing details on DICE. Buy or bid using DICE virtual currency. 18+ only." },
+      { property: "og:title", content: "Listing — DICE Marketplace" },
+      { property: "og:description", content: "Buy or bid on this DICE marketplace listing using virtual currency." },
+      { property: "og:type", content: "product" },
+      { property: "og:url", content: `https://yungdice.com/marketplace/${params.id}` },
+    ],
+    links: [{ rel: "canonical", href: `https://yungdice.com/marketplace/${params.id}` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "DICE Marketplace Listing",
+          description: "Digital item traded for DICE virtual currency.",
+          offers: { "@type": "Offer", priceCurrency: "DICE", availability: "https://schema.org/InStock" },
+        }),
+      },
+    ],
+  }),
   component: () => <AppShell><Detail /></AppShell>,
 });
 

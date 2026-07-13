@@ -1,0 +1,24 @@
+# DICE
+
+> DICE is a virtual-currency social gaming platform. Players complete challenges, earn DICE, play games, trade on the marketplace, and climb leaderboards. DICE has no real-world value and cannot be exchanged for cash — the platform is 18+ only.
+
+DICE combines social features (crews, friends, chat), skill and luck-based mini-games (blackjack, dice, roulette, slots, coin flip, split-or-steal, video poker, rocket, wheel of fortune, and more), a creator marketplace for digital items, and a season pass progression system.
+
+## Pages
+
+- [Home](/): Landing page and player lobby.
+- [Play](/play): Game lobby with all available minigames (solo and PvP).
+- [Challenges](/challenges): Community challenges to earn DICE and XP.
+- [Missions](/missions): Daily and weekly missions.
+- [Marketplace](/marketplace): Trade digital items and templates for DICE.
+- [Crews](/crews): Team up with friends, join or found a crew.
+- [Leaderboard](/leaderboard): Top players ranked by DICE, XP, and wins.
+- [Season Pass](/season-pass): Seasonal progression rewards.
+- [Cosmetics](/cosmetics): Avatar and profile cosmetics.
+- [Gallery](/gallery): Community submissions gallery.
+
+## Optional
+
+- [Baddies](/baddies): Themed collectible characters.
+- [Upgrader](/upgrader): Item upgrade minigame.
+- [DikDok](/dikdok): Short-form video feed.

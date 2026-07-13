@@ -15,7 +15,16 @@ import { reviewProof, reviewChallenge, adminAdjustDice, grantRole } from "@/lib/
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Admin — DICE" },
+      { name: "description", content: "Internal DICE admin console for moderation, reports, and platform operations." },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:title", content: "Admin — DICE" },
+      { property: "og:url", content: "https://yungdice.com/admin" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/admin" }],
+  }),
   component: () => <AppShell><Admin /></AppShell>,
 });
 

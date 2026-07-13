@@ -30,8 +30,12 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — DICE" },
-      { name: "description", content: "Sign in to DICE. Complete challenges, earn virtual DICE, play games, build your reputation. 18+ only." },
+      { name: "description", content: "Sign in or sign up for DICE. Complete challenges, earn virtual DICE, play games, and build your reputation. 18+ only." },
+      { property: "og:title", content: "Sign in — DICE" },
+      { property: "og:description", content: "Sign in to DICE to start earning virtual currency through challenges and games." },
+      { property: "og:url", content: "https://yungdice.com/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/auth" }],
   }),
   component: AuthPage,
 });

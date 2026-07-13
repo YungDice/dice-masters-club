@@ -18,7 +18,28 @@ import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/challenges/$id")({
-  head: () => ({ meta: [{ title: `Challenge — DICE` }, { name: "description", content: "Challenge details, comments, leaderboard. Submit your proof on DICE." }] }),
+  head: ({ params }) => ({
+    meta: [
+      { title: "Challenge — DICE" },
+      { name: "description", content: "View challenge details, submissions, and leaderboard on DICE. Complete it to earn DICE and XP." },
+      { property: "og:title", content: "Challenge — DICE" },
+      { property: "og:description", content: "Complete this DICE challenge to earn virtual currency and XP." },
+      { property: "og:type", content: "article" },
+      { property: "og:url", content: `https://yungdice.com/challenges/${params.id}` },
+    ],
+    links: [{ rel: "canonical", href: `https://yungdice.com/challenges/${params.id}` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: "DICE Challenge",
+          description: "A challenge on the DICE social gaming platform.",
+        }),
+      },
+    ],
+  }),
   component: () => <AppShell><Detail /></AppShell>,
 });
 

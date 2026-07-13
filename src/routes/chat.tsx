@@ -18,7 +18,16 @@ const PAGE_SIZE = 40;
 const NEAR_BOTTOM_PX = 80;
 
 export const Route = createFileRoute("/chat")({
-  head: () => ({ meta: [{ title: "Chat — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Chat — DICE" },
+      { name: "description", content: "Direct message friends and crew members on DICE. Talk trash, plan matches, trade tips." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Chat — DICE" },
+      { property: "og:url", content: "https://yungdice.com/chat" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/chat" }],
+  }),
   component: () => <AppShell><Chat /></AppShell>,
 });
 

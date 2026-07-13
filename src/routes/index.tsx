@@ -22,9 +22,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DICE — Home" },
-      { name: "description", content: "Your DICE lobby: balance, daily challenge, friends activity, featured marketplace, leaderboard." },
+      { title: "DICE — Social Gaming & Virtual Currency" },
+      { name: "description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games with friends, and climb the leaderboard. 18+ only." },
+      { property: "og:title", content: "DICE — Social Gaming & Virtual Currency" },
+      { property: "og:description", content: "Complete challenges, earn DICE, play games with friends, and climb the leaderboard. Virtual-currency only. 18+." },
+      { property: "og:url", content: "https://yungdice.com/" },
     ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/" }],
   }),
   component: HomePage,
 });
@@ -43,6 +47,7 @@ function Landing() {
         <DiceLogo />
         <Link to="/auth" search={{}}><Button variant="outline">Sign in</Button></Link>
       </header>
+      <main>
       <section className="mx-auto max-w-7xl px-4 pt-12 pb-24 text-center">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs">
@@ -81,6 +86,7 @@ function Landing() {
           break-reminder tool in Settings.
         </p>
       </section>
+      </main>
     </div>
   );
 }

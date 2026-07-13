@@ -27,7 +27,16 @@ import { fmt, timeAgo } from "@/lib/format";
 
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "Profile — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Profile — DICE" },
+      { name: "description", content: "Your DICE profile: level, XP, badges, cosmetics, stats, achievements, and match history." },
+      { property: "og:title", content: "Profile — DICE" },
+      { property: "og:description", content: "Your DICE profile: level, XP, badges, cosmetics, stats, achievements, and match history." },
+      { property: "og:url", content: "https://yungdice.com/profile" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/profile" }],
+  }),
   component: () => <AppShell><MyProfile /></AppShell>,
 });
 

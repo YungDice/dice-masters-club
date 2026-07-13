@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UpgraderRouteImport } from './routes/upgrader'
 import { Route as TradesRouteImport } from './routes/trades'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SeasonPassRouteImport } from './routes/season-pass'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -67,6 +68,11 @@ const UpgraderRoute = UpgraderRouteImport.update({
 const TradesRoute = TradesRouteImport.update({
   id: '/trades',
   path: '/trades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -428,6 +436,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/season-pass': typeof SeasonPassRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/trades': typeof TradesRoute
   '/upgrader': typeof UpgraderRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -481,6 +490,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/season-pass'
     | '/settings'
+    | '/sitemap.xml'
     | '/trades'
     | '/upgrader'
     | '/.mcp/list-tools'
@@ -532,6 +542,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/season-pass'
     | '/settings'
+    | '/sitemap.xml'
     | '/trades'
     | '/upgrader'
     | '/.mcp/list-tools'
@@ -583,6 +594,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/season-pass'
     | '/settings'
+    | '/sitemap.xml'
     | '/trades'
     | '/upgrader'
     | '/.mcp/list-tools'
@@ -635,6 +647,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SeasonPassRoute: typeof SeasonPassRoute
   SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TradesRoute: typeof TradesRoute
   UpgraderRoute: typeof UpgraderRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -684,6 +697,13 @@ declare module '@tanstack/react-router' {
       path: '/trades'
       fullPath: '/trades'
       preLoaderRoute: typeof TradesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -1046,6 +1066,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SeasonPassRoute: SeasonPassRoute,
   SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TradesRoute: TradesRoute,
   UpgraderRoute: UpgraderRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,

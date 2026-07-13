@@ -12,7 +12,16 @@ import { PageHeader } from "@/components/dice/PageHeader";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/leaderboard/")({
-  head: () => ({ meta: [{ title: "Leaderboard — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Leaderboard — DICE" },
+      { name: "description", content: "Top DICE players ranked by balance, XP, wins, and season progress. Climb the ladder." },
+      { property: "og:title", content: "Leaderboard — DICE" },
+      { property: "og:description", content: "Top DICE players ranked by balance, XP, wins, and season progress." },
+      { property: "og:url", content: "https://yungdice.com/leaderboard" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/leaderboard" }],
+  }),
   component: () => <AppShell><LB /></AppShell>,
 });
 

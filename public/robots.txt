@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /auth
+Disallow: /settings
+Disallow: /notifications
+Disallow: /chat
+Disallow: /.lovable/
+Disallow: /.mcp/
+Disallow: /.well-known/
+Disallow: /api/
+
+Sitemap: https://yungdice.com/sitemap.xml
