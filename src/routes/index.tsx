@@ -22,9 +22,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "DICE — Home" },
-      { name: "description", content: "Your DICE lobby: balance, daily challenge, friends activity, featured marketplace, leaderboard." },
+      { title: "DICE — Social Gaming & Virtual Currency" },
+      { name: "description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games with friends, and climb the leaderboard. 18+ only." },
+      { property: "og:title", content: "DICE — Social Gaming & Virtual Currency" },
+      { property: "og:description", content: "Complete challenges, earn DICE, play games with friends, and climb the leaderboard. Virtual-currency only. 18+." },
+      { property: "og:url", content: "https://yungdice.com/" },
     ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/" }],
   }),
   component: HomePage,
 });
