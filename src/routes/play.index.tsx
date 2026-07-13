@@ -104,6 +104,15 @@ function PlayHub() {
 }
 
 export const Route = createFileRoute("/play/")({
-  head: () => ({ meta: [{ title: "Play — DICE" }, { name: "description", content: "Game lobby. Dice, coin flip, blackjack, slots, split-or-steal, poker rooms." }] }),
+  head: () => ({
+    meta: [
+      { title: "Play — DICE Game Lobby" },
+      { name: "description", content: "DICE game lobby: blackjack, roulette, dice, coin flip, slots, split-or-steal, poker, rocket, wheel of fortune — all virtual-currency, 18+." },
+      { property: "og:title", content: "Play — DICE Game Lobby" },
+      { property: "og:description", content: "Solo and PvP games on DICE, all using virtual DICE currency. 18+ only." },
+      { property: "og:url", content: "https://yungdice.com/play" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play" }],
+  }),
   component: () => <AppShell><PlayHub /></AppShell>,
 });
