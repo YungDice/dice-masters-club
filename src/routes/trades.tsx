@@ -287,7 +287,7 @@ function TradeSide({
             if (!t) return <div key={id} className="text-xs text-muted-foreground">· Baddie</div>;
             return (
               <div key={id} className={`flex items-center gap-2 text-xs border rounded px-2 py-1 ${RARITY_STYLE[t.rarity] ?? RARITY_STYLE.common}`}>
-                {t.image_url && <img src={t.image_url} alt="" className="size-6 rounded object-cover" />}
+                {t.image_url && <img src={t.image_url} alt={`${t.name ?? "Baddie"} artwork`} className="size-6 rounded object-cover" />}
                 <span className="font-semibold truncate">{t.name}</span>
                 <span className="capitalize opacity-70">· {t.rarity}</span>
               </div>
@@ -479,7 +479,7 @@ function BaddiePicker({
             return (
               <label key={b.id} className={`flex items-center gap-2 p-1.5 rounded border cursor-pointer text-xs ${on ? "border-primary bg-primary/10" : "border-border/60 bg-white/5"}`}>
                 <Checkbox checked={on} onCheckedChange={(v) => setPicked({ ...picked, [b.id]: !!v })} />
-                {t?.image_url && <img src={t.image_url} alt="" className="size-7 rounded object-cover" />}
+                {t?.image_url && <img src={t.image_url} alt={`${t?.name ?? "Baddie"} artwork`} className="size-7 rounded object-cover" />}
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{t?.name ?? "Baddie"}</div>
                   <div className="text-[10px] capitalize opacity-70">{t?.rarity} · {t?.income_per_hour}/h</div>

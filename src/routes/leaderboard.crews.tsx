@@ -202,7 +202,7 @@ function PodiumCard({
     >
       <div className="relative h-24 md:h-28 w-full">
         {crew.banner_url ? (
-          <img src={crew.banner_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+          <img src={crew.banner_url} alt={`${crew.name ?? "Crew"} banner`} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div
             className="w-full h-full"

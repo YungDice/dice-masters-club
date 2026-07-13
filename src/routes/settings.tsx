@@ -834,7 +834,7 @@ function BannerCard({ user, profile, refetch, qc }: any) {
       </div>
       {bannerUrl ? (
         <div className="rounded-md overflow-hidden border border-border/60">
-          <img src={bannerUrl} className="w-full h-32 md:h-40 object-cover" />
+          <img src={bannerUrl} alt="Profile banner preview" className="w-full h-32 md:h-40 object-cover" />
         </div>
       ) : (
         <div className="rounded-md border border-dashed border-border/60 h-24 grid place-items-center text-xs text-muted-foreground">
@@ -930,7 +930,7 @@ function ProfileBgCard({ user, profile, refetch, qc }: any) {
       </div>
       {bgUrl ? (
         <div className="rounded-md overflow-hidden border border-border/60 relative">
-          <img src={bgUrl} className="w-full h-40 object-cover" />
+          <img src={bgUrl} alt="Profile background preview" className="w-full h-40 object-cover" />
         </div>
       ) : (
         <div className="rounded-md border border-dashed border-border/60 h-24 grid place-items-center text-xs text-muted-foreground">

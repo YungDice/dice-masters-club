@@ -153,7 +153,7 @@ function CrewsIndex() {
                 <Card key={c.id} className="p-0 flex flex-col gap-0 overflow-hidden">
                   <Link to="/crews/$id" params={{ id: c.id }} className="relative block h-24 w-full">
                     {c.banner_url ? (
-                      <img src={c.banner_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={c.banner_url} alt={`${c.name ?? "Crew"} banner`} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div
                         className="w-full h-full"

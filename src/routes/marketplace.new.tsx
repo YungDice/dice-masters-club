@@ -176,7 +176,7 @@ function ItemForm({ user, onDone }: any) {
             {preview?.type.startsWith("video") ? (
               <video src={previewUrl} className="w-full h-full object-cover" muted autoPlay loop />
             ) : (
-              <img src={previewUrl} className="w-full h-full object-cover" alt="preview" />
+              <img src={previewUrl} className="w-full h-full object-cover" alt="New listing preview" />
             )}
             <button type="button" onClick={() => onPick(null)} className="absolute top-1 right-1 size-7 grid place-items-center rounded-full bg-black/70 text-white hover:bg-black"><X className="size-4" /></button>
           </div>
@@ -367,7 +367,7 @@ function BaddieForm({ user, onDone }: { user: any; onDone: () => void }) {
               <button key={b.id} type="button" onClick={() => setSelected(b.id)}
                 className={`text-left rounded-lg border p-2 transition ${active ? "border-primary bg-primary/10" : "border-border/60 hover:border-border"}`}>
                 <div className="aspect-square rounded-md overflow-hidden bg-black/30 mb-1.5 grid place-items-center">
-                  {img ? <img src={img} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-70" />}
+                  {img ? <img src={img} alt={`${b.name ?? t.name} baddie artwork`} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-70" />}
                 </div>
                 <div className="text-xs font-semibold truncate">{b.name ?? t.name}</div>
                 <div className="text-[10px] capitalize text-muted-foreground">{t.rarity} · {t.income_per_hour}/h</div>

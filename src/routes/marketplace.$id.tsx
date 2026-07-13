@@ -148,7 +148,7 @@ function Detail() {
               <div className="text-5xl font-mono font-bold text-primary">#{l.tag_value}</div>
             ) : l.category === "username" ? (
               <div className="text-4xl md:text-5xl font-mono font-bold text-primary flex items-center"><AtSign className="size-8 md:size-10" />{l.username_value}</div>
-            ) : l.preview_url ? <img src={l.preview_url} className="w-full h-full object-cover" /> : <div className="text-muted-foreground">No preview</div>}
+            ) : l.preview_url ? <img src={l.preview_url} alt={`${l.title ?? "Marketplace listing"} preview`} className="w-full h-full object-cover" /> : <div className="text-muted-foreground">No preview</div>}
           </div>
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-xs uppercase text-muted-foreground">
