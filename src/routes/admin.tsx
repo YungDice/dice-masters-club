@@ -203,7 +203,7 @@ function ProofQueue() {
         {(q.data ?? []).map((p: any) => (
           <div key={p.id} className="rounded-lg border border-border/60 p-3 space-y-2">
             <div className="text-xs text-muted-foreground">@{p.profiles?.username} · <span className="text-foreground">{p.challenges?.title}</span> · {p.challenges?.dice_reward} DICE</div>
-            {p.media_url && p.media_kind?.startsWith("image") && <img src={p.media_url} className="w-full h-40 object-cover rounded" />}
+            {p.media_url && p.media_kind?.startsWith("image") && <img src={p.media_url} alt={`Submission for ${p.challenges?.title ?? "challenge"} by @${p.profiles?.username ?? "user"}`} className="w-full h-40 object-cover rounded" />}
             {p.media_url && p.media_kind?.startsWith("video") && <video src={p.media_url} controls className="w-full h-40 rounded" />}
             {p.caption && <div className="text-sm">{p.caption}</div>}
             <div className="flex gap-2"><Button size="sm" onClick={() => decide(p.id, true)}>Approve</Button><Button size="sm" variant="destructive" onClick={() => decide(p.id, false)}>Reject</Button></div>
@@ -261,7 +261,7 @@ function ListingsQueue() {
       {q.data?.length === 0 && <p className="text-sm text-muted-foreground p-4">Queue empty</p>}
       {(q.data ?? []).map((l) => (
         <div key={l.id} className="rounded-lg border border-border/60 p-3 flex items-center gap-3">
-          {l.preview_url && <img src={l.preview_url} className="size-16 object-cover rounded" />}
+          {l.preview_url && <img src={l.preview_url} alt={`${l.title ?? "Marketplace listing"} preview`} className="size-16 object-cover rounded" />}
           <div className="flex-1"><div className="font-semibold">{l.title}</div><div className="text-xs text-muted-foreground">{l.price} DICE · {l.category}</div></div>
           <Button size="sm" onClick={() => decide(l.id, true)}>Approve</Button>
           <Button size="sm" variant="destructive" onClick={() => decide(l.id, false)}>Reject</Button>

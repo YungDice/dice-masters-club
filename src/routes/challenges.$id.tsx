@@ -183,7 +183,7 @@ function Detail() {
           <div className="grid gap-3 md:grid-cols-3">
             {proofs.data.map((p: any) => (
               <div key={p.id} className="rounded-lg border border-border/60 overflow-hidden">
-                {p.media_url && p.media_kind?.startsWith("image") && <img src={p.media_url} className="w-full h-40 object-cover" alt="" />}
+                {p.media_url && p.media_kind?.startsWith("image") && <img src={p.media_url} className="w-full h-40 object-cover" alt={`Challenge submission by ${p.user?.display_name ?? "player"}`} />}
                 {p.media_url && p.media_kind?.startsWith("video") && <video src={p.media_url} controls className="w-full h-40 object-cover" />}
                 <div className="p-3 flex items-center gap-2">
                   <Avatar className="size-6"><AvatarImage src={p.user?.avatar_url} /><AvatarFallback>{p.user?.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>

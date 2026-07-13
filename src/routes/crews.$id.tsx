@@ -183,7 +183,7 @@ function CrewPage() {
       >
         {c.banner_url && (
           <div className="h-32 sm:h-40 w-full overflow-hidden">
-            <img src={c.banner_url} alt="" className="w-full h-full object-cover" />
+            <img src={c.banner_url} alt={`${c.name ?? "Crew"} banner`} className="w-full h-full object-cover" />
           </div>
         )}
         <div className="p-6" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))" }}>
@@ -452,7 +452,7 @@ function CrewPage() {
             <div>
               <div className="text-xs text-muted-foreground mb-1">Banner URL</div>
               <Input value={cBanner} onChange={(e) => setCBanner(e.target.value)} placeholder="https://…/banner.png" />
-              {cBanner && <img src={cBanner} alt="" className="mt-2 w-full h-24 object-cover rounded" />}
+              {cBanner && <img src={cBanner} alt="Crew banner preview" className="mt-2 w-full h-24 object-cover rounded" />}
             </div>
             <div>
               <div className="text-xs text-muted-foreground mb-1">Description</div>
