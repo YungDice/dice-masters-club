@@ -311,19 +311,33 @@ export const joinSplitSteal = createServerFn({ method: "POST" })
     const { data: room } = await supabaseAdmin.from("game_rooms").select("*").eq("id", data.roomId).single();
     if (!room || room.status !== "waiting") throw new Error("Room not joinable");
     if (room.host_id === context.userId) throw new Error("Can't join own");
-    // Atomic claim: only one concurrent join wins the waiting->active transition.
-    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({ status: "active" })
-      .eq("id", room.id).eq("status", "waiting").select("id");
-    if (!claimed || claimed.length === 0) throw new Error("Room no longer joinable");
-    await supabaseAdmin.rpc("wallet_adjust", {
+    // Prevent double-join
+    const { data: existing } = await supabaseAdmin.from("game_players").select("id")
+      .eq("room_id", room.id).eq("user_id", context.userId).maybeSingle();
+    if (existing) throw new Error("Already in room");
+    // Debit stake FIRST — throws if insufficient balance.
+    const { error: debitErr } = await supabaseAdmin.rpc("wallet_adjust", {
       _user: context.userId, _delta: -room.stake, _type: "escrow_lock",
       _source: "split_steal", _ref_kind: "split_steal", _ref_id: room.id, _note: "Escrow",
     });
+    if (debitErr) throw new Error(debitErr.message || "Could not debit stake");
+    // Atomic claim: only one concurrent join wins the waiting->active transition.
+    const { data: claimed } = await supabaseAdmin.from("game_rooms").update({ status: "active" })
+      .eq("id", room.id).eq("status", "waiting").select("id");
+    if (!claimed || claimed.length === 0) {
+      // Refund on lost race.
+      await supabaseAdmin.rpc("wallet_adjust", {
+        _user: context.userId, _delta: room.stake, _type: "escrow_refund",
+        _source: "split_steal", _ref_kind: "split_steal", _ref_id: room.id, _note: "Refund (join race)",
+      });
+      throw new Error("Room no longer joinable");
+    }
     await supabaseAdmin.from("game_players").insert({
       room_id: room.id, user_id: context.userId, seat: 1, staked: room.stake,
     });
     return room;
   });
+
 
 export const choiceSplitSteal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
