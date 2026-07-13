@@ -327,7 +327,7 @@ export const joinSplitSteal = createServerFn({ method: "POST" })
     if (!claimed || claimed.length === 0) {
       // Refund on lost race.
       await supabaseAdmin.rpc("wallet_adjust", {
-        _user: context.userId, _delta: room.stake, _type: "escrow_refund",
+        _user: context.userId, _delta: room.stake, _type: "escrow_release",
         _source: "split_steal", _ref_kind: "split_steal", _ref_id: room.id, _note: "Refund (join race)",
       });
       throw new Error("Room no longer joinable");
