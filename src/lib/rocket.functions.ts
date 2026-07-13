@@ -2,19 +2,19 @@
 // If crash >= target, payout = bet * target. Else, lose bet.
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { randomInt } from "node:crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const HOUSE_EDGE = 0.01; // 1%
 
 function crashPoint(): number {
-  // Provably-fair-ish crash: r in (0,1], crash = max(1, floor((100-edge*100) / (r*100)) / 100)
-  const { randomInt } = require("node:crypto") as typeof import("node:crypto");
-  // 32-bit uniform in (0,1]
-  const r = (randomInt(1, 1_000_000_001) / 1_000_000_001);
+  // r in (0,1], crash = max(1, floor((1-edge)/r * 100)/100)
+  const r = randomInt(1, 1_000_000_001) / 1_000_000_001;
   const raw = (1 - HOUSE_EDGE) / r;
   const c = Math.max(1.0, Math.floor(raw * 100) / 100);
   return Math.min(c, 1000); // cap 1000x
 }
+
 
 export const rocketPlay = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
