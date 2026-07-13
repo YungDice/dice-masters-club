@@ -13,7 +13,16 @@ import { PageHeader } from "@/components/dice/PageHeader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/gallery")({
-  head: () => ({ meta: [{ title: "Gallery — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Gallery — DICE" },
+      { name: "description", content: "Community gallery of DICE challenge submissions — photos, videos, and creations from players." },
+      { property: "og:title", content: "Gallery — DICE" },
+      { property: "og:description", content: "Community gallery of DICE challenge submissions — photos, videos, and creations." },
+      { property: "og:url", content: "https://yungdice.com/gallery" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/gallery" }],
+  }),
   component: () => <AppShell><GalleryPage /></AppShell>,
 });
 

@@ -32,7 +32,16 @@ import { LoadoutEditor } from "@/components/dice/LoadoutEditor";
 import { ImageCropper, readFileAsDataURL } from "@/components/dice/ImageCropper";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Settings — DICE" },
+      { name: "description", content: "Manage your DICE account: profile, privacy, notifications, security, and connected accounts." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Settings — DICE" },
+      { property: "og:url", content: "https://yungdice.com/settings" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/settings" }],
+  }),
   component: () => (
     <AppShell>
       <Settings />

@@ -16,7 +16,16 @@ import { sendFriendRequest, respondFriendRequest } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/friends")({
-  head: () => ({ meta: [{ title: "Friends — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Friends — DICE" },
+      { name: "description", content: "Add friends, see who's online, and share DICE activity across challenges, games, and crews." },
+      { property: "og:title", content: "Friends — DICE" },
+      { property: "og:description", content: "Add friends, see who's online, and share DICE activity across challenges, games, and crews." },
+      { property: "og:url", content: "https://yungdice.com/friends" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/friends" }],
+  }),
   component: () => <AppShell><Friends /></AppShell>,
 });
 
