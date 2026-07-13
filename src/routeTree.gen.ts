@@ -32,9 +32,11 @@ import { Route as LeaderboardIndexRouteImport } from './routes/leaderboard.index
 import { Route as CrewsIndexRouteImport } from './routes/crews.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
+import { Route as PlayWheelRouteImport } from './routes/play.wheel'
 import { Route as PlaySplitStealRouteImport } from './routes/play.split-steal'
 import { Route as PlaySlotsRouteImport } from './routes/play.slots'
 import { Route as PlayRouletteRouteImport } from './routes/play.roulette'
+import { Route as PlayRocketRouteImport } from './routes/play.rocket'
 import { Route as PlayPokerRouteImport } from './routes/play.poker'
 import { Route as PlayObbyRouteImport } from './routes/play.obby'
 import { Route as PlayNumguessRouteImport } from './routes/play.numguess'
@@ -172,6 +174,11 @@ const UUsernameRoute = UUsernameRouteImport.update({
   path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayWheelRoute = PlayWheelRouteImport.update({
+  id: '/play/wheel',
+  path: '/play/wheel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaySplitStealRoute = PlaySplitStealRouteImport.update({
   id: '/play/split-steal',
   path: '/play/split-steal',
@@ -185,6 +192,11 @@ const PlaySlotsRoute = PlaySlotsRouteImport.update({
 const PlayRouletteRoute = PlayRouletteRouteImport.update({
   id: '/play/roulette',
   path: '/play/roulette',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayRocketRoute = PlayRocketRouteImport.update({
+  id: '/play/rocket',
+  path: '/play/rocket',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayPokerRoute = PlayPokerRouteImport.update({
@@ -332,9 +344,11 @@ export interface FileRoutesByFullPath {
   '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/rocket': typeof PlayRocketRoute
   '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
+  '/play/wheel': typeof PlayWheelRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/crews/': typeof CrewsIndexRoute
@@ -381,9 +395,11 @@ export interface FileRoutesByTo {
   '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/rocket': typeof PlayRocketRoute
   '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
+  '/play/wheel': typeof PlayWheelRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges': typeof ChallengesIndexRoute
   '/crews': typeof CrewsIndexRoute
@@ -431,9 +447,11 @@ export interface FileRoutesById {
   '/play/numguess': typeof PlayNumguessRoute
   '/play/obby': typeof PlayObbyRoute
   '/play/poker': typeof PlayPokerRoute
+  '/play/rocket': typeof PlayRocketRoute
   '/play/roulette': typeof PlayRouletteRoute
   '/play/slots': typeof PlaySlotsRoute
   '/play/split-steal': typeof PlaySplitStealRoute
+  '/play/wheel': typeof PlayWheelRoute
   '/u/$username': typeof UUsernameRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/crews/': typeof CrewsIndexRoute
@@ -482,9 +500,11 @@ export interface FileRouteTypes {
     | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
+    | '/play/rocket'
     | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
+    | '/play/wheel'
     | '/u/$username'
     | '/challenges/'
     | '/crews/'
@@ -531,9 +551,11 @@ export interface FileRouteTypes {
     | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
+    | '/play/rocket'
     | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
+    | '/play/wheel'
     | '/u/$username'
     | '/challenges'
     | '/crews'
@@ -580,9 +602,11 @@ export interface FileRouteTypes {
     | '/play/numguess'
     | '/play/obby'
     | '/play/poker'
+    | '/play/rocket'
     | '/play/roulette'
     | '/play/slots'
     | '/play/split-steal'
+    | '/play/wheel'
     | '/u/$username'
     | '/challenges/'
     | '/crews/'
@@ -630,9 +654,11 @@ export interface RootRouteChildren {
   PlayNumguessRoute: typeof PlayNumguessRoute
   PlayObbyRoute: typeof PlayObbyRoute
   PlayPokerRoute: typeof PlayPokerRoute
+  PlayRocketRoute: typeof PlayRocketRoute
   PlayRouletteRoute: typeof PlayRouletteRoute
   PlaySlotsRoute: typeof PlaySlotsRoute
   PlaySplitStealRoute: typeof PlaySplitStealRoute
+  PlayWheelRoute: typeof PlayWheelRoute
   UUsernameRoute: typeof UUsernameRoute
   ChallengesIndexRoute: typeof ChallengesIndexRoute
   CrewsIndexRoute: typeof CrewsIndexRoute
@@ -807,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play/wheel': {
+      id: '/play/wheel'
+      path: '/play/wheel'
+      fullPath: '/play/wheel'
+      preLoaderRoute: typeof PlayWheelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play/split-steal': {
       id: '/play/split-steal'
       path: '/play/split-steal'
@@ -826,6 +859,13 @@ declare module '@tanstack/react-router' {
       path: '/play/roulette'
       fullPath: '/play/roulette'
       preLoaderRoute: typeof PlayRouletteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play/rocket': {
+      id: '/play/rocket'
+      path: '/play/rocket'
+      fullPath: '/play/rocket'
+      preLoaderRoute: typeof PlayRocketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play/poker': {
@@ -1026,9 +1066,11 @@ const rootRouteChildren: RootRouteChildren = {
   PlayNumguessRoute: PlayNumguessRoute,
   PlayObbyRoute: PlayObbyRoute,
   PlayPokerRoute: PlayPokerRoute,
+  PlayRocketRoute: PlayRocketRoute,
   PlayRouletteRoute: PlayRouletteRoute,
   PlaySlotsRoute: PlaySlotsRoute,
   PlaySplitStealRoute: PlaySplitStealRoute,
+  PlayWheelRoute: PlayWheelRoute,
   UUsernameRoute: UUsernameRoute,
   ChallengesIndexRoute: ChallengesIndexRoute,
   CrewsIndexRoute: CrewsIndexRoute,
