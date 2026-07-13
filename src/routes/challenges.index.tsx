@@ -14,7 +14,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/challenges/")({
-  head: () => ({ meta: [{ title: "Challenges — DICE" }, { name: "description", content: "Browse fitness, creativity, gaming, and photo challenges. Earn DICE for completing approved tasks." }] }),
+  head: () => ({
+    meta: [
+      { title: "Challenges — DICE" },
+      { name: "description", content: "Browse fitness, creativity, gaming, and photo challenges on DICE. Earn DICE virtual currency for completing approved tasks." },
+      { property: "og:title", content: "Challenges — DICE" },
+      { property: "og:description", content: "Browse and complete DICE challenges to earn virtual currency and XP." },
+      { property: "og:url", content: "https://yungdice.com/challenges" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/challenges" }],
+  }),
   component: () => <AppShell><Browse /></AppShell>,
 });
 

@@ -19,7 +19,16 @@ import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
-  head: () => ({ meta: [{ title: "Marketplace — DICE" }, { name: "description", content: "Buy and sell digital items for DICE: avatars, stickers, art, templates." }] }),
+  head: () => ({
+    meta: [
+      { title: "Marketplace — DICE" },
+      { name: "description", content: "Buy and sell digital items on the DICE marketplace using virtual DICE currency: avatars, stickers, art, and templates." },
+      { property: "og:title", content: "Marketplace — DICE" },
+      { property: "og:description", content: "Trade digital items on the DICE marketplace using virtual DICE currency." },
+      { property: "og:url", content: "https://yungdice.com/marketplace" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/marketplace" }],
+  }),
   component: () => <AppShell><Mkt /></AppShell>,
 });
 
