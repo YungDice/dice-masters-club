@@ -50,6 +50,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google-site-verification", content: "Frr-nQOeYsp09dihJt4zBGG_LpToiw2t_B7edo5OQ_I" },
       { title: "DICE — Complete challenges. Earn DICE. Play games." },
       { name: "description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games, build your reputation. 18+ only." },
       { property: "og:site_name", content: "DICE" },
