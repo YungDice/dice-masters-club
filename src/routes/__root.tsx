@@ -52,14 +52,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "DICE — Complete challenges. Earn DICE. Play games." },
       { name: "description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games, build your reputation. 18+ only." },
+      { property: "og:site_name", content: "DICE" },
       { property: "og:title", content: "DICE — Complete challenges. Earn DICE. Play games." },
       { property: "og:description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games, build your reputation. 18+ only." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "DICE — Complete challenges. Earn DICE. Play games." },
       { name: "twitter:description", content: "DICE is a virtual-currency social gaming platform. Complete challenges, earn DICE, play games, build your reputation. 18+ only." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/481d03d3-e210-4421-8cdf-ee3a9fb00935/id-preview-c889b08e--1a970e50-03b7-4f83-ba7d-dc3e8cd40b22.lovable.app-1782388777033.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/481d03d3-e210-4421-8cdf-ee3a9fb00935/id-preview-c889b08e--1a970e50-03b7-4f83-ba7d-dc3e8cd40b22.lovable.app-1782388777033.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -67,6 +66,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://yungdice.com/#organization",
+              name: "DICE",
+              url: "https://yungdice.com",
+              description: "A virtual-currency social gaming platform where players complete challenges, play games, and trade digital items.",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://yungdice.com/#website",
+              url: "https://yungdice.com",
+              name: "DICE",
+              description: "Social gaming platform with virtual DICE currency. 18+ only.",
+              publisher: { "@id": "https://yungdice.com/#organization" },
+            },
+          ],
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
