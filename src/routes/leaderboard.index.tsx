@@ -245,29 +245,22 @@ function SeasonPassBoard() {
   const q = useQuery({
     queryKey: ["lb", "season-pass"],
     queryFn: async (): Promise<Row[]> => {
-      const { data: season } = await supabase.from("seasons" as any).select("id")
-        .eq("active", true).order("starts_at", { ascending: false }).limit(1).maybeSingle();
-      if (!season) return [];
-      const { data: prog } = await supabase.from("season_progress" as any).select("user_id,baseline_xp,bonus_xp")
-        .eq("season_id", (season as any).id);
-      const progRows = (prog ?? []) as any[];
-      const ids = progRows.map((p) => p.user_id);
-      if (!ids.length) return [];
-      const { data: profs } = await supabase.from("profiles").select("id,username,display_name,avatar_url,level,tag,xp").in("id", ids);
-      const pm = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p]));
-      return progRows
-        .map((r: any) => {
-          const p = pm[r.user_id]; if (!p) return null;
-          const sXp = Math.max(0, (p.xp ?? 0) - (r.baseline_xp ?? 0)) + (r.bonus_xp ?? 0);
-          return { ...p, points: tierFromCumulativeXp(sXp) };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => b.points - a.points)
-        .slice(0, 50) as Row[];
+      const { data, error } = await (supabase.rpc as any)("leaderboard_season_pass", { _limit: 50 });
+      if (error || !data) return [];
+      return (data as any[]).map((r) => ({
+        id: r.user_id,
+        username: r.username,
+        display_name: r.display_name,
+        avatar_url: r.avatar_url,
+        tag: r.tag,
+        level: r.level,
+        points: tierFromCumulativeXp(Number(r.season_xp ?? 0)),
+      }));
     },
   });
   return <Board rows={q.data ?? []} unit="TIER" />;
 }
+
 
 type CrewRow = { id: string; name: string; tag: string; avatar_url: string | null; level: number; total_score: number; weekly_score: number; member_count: number; points: number };
 function CrewBoard({ orderBy, unit }: { orderBy: "level" | "total" | "weekly"; unit: string }) {
