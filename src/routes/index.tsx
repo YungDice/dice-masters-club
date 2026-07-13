@@ -47,6 +47,7 @@ function Landing() {
         <DiceLogo />
         <Link to="/auth" search={{}}><Button variant="outline">Sign in</Button></Link>
       </header>
+      <main>
       <section className="mx-auto max-w-7xl px-4 pt-12 pb-24 text-center">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs">
@@ -85,6 +86,7 @@ function Landing() {
           break-reminder tool in Settings.
         </p>
       </section>
+      </main>
     </div>
   );
 }
