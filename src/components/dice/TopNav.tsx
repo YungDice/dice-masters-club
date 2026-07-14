@@ -264,9 +264,9 @@ export function TopNav() {
                 <Menu className="size-5" />
               </button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-72">
-              <SheetHeader><SheetTitle>Menu</SheetTitle></SheetHeader>
-              <div className="mt-4 space-y-4">
+            <SheetContent side="right" className="w-72 flex flex-col p-0">
+              <SheetHeader className="p-6 pb-2 shrink-0"><SheetTitle>Menu</SheetTitle></SheetHeader>
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-6 pb-6 pt-2 space-y-4">
                 {nav.map((it) => {
                   if (it.kind === "leaf") {
                     return (
