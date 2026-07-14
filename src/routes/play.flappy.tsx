@@ -27,7 +27,12 @@ function FlappyGame() {
   const [status, setStatus] = useState<"idle" | "playing" | "dead">("idle");
   const [score, setScore] = useState(0);
   const [reward, setReward] = useState(0);
-  const [best, setBest] = useState<number>(() => Number(localStorage.getItem("flappy_best") ?? 0));
+  const [best, setBest] = useState<number>(0);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBest(Number(window.localStorage.getItem("flappy_best") ?? 0));
+    }
+  }, []);
   const roomIdRef = useRef<string | null>(null);
   const sentGateRef = useRef(0);
   const qc = useQueryClient();
