@@ -213,11 +213,13 @@ export const dominionUpgrade = createServerFn({ method: "POST" })
     const secs = Math.round(spec.buildSeconds(nextLevel) * workshopSpeedMultiplier(workshop?.level ?? 0));
     const endsAt = new Date(Date.now() + secs * 1000).toISOString();
 
-    await admin.from("dominion_profiles").update({
-      scrap: profile.scrap - (cost.scrap ?? 0),
-      power: profile.power - (cost.power ?? 0),
-      roll_credits: profile.roll_credits - (cost.roll_credits ?? 0),
-    }).eq("user_id", uid);
+    const { data: okUpg } = await admin.rpc("dominion_debit_resources", {
+      _user: uid,
+      _scrap: cost.scrap ?? 0,
+      _power: cost.power ?? 0,
+      _roll_credits: cost.roll_credits ?? 0,
+    });
+    if (!okUpg) throw new Error("Insufficient resources");
 
     const { data: jIns, error: jErr } = await admin.from("dominion_jobs").insert({
       user_id: uid, kind: "upgrade", ref_id: bld.id, ends_at: endsAt,
