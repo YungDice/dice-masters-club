@@ -491,14 +491,17 @@ export const dominionAttack = createServerFn({ method: "POST" })
     }
     if (attackPower === 0) throw new Error("No units sent");
 
-    // Command Energy check + regen
+    // Command Energy: atomic check + debit (prevents race duplication)
     const cmd = (buildings ?? []).find((x: any) => x.kind === "command_center");
     const cap = baseCommandEnergyCap(cmd?.level ?? 0);
-    const regen = COMMAND_ENERGY_REGEN_PER_SEC;
-    const elapsed = Math.max(0, (Date.now() - new Date(profile.command_energy_updated_at).getTime()) / 1000);
-    const currentEnergy = Math.min(cap, Math.floor(profile.command_energy + elapsed * regen));
     const energyCost = attackEnergyCost(research ?? []);
-    if (currentEnergy < energyCost) throw new Error("Not enough Command Energy");
+    const { data: newEnergy } = await admin.rpc("dominion_debit_energy", {
+      _user: uid,
+      _energy_cost: energyCost,
+      _cap: cap,
+      _regen_per_sec: COMMAND_ENERGY_REGEN_PER_SEC,
+    });
+    if (newEnergy === null || newEnergy === undefined) throw new Error("Not enough Command Energy");
 
     // Resolve
     const mult = attackMultiplier(research ?? [], cmd?.level ?? 0);
@@ -506,7 +509,6 @@ export const dominionAttack = createServerFn({ method: "POST" })
     const defense = sector.strength + (sector.kind === "fortified" ? 20 : 0);
     const ratio = effectiveAttack / defense;
     const win = ratio >= 1;
-    // Losses: higher ratio = fewer losses; capped 20%-80%
     const lossFrac = win ? Math.max(0.05, Math.min(0.4, 1 / ratio * 0.4)) : Math.max(0.4, Math.min(0.85, 0.9 / ratio));
     const survivors: Record<string, number> = {};
     for (const [k, qty] of Object.entries(sent)) {
@@ -521,16 +523,16 @@ export const dominionAttack = createServerFn({ method: "POST" })
       roll_credits: Math.floor(sector.reward_roll_credits * rewardMult),
     } : { scrap: 0, power: 0, roll_credits: 0 };
 
-    // Apply: debit energy, credit rewards, update unit counts
+    // Credit rewards (energy already debited atomically above)
     const vault = (buildings ?? []).find((x: any) => x.kind === "vault");
     const capRes = baseCapacity(vault?.level ?? 0);
-    await admin.from("dominion_profiles").update({
-      command_energy: currentEnergy - energyCost,
-      command_energy_updated_at: new Date().toISOString(),
-      scrap: Math.min(capRes, profile.scrap + rewards.scrap),
-      power: Math.min(capRes, profile.power + rewards.power),
-      roll_credits: Math.min(capRes, profile.roll_credits + rewards.roll_credits),
-    }).eq("user_id", uid);
+    if (win && (rewards.scrap || rewards.power || rewards.roll_credits)) {
+      await admin.from("dominion_profiles").update({
+        scrap: Math.min(capRes, profile.scrap + rewards.scrap),
+        power: Math.min(capRes, profile.power + rewards.power),
+        roll_credits: Math.min(capRes, profile.roll_credits + rewards.roll_credits),
+      }).eq("user_id", uid);
+    }
 
     // Update unit counts to survivors
     for (const [k, qty] of Object.entries(sent)) {
