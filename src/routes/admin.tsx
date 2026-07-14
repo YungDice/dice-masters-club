@@ -301,7 +301,9 @@ function UsersAdmin() {
     queryKey: ["admin-users", q],
     enabled: q.length >= 2,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").or(`username.ilike.%${q}%,display_name.ilike.%${q}%`).limit(20);
+      const safeQ = q.replace(/[,()*%\\.:]/g, "").slice(0, 40);
+      if (!safeQ) return [];
+      const { data } = await supabase.from("profiles").select("*").or(`username.ilike.%${safeQ}%,display_name.ilike.%${safeQ}%`).limit(20);
       return data ?? [];
     },
   });
