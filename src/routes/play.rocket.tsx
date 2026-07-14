@@ -16,10 +16,16 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 
 export const Route = createFileRoute("/play/rocket")({
-  head: () => ({ meta: [
-    { title: "Rocket — DICE" },
-    { name: "description", content: "Set a target multiplier and cash out before the rocket crashes." },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "Rocket — DICE" },
+      { name: "description", content: "Set your target multiplier and cash out before the rocket crashes. Bet DICE on the climb." },
+      { property: "og:title", content: "Rocket — DICE" },
+      { property: "og:description", content: "Cash out before the rocket crashes." },
+      { property: "og:url", content: "https://yungdice.com/play/rocket" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/rocket" }],
+  }),
   component: () => <AppShell><RocketGame /></AppShell>,
 });
 

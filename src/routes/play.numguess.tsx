@@ -23,8 +23,12 @@ export const Route = createFileRoute("/play/numguess")({
   head: () => ({
     meta: [
       { title: "Number Guess — DICE" },
-      { name: "description", content: "Pick a mode, place a bet, and guess the hidden number for up to 100x payouts." },
+      { name: "description", content: "Pick a mode, place a bet, and guess the hidden number on DICE for up to 100x payouts." },
+      { property: "og:title", content: "Number Guess — DICE" },
+      { property: "og:description", content: "Guess the hidden number — up to 100x payouts." },
+      { property: "og:url", content: "https://yungdice.com/play/numguess" },
     ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/numguess" }],
   }),
   component: () => <AppShell><NumberGuess /></AppShell>,
 });

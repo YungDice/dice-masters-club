@@ -16,10 +16,16 @@ import { toast } from "sonner";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/roulette")({
-  head: () => ({ meta: [
-    { title: "Roulette — DICE" },
-    { name: "description", content: "American Roulette (0 and 00). Place chips on the felt, spin the wheel, settle bets." },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "Roulette — DICE" },
+      { name: "description", content: "American Roulette on DICE. Place chips on 0, 00, numbers, or outside bets, spin the wheel, and settle instantly." },
+      { property: "og:title", content: "Roulette — DICE" },
+      { property: "og:description", content: "American Roulette — 0 / 00 wheel on DICE." },
+      { property: "og:url", content: "https://yungdice.com/play/roulette" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/roulette" }],
+  }),
   component: () => <AppShell><RoulettePage /></AppShell>,
 });
 

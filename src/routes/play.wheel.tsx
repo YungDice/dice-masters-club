@@ -16,10 +16,16 @@ import { useWallet } from "@/hooks/use-profile";
 import { fmt } from "@/lib/format";
 
 export const Route = createFileRoute("/play/wheel")({
-  head: () => ({ meta: [
-    { title: "Wheel of Fortune — DICE" },
-    { name: "description", content: "Bet DICE and spin the wheel to multiply your stake." },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "Wheel of Fortune — DICE" },
+      { name: "description", content: "Bet DICE and spin the Wheel of Fortune to multiply your stake up to 10x." },
+      { property: "og:title", content: "Wheel of Fortune — DICE" },
+      { property: "og:description", content: "Spin the wheel — multiply your DICE up to 10x." },
+      { property: "og:url", content: "https://yungdice.com/play/wheel" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/wheel" }],
+  }),
   component: () => <AppShell><Wheel /></AppShell>,
 });
 

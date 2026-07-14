@@ -703,11 +703,15 @@ function HowItWorks() {
 
 
 export const Route = createFileRoute("/play/dice-dominion")({
-  head: () => ({ meta: [
-    { title: "DICE Dominion — Strategy" },
-    { name: "description", content: "Build your district, command your crew, and conquer the board in DICE Dominion." },
-    { property: "og:title", content: "DICE Dominion — Strategy" },
-    { property: "og:description", content: "Build, forge, and conquer the DICE board." },
-  ]}),
+  head: () => ({
+    meta: [
+      { title: "DICE Dominion — Strategy" },
+      { name: "description", content: "Build your district, command your crew, and conquer the DICE Dominion board in this strategy PvP game." },
+      { property: "og:title", content: "DICE Dominion — Strategy" },
+      { property: "og:description", content: "Build, forge, and conquer the DICE board." },
+      { property: "og:url", content: "https://yungdice.com/play/dice-dominion" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/dice-dominion" }],
+  }),
   component: () => <AppShell><Dominion /></AppShell>,
 });
