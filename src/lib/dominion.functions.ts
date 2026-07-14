@@ -428,7 +428,10 @@ export const dominionResearch = createServerFn({ method: "POST" })
     const secs = spec.seconds(nextLevel);
     const endsAt = new Date(Date.now() + secs * 1000).toISOString();
 
-    await admin.from("dominion_profiles").update({ roll_credits: profile.roll_credits - cost }).eq("user_id", uid);
+    const { data: okRes } = await admin.rpc("dominion_debit_resources", {
+      _user: uid, _scrap: 0, _power: 0, _roll_credits: cost,
+    });
+    if (!okRes) throw new Error("Not enough Roll Credits");
     const { data: j, error } = await admin.from("dominion_jobs").insert({
       user_id: uid, kind: "research", ends_at: endsAt,
       payload: { branch: spec.branch, node: data.node, level: nextLevel },
