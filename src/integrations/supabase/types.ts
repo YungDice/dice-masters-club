@@ -2658,6 +2658,10 @@ export type Database = {
         Args: { _buyer: string; _listing_id: string }
         Returns: Json
       }
+      can_view_profile: {
+        Args: { _target: string; _viewer: string }
+        Returns: boolean
+      }
       cancel_listing_tx: { Args: { _listing_id: string }; Returns: Json }
       cancel_trade_tx: { Args: { _trade_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
@@ -2742,6 +2746,24 @@ export type Database = {
       }
       current_week_start: { Args: never; Returns: string }
       delete_tag_tx: { Args: { _tag: string }; Returns: Json }
+      dominion_debit_energy: {
+        Args: {
+          _cap: number
+          _energy_cost: number
+          _regen_per_sec: number
+          _user: string
+        }
+        Returns: number
+      }
+      dominion_debit_resources: {
+        Args: {
+          _power: number
+          _roll_credits: number
+          _scrap: number
+          _user: string
+        }
+        Returns: boolean
+      }
       donate_to_crew_tx: { Args: { _amount: number }; Returns: Json }
       ensure_season_progress: {
         Args: never
@@ -2824,10 +2846,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_challenge_participant: {
+        Args: { _challenge: string; _user: string }
+        Returns: boolean
+      }
+      is_crew_member: {
+        Args: { _crew: string; _user: string }
+        Returns: boolean
+      }
       is_crew_officer: {
         Args: { _crew: string; _user: string }
         Returns: boolean
       }
+      is_friend: { Args: { _a: string; _b: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       is_vip: { Args: { _uid: string }; Returns: boolean }
       join_crew_tx: { Args: { _crew_id: string }; Returns: Json }
