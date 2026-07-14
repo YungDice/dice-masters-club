@@ -313,6 +313,15 @@ function ObbyGame() {
 }
 
 export const Route = createFileRoute("/play/obby")({
-  head: () => ({ meta: [{ title: "DICE Obby — DICE" }, { name: "description", content: "2D obstacle course minigame. +150 DICE per cleared level." }] }),
+  head: () => ({
+    meta: [
+      { title: "DICE Obby — DICE" },
+      { name: "description", content: "2D obstacle course minigame on DICE. Run, jump, and dodge — earn +150 DICE per cleared level." },
+      { property: "og:title", content: "DICE Obby — DICE" },
+      { property: "og:description", content: "2D obstacle course — +150 DICE per cleared level." },
+      { property: "og:url", content: "https://yungdice.com/play/obby" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/obby" }],
+  }),
   component: () => <AppShell><ObbyGame /></AppShell>,
 });
