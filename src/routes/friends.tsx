@@ -64,7 +64,9 @@ function Friends() {
     queryKey: ["search-users", q, user?.id],
     enabled: q.length >= 2,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").or(`username.ilike.%${q}%,display_name.ilike.%${q}%`).neq("id", user?.id ?? "").limit(15);
+      const safeQ = q.replace(/[,()*%\\.:]/g, "").slice(0, 40);
+      if (!safeQ) return [];
+      const { data } = await supabase.from("profiles").select("*").or(`username.ilike.%${safeQ}%,display_name.ilike.%${safeQ}%`).neq("id", user?.id ?? "").limit(15);
       const profs = data ?? [];
       const ids = profs.map((p: any) => p.id);
       if (ids.length === 0 || !user) return profs.map((p: any) => ({ ...p, _rel: "none" }));
