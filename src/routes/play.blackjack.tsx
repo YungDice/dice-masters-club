@@ -18,7 +18,16 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/blackjack")({
-  head: () => ({ meta: [{ title: "Blackjack — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Blackjack — DICE" },
+      { name: "description", content: "Blackjack on DICE — hit, stand, double, split. Play solo vs the house or live multiplayer tables." },
+      { property: "og:title", content: "Blackjack — DICE" },
+      { property: "og:description", content: "Solo or live multiplayer blackjack on DICE." },
+      { property: "og:url", content: "https://yungdice.com/play/blackjack" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/blackjack" }],
+  }),
   component: () => <AppShell><BJPage /></AppShell>,
 });
 
