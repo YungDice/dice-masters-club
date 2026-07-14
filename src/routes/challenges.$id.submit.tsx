@@ -90,7 +90,7 @@ function Submit() {
         <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black grid place-items-center">
           {preview ? (
             preview.kind.startsWith("image")
-              ? <img src={preview.url} className="w-full h-full object-contain" />
+              ? <img src={preview.url} alt="Challenge submission preview" className="w-full h-full object-contain" />
               : <video src={preview.url} controls className="w-full h-full" />
           ) : <video ref={videoRef} className="w-full h-full" muted playsInline />}
         </div>
