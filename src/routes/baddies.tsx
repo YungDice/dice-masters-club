@@ -26,7 +26,16 @@ import { YuriCase } from "@/components/dice/YuriCase";
 import { Heart } from "lucide-react";
 
 export const Route = createFileRoute("/baddies")({
-  head: () => ({ meta: [{ title: "Baddie Cases — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Baddie Cases — DICE" },
+      { name: "description", content: "Open Baddie cases on DICE to recruit rare characters. Spend DICE, unbox exclusive cosmetics, and grow your roster." },
+      { property: "og:title", content: "Baddie Cases — DICE" },
+      { property: "og:description", content: "Open cases and recruit rare Baddies on DICE." },
+      { property: "og:url", content: "https://yungdice.com/baddies" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/baddies" }],
+  }),
   component: () => <AppShell><Page /></AppShell>,
 });
 
