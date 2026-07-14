@@ -380,9 +380,10 @@ export const dominionTrain = createServerFn({ method: "POST" })
     const secs = Math.round(spec.trainSeconds * data.qty * trainMult);
     const endsAt = new Date(Date.now() + secs * 1000).toISOString();
 
-    await admin.from("dominion_profiles").update({
-      scrap: profile.scrap - cost.scrap, power: profile.power - cost.power, roll_credits: profile.roll_credits - cost.roll_credits,
-    }).eq("user_id", uid);
+    const { data: okTrain } = await admin.rpc("dominion_debit_resources", {
+      _user: uid, _scrap: cost.scrap, _power: cost.power, _roll_credits: cost.roll_credits,
+    });
+    if (!okTrain) throw new Error("Insufficient resources");
 
     const { data: j, error } = await admin.from("dominion_jobs").insert({
       user_id: uid, kind: "train", ends_at: endsAt, payload: { kind: data.kind, qty: data.qty }, client_action_id: data.client_action_id,
