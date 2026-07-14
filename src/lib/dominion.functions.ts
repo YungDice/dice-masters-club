@@ -157,12 +157,14 @@ export const dominionBuild = createServerFn({ method: "POST" })
     const secs = Math.round(spec.buildSeconds(1) * workshopSpeedMultiplier(workshop?.level ?? 0));
     const endsAt = new Date(Date.now() + secs * 1000).toISOString();
 
-    // Debit
-    await admin.from("dominion_profiles").update({
-      scrap: profile.scrap - (cost.scrap ?? 0),
-      power: profile.power - (cost.power ?? 0),
-      roll_credits: profile.roll_credits - (cost.roll_credits ?? 0),
-    }).eq("user_id", uid);
+    // Atomic debit (prevents concurrent-request duplication)
+    const { data: ok } = await admin.rpc("dominion_debit_resources", {
+      _user: uid,
+      _scrap: cost.scrap ?? 0,
+      _power: cost.power ?? 0,
+      _roll_credits: cost.roll_credits ?? 0,
+    });
+    if (!ok) throw new Error("Insufficient resources");
 
     // Insert placeholder building (level 0) and job to finalize
     const { data: bIns, error: bErr } = await admin.from("dominion_buildings").insert({
