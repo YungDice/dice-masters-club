@@ -739,7 +739,8 @@ export const adminAdjustDice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: isAdmin } = await supabaseAdmin.rpc("has_role", { _user_id: context.userId, _role: "admin" });
-    if (!isAdmin) throw new Error("Forbidden");
+    const { data: isOwner } = await supabaseAdmin.rpc("has_role", { _user_id: context.userId, _role: "owner" });
+    if (!isAdmin && !isOwner) throw new Error("Forbidden");
     await supabaseAdmin.rpc("wallet_adjust", {
       _user: data.userId, _delta: data.delta, _type: "admin_adjust",
       _source: "admin", _ref_kind: "admin", _ref_id: null as any, _note: data.reason,
