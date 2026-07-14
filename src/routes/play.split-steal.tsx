@@ -18,7 +18,16 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/split-steal")({
-  head: () => ({ meta: [{ title: "Split or Steal — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Split or Steal — DICE" },
+      { name: "description", content: "Split or Steal on DICE. Both players stake DICE, both choose. Split the pot or take it all — a trust game with real stakes." },
+      { property: "og:title", content: "Split or Steal — DICE" },
+      { property: "og:description", content: "Trust game with DICE stakes — split the pot or steal it." },
+      { property: "og:url", content: "https://yungdice.com/play/split-steal" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/split-steal" }],
+  }),
   component: () => <AppShell><SS /></AppShell>,
 });
 

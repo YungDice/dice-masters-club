@@ -175,7 +175,7 @@ export function ChatPopover() {
                   )}
                   {m.body && <div className="whitespace-pre-wrap break-words">{m.body}</div>}
                   {m.media_url && (
-                    <img src={m.media_url} alt="img" className="mt-1 rounded max-h-48 max-w-full" />
+                    <img src={m.media_url} alt={`Image shared by ${m.display_name ?? "chat user"}`} className="mt-1 rounded max-h-48 max-w-full" />
                   )}
                 </div>
               </div>

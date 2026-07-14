@@ -20,7 +20,16 @@ import { toast } from "sonner";
 import { Coin3D } from "@/components/dice/casino/Coin3D";
 
 export const Route = createFileRoute("/play/coinflip")({
-  head: () => ({ meta: [{ title: "Coin Flip — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Coin Flip — DICE" },
+      { name: "description", content: "Heads or tails on DICE — solo vs bot or PvP escrow. Bet DICE and flip for instant payouts." },
+      { property: "og:title", content: "Coin Flip — DICE" },
+      { property: "og:description", content: "Heads or tails, solo or PvP, on DICE." },
+      { property: "og:url", content: "https://yungdice.com/play/coinflip" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/coinflip" }],
+  }),
   component: () => <AppShell><CFPage /></AppShell>,
 });
 

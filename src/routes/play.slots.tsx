@@ -15,7 +15,16 @@ import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/slots")({
-  head: () => ({ meta: [{ title: "Slots — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Slots — DICE" },
+      { name: "description", content: "Spin the DICE slot reels with a daily free spin. Bet DICE, chase symbol combos, and cash in wins instantly." },
+      { property: "og:title", content: "Slots — DICE" },
+      { property: "og:description", content: "Spin the reels on DICE with a daily free spin." },
+      { property: "og:url", content: "https://yungdice.com/play/slots" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/slots" }],
+  }),
   component: () => <AppShell><Slots /></AppShell>,
 });
 

@@ -268,6 +268,15 @@ function FlappyGame() {
 }
 
 export const Route = createFileRoute("/play/flappy")({
-  head: () => ({ meta: [{ title: "Flappy DICE — DICE" }, { name: "description", content: "Flappy Bird-style DICE minigame. 50 DICE per gate." }] }),
+  head: () => ({
+    meta: [
+      { title: "Flappy DICE — DICE" },
+      { name: "description", content: "Flappy Bird-style minigame on DICE. Tap to flap, clear gates, and earn 50 DICE for every gate cleared." },
+      { property: "og:title", content: "Flappy DICE — DICE" },
+      { property: "og:description", content: "Flappy Bird-style minigame — 50 DICE per gate." },
+      { property: "og:url", content: "https://yungdice.com/play/flappy" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/flappy" }],
+  }),
   component: () => <AppShell><FlappyGame /></AppShell>,
 });

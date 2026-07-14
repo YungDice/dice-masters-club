@@ -11,7 +11,17 @@ import { Bell } from "lucide-react";
 import { timeAgo } from "@/lib/format";
 
 export const Route = createFileRoute("/notifications")({
-  head: () => ({ meta: [{ title: "Notifications — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Notifications — DICE" },
+      { name: "description", content: "Your DICE notifications: friend requests, mission progress, marketplace activity, and challenge updates in one feed." },
+      { property: "og:title", content: "Notifications — DICE" },
+      { property: "og:description", content: "Your DICE notifications feed." },
+      { property: "og:url", content: "https://yungdice.com/notifications" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/notifications" }],
+  }),
   component: () => <AppShell><Notif /></AppShell>,
 });
 

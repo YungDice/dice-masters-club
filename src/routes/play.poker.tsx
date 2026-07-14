@@ -15,7 +15,16 @@ import { fmt } from "@/lib/format";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/play/poker")({
-  head: () => ({ meta: [{ title: "Video Poker — DICE" }, { name: "description", content: "Jacks or Better video poker on DICE — fully interactive, hold the cards you like and draw to win." }] }),
+  head: () => ({
+    meta: [
+      { title: "Video Poker — DICE" },
+      { name: "description", content: "Jacks or Better video poker on DICE — hold cards, draw for pairs, straights, flushes, and royal flushes." },
+      { property: "og:title", content: "Video Poker — DICE" },
+      { property: "og:description", content: "Jacks or Better video poker on DICE." },
+      { property: "og:url", content: "https://yungdice.com/play/poker" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/poker" }],
+  }),
   component: () => <AppShell><VP /></AppShell>,
 });
 
