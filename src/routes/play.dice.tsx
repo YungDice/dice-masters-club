@@ -19,7 +19,16 @@ import { Die3D } from "@/components/dice/casino/Die3D";
 import { CasinoFrame } from "@/components/dice/casino/CasinoFrame";
 
 export const Route = createFileRoute("/play/dice")({
-  head: () => ({ meta: [{ title: "Dice — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dice — DICE" },
+      { name: "description", content: "Roll two dice on DICE — solo vs house or live PvP. Bet DICE, roll, and settle instantly." },
+      { property: "og:title", content: "Dice — DICE" },
+      { property: "og:description", content: "Roll two dice, solo or PvP, on DICE." },
+      { property: "og:url", content: "https://yungdice.com/play/dice" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/play/dice" }],
+  }),
   component: () => <AppShell><DicePage /></AppShell>,
 });
 
