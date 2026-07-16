@@ -40,6 +40,7 @@ function Mkt() {
   const qc = useQueryClient();
   const { q: initialQ } = Route.useSearch();
   const [q, setQ] = useState(initialQ ?? "");
+  useEffect(() => { setQ(initialQ ?? ""); }, [initialQ]);
 
   const [sort, setSort] = useState<"newest" | "price">("newest");
   const [cat, setCat] = useState<"all" | "baddie" | "tag" | "username" | "item">("all");
