@@ -19,6 +19,9 @@ import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: typeof search.q === "string" ? search.q : "",
+  }),
   head: () => ({
     meta: [
       { title: "Marketplace — DICE" },
@@ -35,7 +38,9 @@ export const Route = createFileRoute("/marketplace/")({
 function Mkt() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [q, setQ] = useState("");
+  const { q: initialQ } = Route.useSearch();
+  const [q, setQ] = useState(initialQ ?? "");
+
   const [sort, setSort] = useState<"newest" | "price">("newest");
   const [cat, setCat] = useState<"all" | "baddie" | "tag" | "username" | "item">("all");
   const buy = useServerFn(buyListing);
