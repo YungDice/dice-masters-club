@@ -127,8 +127,8 @@ function Mkt() {
                     : l.category === "username"
                     ? <div className="text-3xl font-mono font-bold text-primary flex items-center"><AtSign className="size-6" />{l.username_value}</div>
                     : baddieImg
-                    ? <img src={baddieImg} alt={`${l.title ?? "Baddie"} artwork`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    : l.preview_url ? <img src={l.preview_url} alt={`${l.title ?? "Marketplace listing"} preview`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
+                    ? <img src={baddieImg} alt={`${l.baddie?.name ?? l.baddie?.template?.name ?? l.title ?? "Baddie"} — ${l.baddie?.template?.rarity ?? "cosmetic"} character listed for sale`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    : l.preview_url ? <img src={l.preview_url} alt={`${l.title ?? "Marketplace listing"} — ${l.category ?? "item"} for sale`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /> : <ShoppingBag className="size-12 text-muted-foreground" />}
                 </div>
               </Link>
               <div className="p-3 space-y-2">

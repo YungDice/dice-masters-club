@@ -168,6 +168,7 @@ export function TopNav() {
                 <DropdownMenu key={it.label}>
                   <DropdownMenuTrigger asChild>
                     <button
+                      aria-label={`${it.label} menu`}
                       className={`relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors outline-none ${
                         active ? "text-amber-100" : "text-muted-foreground hover:text-foreground"
                       }`}
@@ -220,7 +221,7 @@ export function TopNav() {
           <NotificationsPopover />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
+              <button aria-label="Open account menu" className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
                 <Avatar className="size-8 ring-1 ring-amber-400/40">
                   <AvatarImage src={profile?.avatar_url ?? undefined} />
                   <AvatarFallback>{initials}</AvatarFallback>
