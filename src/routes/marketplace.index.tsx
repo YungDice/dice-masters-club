@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Plus, ShoppingBag, Gavel, Hash, AtSign, Sparkles } from "lucide-react";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 import { useServerFn } from "@tanstack/react-start";
@@ -19,6 +19,9 @@ import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: typeof search.q === "string" ? search.q : "",
+  }),
   head: () => ({
     meta: [
       { title: "Marketplace — DICE" },
@@ -35,7 +38,10 @@ export const Route = createFileRoute("/marketplace/")({
 function Mkt() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [q, setQ] = useState("");
+  const { q: initialQ } = Route.useSearch();
+  const [q, setQ] = useState(initialQ ?? "");
+  useEffect(() => { setQ(initialQ ?? ""); }, [initialQ]);
+
   const [sort, setSort] = useState<"newest" | "price">("newest");
   const [cat, setCat] = useState<"all" | "baddie" | "tag" | "username" | "item">("all");
   const buy = useServerFn(buyListing);
