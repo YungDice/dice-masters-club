@@ -1,86 +1,87 @@
-# DICE Dominion — Build Plan
 
-A persistent online strategy mini-game living at `/play/dice-dominion`, integrated into the existing DICE app (TanStack Router + React Query + Supabase + Tailwind + AppShell). Original DICE-themed art direction (emerald / black / gold / glowing dice energy), no Roblox or Mini War references.
+# Dashboard Redesign — Premium Dark Gaming Shell
 
-Scope is large, so I'll ship it in **4 phases**. Each phase is playable and shippable on its own.
+Redesign the authenticated app shell + home dashboard using the reference layout: slim left icon rail, top bar with search & profile, hero banner, leaderboard side panel, and modern card sections. All routes, Supabase functionality, auth, and DICE content stay untouched — this is presentation only.
 
----
+## Scope
 
-## Phase 1 — Foundation (backend + district loop)
+- New app shell layout (`AppShell` in `src/components/dice/TopNav.tsx`) — replace top pill nav with slim left icon rail + slim top bar. Marketing landing page (`Landing`) untouched.
+- Home dashboard (`src/routes/index.tsx`) — restructured into: featured hero banner + leaderboard panel (2‑col), then challenges / games / marketplace / activity / online friends card grid.
+- Global tokens tightened in `src/styles.css` — near‑black surfaces, charcoal cards, red + gold accents, softer glows.
+- No changes to any other route file, server functions, DB, auth, or business logic. Every existing nav destination remains reachable from the new sidebar (grouped items become sections on the rail with hover flyouts + a mobile Sheet).
 
-Goal: a solo user can init a district, build, collect, and see resources tick correctly across refreshes.
+## New Layout
 
-**DB migration** (all with RLS + GRANTs + server-side timestamps):
-- `dominion_profiles` (hq_level, roll_credits, scrap, power, command_energy, command_energy_updated_at, xp, initialized_at)
-- `dominion_buildings` (profile_id, kind, level, slot_x, slot_y, last_collected_at)
-- `dominion_jobs` (profile_id, kind: build/train/research, ref_id, starts_at, ends_at, payload, client_action_id UNIQUE)
-- `dominion_units` (profile_id, kind, count)
-- `dominion_research` (profile_id, branch, node, level)
-- `dominion_daily_rewards` (profile_id, day, kind, granted_at, UNIQUE(profile_id, day, kind))
-- Config tables/constants baked into server code: building specs, unit specs, research specs.
-- RPC: `dominion_init`, `dominion_start_build`, `dominion_finish_job`, `dominion_collect`, `dominion_train`, `dominion_research_start`.
-- Uses existing `wallet_adjust_idem` (inspect first) for any DICE grants — daily cap enforced server-side.
+```text
+┌──┬──────────────────────────────────────────────────────────┐
+│  │  [search........]      DICE badge  chat  bell  avatar ▾ │
+│ L├──────────────────────────────────────────────────────────┤
+│ o│  ┌───────────────────────── HERO ─────────┐  ┌─LEADER─┐  │
+│ g│  │ Welcome / streak / claim daily / lvl   │  │ Top 5  │  │
+│ o│  └────────────────────────────────────────┘  │ players│  │
+│  │                                              └────────┘  │
+│ ⌂│  ┌ Featured Challenges (4 cards) ─────────────────────┐  │
+│ ♟│  └────────────────────────────────────────────────────┘  │
+│ ♦│  ┌ Quick Play (6 game tiles) ─────────────────────────┐  │
+│ ♣│  └────────────────────────────────────────────────────┘  │
+│ ♥│  ┌ Marketplace ──────┐ ┌ Recent Activity ──┐            │
+│ ★│  └───────────────────┘ └───────────────────┘            │
+│ ⚙│  ┌ Online Friends ────────────────────────────────────┐  │
+│  │  └────────────────────────────────────────────────────┘  │
+└──┴──────────────────────────────────────────────────────────┘
+```
 
-**Server functions** in `src/lib/dominion.functions.ts` (all `requireSupabaseAuth`, all take `client_action_id`):
-- `dominionGetState` — snapshot + accrued production computed server-side.
-- `dominionInit`, `dominionBuild`, `dominionUpgrade`, `dominionCollect`, `dominionFinishJob`.
+## App Shell (`TopNav.tsx`)
 
-**Route** `src/routes/play.dice-dominion.tsx` (under AppShell):
-- Left panel: profile, resource bar, Command Energy, production rates.
-- Center: 4x4 district grid (isometric-styled 2D via CSS) with build/upgrade actions.
-- Right tabs: Build, Units (stub), Research (stub), Territory (stub), Activity.
-- Empty state → Init district CTA. Loading skeletons. Toasts. Confirmations.
+Rewrite `AppShell` + `TopNav` into a two‑part shell while keeping the existing `nav` entries, wallet, chat popover, notifications popover, and account dropdown.
 
-**Play index card** in `src/routes/play.index.tsx`: new "DICE Dominion" card, Online Strategy, min bet 0.
+- **Sidebar (`hidden md:flex`, `w-16` fixed left):**
+  - Top: `DiceLogo`.
+  - Icon buttons for every current leaf; each `Group` becomes a single icon with a Radix `HoverCard` / `DropdownMenu` flyout listing its children (Missions, Market, Baddies, DikDok, Social, Ranks). Admin icon at bottom if `isStaff`.
+  - Active state = red/gold glow + left accent bar. Tooltip on hover with label.
+  - Subtle border-right `rgba(201,168,76,0.15)`, `bg-background/70 backdrop-blur-xl`.
+- **Top bar (`h-14`, sticky):**
+  - Left: mobile menu button (`md:hidden`) opening the existing Sheet, plus current page title on mobile.
+  - Center: search input (visual only for now — routes to `/marketplace?q=` on submit, uses existing query infra; no new server code).
+  - Right: DICE balance badge, `ChatPopover`, `NotificationsPopover`, avatar dropdown (unchanged menu items).
+- **Content area:** `ml-16` on desktop, `max-w-none px-6 py-6` inside a `min-h-screen` flex row.
+- **Mobile:** sidebar hidden, existing Sheet menu (already scroll‑fixed) remains; top bar keeps search + avatar.
 
-Deliverable: initialize district, place & upgrade Salvage Yard / Power Core / Dice Forge / Vault, collect resources, values survive refresh.
+No new dependencies. Reuses `DropdownMenu`, `Sheet`, `Avatar`, `motion`, existing icons.
 
----
+## Home Dashboard (`routes/index.tsx`)
 
-## Phase 2 — Units, Research, Combat vs neutral sectors
+Keep every existing query (`daily`, `featured`, `friendIds`, `feed`, `recentGames`, `notif`, `leaderPreview`, `featuredListings`, `dailyClaimed`, wallet, profile) and the `onClaim` handler. Only the JSX layout changes:
 
-- Training queue (Scout Roller, Shield Guard, Crusher Tank, Sky Drone) — unit limit from Command Center + Tactics research.
-- Research tree: Industry / Tactics / Logistics with permanent multipliers stored on `dominion_research`.
-- Neutral sector attack flow (single-player at this stage):
-  - `dominion_sectors` seeded with 16 sectors (neutral, dice_vault, fortified, event).
-  - `dominion_battles` (attacker_id, sector_id, units_sent jsonb, result, seed, rewards, client_action_id UNIQUE).
-  - RPC `dominion_attack` — validates units, debits Command Energy, deterministic RNG server-side, records battle, grants rewards, returns per-unit survivor counts for animation.
-- Battle result modal with Framer Motion; survivors return to inventory.
+1. **Hero banner (col‑span‑2):** larger, cinematic — gradient + radial glow, keeps greeting, balance, streak, level progress, "Claim daily" CTA, "Go to lobby" link. Add a decorative floating dice/coin motif via CSS (no new asset).
+2. **Leaderboard panel (col‑span‑1):** uses `leaderPreview` data — rank number, avatar, name, level, XP; gold trim; link to `/leaderboard`.
+3. **Featured Challenges:** existing 4‑card grid, restyled as charcoal cards with red accent on hover.
+4. **Quick Play:** existing 6 tiles, restyled with gold border + red glow hover.
+5. **Marketplace preview:** existing `featuredListings` — 4 cards.
+6. **Recent Activity:** merge `feed` (friend activity) + `recentGames` into a single tabbed card, or two stacked cards on `lg:grid-cols-2`.
+7. **Online Friends:** new lightweight section using `friendIds` + existing `profiles` query (add a small query for online status from `profiles.last_seen_at` if the column exists — otherwise show first N friends as "recently active"). Falls back gracefully when no friends.
 
----
+Responsive: single column on mobile, `lg:grid-cols-3` for hero+leaderboard row, `md:grid-cols-2` / `lg:grid-cols-4` for card grids.
 
-## Phase 3 — Global world map, crews, realtime
+## Design Tokens (`src/styles.css`)
 
-- `dominion_sector_claims` (sector_id, owner_profile_id nullable, owner_crew_id nullable via existing `crews`, strength, protected_until).
-- Territory tab: 16–20 sector map, ownership badges, crew emblem + name on crew-held sectors.
-- Attack contested crew sectors; capture updates claims; contributes to Crew War Score (weekly view, aggregated via existing crew tables + a `dominion_crew_weekly` roll-up).
-- Supabase Realtime on `dominion_sector_claims` and a lightweight `dominion_activity` feed — publish added in migration.
-- Sector bonuses applied to production/training/rewards server-side.
+Small tuning only, no breaking changes:
 
----
+- `--background`: near‑black `oklch(0.11 0.008 20)`.
+- `--card`: charcoal `oklch(0.16 0.012 20 / 0.85)`.
+- Body background: darker radial gradients, less purple.
+- Add `@utility glow-gold` (soft gold ring) and `@utility card-hover` (translateY + red‑glow border on hover) for reuse.
+- Keep `--primary` (casino red) and `--gold` as accent tokens; components use these semantic tokens only — no hardcoded colors.
 
-## Phase 4 — Rewards, polish, admin
+## Explicitly Out of Scope
 
-- Daily Dominion missions (3 rotating) + first-capture-of-day + weekly crew placement → DICE via `wallet_adjust_idem`, capped per user per day, idempotent via `client_action_id`.
-- Admin tab additions in `src/routes/admin.tsx`: recent battles, suspicious reward claims (>cap attempts), sector map overview.
-- Mobile polish: sticky resource bar, bottom sheet for Build/Units/Research/Map, tap-friendly targets, no hover-only affordances.
-- Motion polish: resource collect burst, job-complete pulse, sector capture flash, battle result timeline.
+- No changes to `Landing` (signed‑out home).
+- No changes to any `/routes/*` file other than `index.tsx`.
+- No changes to server functions, Supabase schema, RLS, auth, wallet, or DICE mechanics.
+- No new npm packages, no new assets/images.
+- Reference image is inspiration only — no branding, copy, characters, or artwork from it is copied.
 
----
+## Verification
 
-## Technical notes
-
-- **No client-trusted state**: all resource math, timers, battle outcomes, and wallet grants happen in RPC/server-fn. Client sends `client_action_id` (uuid) on every mutating call; unique index blocks dupes.
-- **Production accrual**: `now() - last_collected_at`, capped at 8h, per building × level rate × research/sector multipliers. Computed in the `dominion_collect` RPC inside a transaction with `SELECT … FOR UPDATE`.
-- **Command Energy**: regen via `now() - command_energy_updated_at` × rate, capped by Command Center level.
-- **Timers short**: build 15–60s, train 20–90s, tuned per level.
-- **RLS**: user reads/writes only own `dominion_*` rows; world map (`dominion_sectors`, `dominion_sector_claims`) publicly readable, writes via RPC only; admin via `has_role`.
-- **Wallet integration**: I'll `code--view` the existing `wallet_adjust_idem` signature before wiring — no invented args.
-- **Realtime**: `ALTER PUBLICATION supabase_realtime ADD TABLE dominion_sector_claims, dominion_activity;` subscribers in `useEffect` with cleanup.
-- **routeTree.gen.ts**: never hand-edit; the plugin regenerates.
-
----
-
-## Approval
-
-This is 4 sizable phases. On approval I'll start **Phase 1** in this turn (migration + server fns + route + play card). Say "go" to start Phase 1, or tell me to reshape scope/phasing first.
+- `tsgo` typecheck clean.
+- Manual: desktop shows sidebar + top bar; mobile hides sidebar and shows Sheet menu; all existing nav links resolve; daily claim, chat, notifications, avatar menu still work; hero + leaderboard render for a logged‑in user; empty states render when queries return nothing.
