@@ -230,26 +230,50 @@ function Dashboard() {
   const pct = Math.min(100, Math.max(0, ((xp - prevXp) / Math.max(1, nextXp - prevXp)) * 100));
 
   return (
-    <div className="space-y-5">
-      {/* Hero: greeting + level progress + daily reward */}
-      <div
-        className="relative overflow-hidden rounded-2xl p-5 md:p-6"
-        style={{
-          background: "radial-gradient(ellipse at top right, rgba(201,168,76,0.18), transparent 60%), linear-gradient(135deg, #0b0f17 0%, #0a1410 100%)",
-          border: "1px solid rgba(201,168,76,0.25)",
-        }}
-      >
-        <div className="pointer-events-none absolute inset-0 opacity-10 mix-blend-overlay"
-          style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0)", backgroundSize: "8px 8px" }} />
-        <div className="relative grid gap-5 md:grid-cols-[1fr_auto] items-center">
-          <div className="min-w-0">
-            <div className="text-xs uppercase tracking-widest text-amber-200/60">Welcome back</div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold truncate">
-              Your DICE Dashboard — {profile?.display_name ?? "Player"}
+    <div className="space-y-6">
+      {/* Hero + Leaderboard row */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="lg:col-span-2 relative overflow-hidden rounded-2xl p-6 md:p-8 min-h-[280px]"
+          style={{
+            background:
+              "radial-gradient(ellipse at 90% 20%, rgba(232,93,58,0.28), transparent 55%), radial-gradient(ellipse at 10% 80%, rgba(201,168,76,0.18), transparent 55%), linear-gradient(135deg, #0a0a12 0%, #14060a 100%)",
+            border: "1px solid rgba(201,168,76,0.22)",
+          }}
+        >
+          <div className="pointer-events-none absolute inset-0 opacity-[0.07] mix-blend-overlay"
+            style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)", backgroundSize: "10px 10px" }} />
+          {/* floating dice motif */}
+          <motion.div
+            aria-hidden
+            initial={{ rotate: -8, y: 0 }}
+            animate={{ rotate: [-8, 6, -8], y: [0, -8, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-none absolute -right-6 -bottom-6 md:right-6 md:bottom-6 opacity-70"
+          >
+            <div className="grid size-40 md:size-52 place-items-center rounded-3xl glow-red"
+              style={{ background: "linear-gradient(135deg, oklch(0.62 0.22 22), oklch(0.32 0.15 22))" }}>
+              <Dices className="size-24 md:size-32 text-amber-100/90" />
+            </div>
+          </motion.div>
+
+          <div className="relative max-w-[62%] md:max-w-[58%]">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/5 px-2.5 py-1 text-[10px] uppercase tracking-widest text-amber-200/80 ring-1 ring-amber-400/25">
+              <Sparkles className="size-3" /> Featured
+            </div>
+            <h1 className="mt-3 font-display text-3xl md:text-4xl font-bold leading-tight">
+              Welcome back, <span className="text-gradient-red">{profile?.display_name ?? "Player"}</span>
             </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-4">
+            <p className="mt-2 text-sm text-muted-foreground max-w-md">
+              Your DICE dashboard — claim daily rewards, jump into games with friends, and climb the ranks.
+            </p>
+
+            <div className="mt-5 flex flex-wrap items-center gap-5">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs text-muted-foreground">Balance</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">Balance</span>
                 <span className="font-display text-2xl font-bold text-amber-100">{fmt(wallet?.balance ?? 0)}</span>
                 <span className="text-xs text-amber-200/60">DICE</span>
               </div>
@@ -259,41 +283,86 @@ function Dashboard() {
                 <span className="text-muted-foreground">day streak</span>
               </div>
             </div>
-            <div className="mt-4">
+
+            <div className="mt-4 max-w-md">
               <div className="flex justify-between text-xs mb-1">
                 <span className="text-amber-200/80">Level {lvl}</span>
                 <span className="text-muted-foreground">{fmt(xp)} / {fmt(nextXp)} XP</span>
               </div>
               <Progress value={pct} />
-              <div className="text-[10px] text-muted-foreground mt-1">+25 XP every minute on DICE · +500 DICE per level</div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              {dailyClaimed.data ? (
+                <div className="text-xs text-emerald-400 font-medium inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-3 py-1.5 ring-1 ring-emerald-400/30">
+                  <Flame className="size-4" /> Daily claimed
+                </div>
+              ) : (
+                <Button onClick={onClaim} disabled={claiming} className="glow-red">
+                  <Flame className="size-4 mr-1" /> Claim daily reward
+                </Button>
+              )}
+              <Link to="/play">
+                <Button variant="outline" className="border-amber-400/40 text-amber-100 hover:bg-amber-400/10">
+                  <Gamepad2 className="size-4 mr-1.5" /> Play now
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="flex md:flex-col gap-2 md:items-end">
-            {dailyClaimed.data ? (
-              <div className="text-xs text-emerald-400 font-medium inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-3 py-1.5 ring-1 ring-emerald-400/30">
-                <Flame className="size-4" /> Daily claimed
-              </div>
-            ) : (
-              <Button onClick={onClaim} disabled={claiming} className="glow-red">
-                <Flame className="size-4 mr-1" /> Claim daily reward
-              </Button>
-            )}
-            <Link to="/play" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-              Go to game lobby <ArrowRight className="size-3" />
-            </Link>
-          </div>
-        </div>
+        </motion.div>
+
+        {/* Leaderboard side panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05 }}
+        >
+          <Card className="glass p-5 h-full" style={{ border: "1px solid rgba(201,168,76,0.22)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+                <Trophy className="size-4 text-amber-400" /> Top Players
+              </h2>
+              <Link to="/leaderboard" className="text-xs text-muted-foreground hover:text-foreground">View all</Link>
+            </div>
+            <ul className="space-y-2.5">
+              {(leaderPreview.data ?? []).map((p, i) => {
+                const medal = i === 0 ? "text-amber-300 bg-amber-400/15 ring-amber-400/40"
+                  : i === 1 ? "text-slate-200 bg-slate-300/10 ring-slate-300/30"
+                  : i === 2 ? "text-orange-300 bg-orange-500/10 ring-orange-400/30"
+                  : "text-muted-foreground bg-white/5 ring-white/10";
+                return (
+                  <li key={p.id} className="flex items-center gap-3 rounded-lg p-2 hover:bg-white/[0.04] transition">
+                    <div className={`grid size-7 place-items-center rounded-md text-xs font-bold ring-1 ${medal}`}>
+                      {i + 1}
+                    </div>
+                    <Avatar className="size-8 ring-1 ring-white/10">
+                      <AvatarImage src={p.avatar_url ?? undefined} />
+                      <AvatarFallback>{p.display_name?.[0] ?? "?"}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">{p.display_name}</div>
+                      <div className="text-[10px] text-muted-foreground">Lvl {p.level} · {fmt(p.xp)} XP</div>
+                    </div>
+                  </li>
+                );
+              })}
+              {(leaderPreview.data ?? []).length === 0 && (
+                <li className="text-muted-foreground text-xs">Leaderboard warming up…</li>
+              )}
+            </ul>
+          </Card>
+        </motion.div>
       </div>
 
-      {/* Bento row 1: Daily challenge (wide) + Notifications */}
+      {/* Today's challenge + Notifications */}
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="glass p-5 lg:col-span-2">
+        <Card className="glass p-5 lg:col-span-2 hover:border-amber-400/30 transition">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Today's challenge</h2>
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Sparkles className="size-4 text-primary" /> Today's Challenge</h2>
             <Link to="/challenges" className="text-xs text-muted-foreground hover:text-foreground">View all <ArrowRight className="inline size-3" /></Link>
           </div>
           {daily.data ? (
-            <Link to="/challenges/$id" params={{ id: daily.data.id }} className="block rounded-lg border border-border/60 p-4 hover:border-amber-400/40 transition">
+            <Link to="/challenges/$id" params={{ id: daily.data.id }} className="block rounded-lg border border-border/60 p-4 hover:border-amber-400/50 hover:bg-white/[0.02] transition">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-lg font-semibold truncate">{daily.data.title}</div>
@@ -309,7 +378,7 @@ function Dashboard() {
         <Card className="glass p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Bell className="size-4 text-primary" /> Recent</h2>
-            <Link to="/notifications" className="text-xs text-muted-foreground hover:text-foreground">All <ArrowRight className="inline size-3" /></Link>
+            <Link to="/notifications" className="text-xs text-muted-foreground hover:text-foreground">All</Link>
           </div>
           <ul className="space-y-2 text-sm">
             {(notif.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No new notifications.</li>}
@@ -327,7 +396,7 @@ function Dashboard() {
       {/* Quick play tiles */}
       <Card className="glass p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Quick play</h2>
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Quick Play</h2>
           <Link to="/play" className="text-xs text-muted-foreground hover:text-foreground">Lobby <ArrowRight className="inline size-3" /></Link>
         </div>
         <div className="grid gap-3 grid-cols-3 sm:grid-cols-6">
@@ -335,20 +404,25 @@ function Dashboard() {
             { to: "/play/dice", t: "Dice" }, { to: "/play/coinflip", t: "Coin Flip" }, { to: "/play/blackjack", t: "Blackjack" },
             { to: "/play/slots", t: "Slots" }, { to: "/play/roulette", t: "Roulette" }, { to: "/play/poker", t: "Poker" },
           ].map((g) => (
-            <Link key={g.to} to={g.to as any} className="group rounded-lg p-3 text-center transition"
-              style={{ background: "rgba(11,77,58,0.35)", border: "1px solid rgba(201,168,76,0.3)" }}
+            <Link key={g.to} to={g.to as any}
+              className="group rounded-xl p-3 text-center transition hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(180deg, rgba(232,93,58,0.10), rgba(11,10,20,0.6))",
+                border: "1px solid rgba(201,168,76,0.28)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+              }}
             >
-              <Dices className="mx-auto size-6 text-amber-300 mb-1 group-hover:scale-110 transition" />
+              <Dices className="mx-auto size-6 text-amber-300 mb-1 group-hover:scale-110 group-hover:text-amber-100 transition" />
               <div className="text-xs font-semibold text-amber-50">{g.t}</div>
             </Link>
           ))}
         </div>
       </Card>
 
-      {/* Bento row 2: Featured challenges */}
+      {/* Featured challenges */}
       <Card className="glass p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Trophy className="size-4 text-primary" /> Featured challenges</h2>
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Trophy className="size-4 text-primary" /> Featured Challenges</h2>
           <Link to="/challenges" className="text-xs text-muted-foreground hover:text-foreground">Browse all <ArrowRight className="inline size-3" /></Link>
         </div>
         {(featured.data ?? []).length === 0 ? (
@@ -356,7 +430,8 @@ function Dashboard() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {(featured.data ?? []).map((c) => (
-              <Link key={c.id} to="/challenges/$id" params={{ id: c.id }} className="rounded-lg border border-border/60 p-3 hover:border-amber-400/40 transition">
+              <Link key={c.id} to="/challenges/$id" params={{ id: c.id }}
+                className="rounded-xl border border-border/60 p-3 hover:border-amber-400/50 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-15px_rgba(232,93,58,0.5)] transition">
                 <div className="text-sm font-semibold line-clamp-1">{c.title}</div>
                 <div className="text-xs text-muted-foreground line-clamp-2 mt-1">{c.description}</div>
                 <div className="mt-2 flex items-center justify-between">
@@ -369,13 +444,38 @@ function Dashboard() {
         )}
       </Card>
 
-      {/* Bento row 3: Recent games + leaderboard preview + marketplace picks */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      {/* Marketplace + Recent Results */}
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Recent results</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><ShoppingBag className="size-4 text-primary" /> Marketplace</h2>
+            <Link to="/marketplace" className="text-xs text-muted-foreground hover:text-foreground">Browse <ArrowRight className="inline size-3" /></Link>
+          </div>
+          {(featuredListings.data ?? []).length === 0 ? (
+            <p className="text-xs text-muted-foreground">Nothing live yet.</p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(featuredListings.data ?? []).map((l) => (
+                <Link key={l.id} to="/marketplace/$id" params={{ id: l.id }}
+                  className="rounded-lg border border-border/60 p-2.5 hover:border-amber-400/50 hover:bg-white/[0.02] transition">
+                  <div className="text-sm font-medium line-clamp-1">{l.title}</div>
+                  <div className="flex justify-between items-center mt-1.5">
+                    <span className="text-[10px] uppercase text-muted-foreground">{l.category}</span>
+                    <DiceBadge size="sm" amount={l.price} />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card className="glass p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Gamepad2 className="size-4 text-primary" /> Recent Results</h2>
+          </div>
           <ul className="space-y-1.5 text-sm">
             {(recentGames.data ?? []).length === 0 && <li className="text-muted-foreground text-xs">No games yet — try your first one.</li>}
-            {(recentGames.data ?? []).map((r: any) => (
+            {(recentGames.data ?? []).slice(0, 6).map((r: any) => (
               <li key={r.id} className="rounded-md bg-white/5 px-3 py-1.5">
                 <div className="flex items-center justify-between">
                   <span className="capitalize text-xs font-medium">{r.kind} · <span className="opacity-80">{r.outcome}</span></span>
@@ -389,40 +489,14 @@ function Dashboard() {
             ))}
           </ul>
         </Card>
-        <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Trophy className="size-4 text-amber-400" /> Top players</h2>
-          <ul className="space-y-2">
-            {(leaderPreview.data ?? []).map((p, i) => (
-              <li key={p.id} className="flex items-center gap-3">
-                <div className={`w-6 text-right text-sm font-bold ${i === 0 ? "text-gold" : "text-muted-foreground"}`}>#{i + 1}</div>
-                <Avatar className="size-7"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name?.[0] ?? "?"}</AvatarFallback></Avatar>
-                <div className="flex-1 text-sm truncate">{p.display_name}</div>
-                <div className="text-xs text-muted-foreground">Lvl {p.level}</div>
-              </li>
-            ))}
-          </ul>
-          <Link to="/leaderboard" className="mt-3 inline-flex text-xs text-muted-foreground hover:text-foreground">View leaderboard <ArrowRight className="inline size-3" /></Link>
-        </Card>
-        <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="size-4 text-primary" /> Marketplace</h2>
-          {(featuredListings.data ?? []).length === 0 ? (
-            <p className="text-xs text-muted-foreground">Nothing live yet.</p>
-          ) : (
-            <ul className="space-y-2">
-              {(featuredListings.data ?? []).map((l) => (
-                <Link key={l.id} to="/marketplace/$id" params={{ id: l.id }} className="block rounded-md border border-border/60 p-2 hover:border-amber-400/40">
-                  <div className="text-sm font-medium line-clamp-1">{l.title}</div>
-                  <div className="flex justify-between items-center mt-1"><span className="text-[10px] uppercase text-muted-foreground">{l.category}</span><DiceBadge size="sm" amount={l.price} /></div>
-                </Link>
-              ))}
-            </ul>
-          )}
-        </Card>
       </div>
 
       {/* Friend activity */}
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Users className="size-4 text-primary" /> Friend activity</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Users className="size-4 text-primary" /> Friend Activity</h2>
+          <Link to="/friends" className="text-xs text-muted-foreground hover:text-foreground">Friends <ArrowRight className="inline size-3" /></Link>
+        </div>
         <ul className="space-y-2 text-sm">
           {friendIds.isLoading && <li className="text-muted-foreground text-xs">Loading…</li>}
           {!friendIds.isLoading && (friendIds.data?.length ?? 0) === 0 && <li className="text-muted-foreground text-xs">Add friends to see their activity here.</li>}
@@ -450,4 +524,5 @@ function Dashboard() {
     </div>
   );
 }
+
 
