@@ -115,6 +115,7 @@ function Mkt() {
         </div>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="newest">Newest</option><option value="price">Price ↑</option></select>
       </Card>
+      <h2 className="font-display text-xl font-bold">Current Listings</h2>
       {filtered.length === 0
         ? <EmptyState icon={ShoppingBag} title="No listings yet" description="Be the first to list something for DICE." />
         : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{filtered.map((l: any, i: number) => {

@@ -26,7 +26,16 @@ import { upgradeBaddies } from "@/lib/dice.functions";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 
 export const Route = createFileRoute("/upgrader")({
-  head: () => ({ meta: [{ title: "Baddie Upgrader — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Baddie Upgrader — DICE" },
+      { name: "description", content: "Fuse duplicate Baddies into higher rarities in the DICE Upgrader. Pick materials, spin the upgrade wheel, and chase Legendary, Unreal, and Elias pulls." },
+      { property: "og:title", content: "Baddie Upgrader — DICE" },
+      { property: "og:description", content: "Combine duplicate Baddies and gamble on the upgrade wheel for higher rarities on DICE." },
+      { property: "og:url", content: "https://yungdice.com/upgrader" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/upgrader" }],
+  }),
   component: () => <AppShell><Page /></AppShell>,
 });
 

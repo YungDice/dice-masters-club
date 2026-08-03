@@ -14,7 +14,16 @@ import { toast } from "sonner";
 import { createCrew } from "@/lib/crew.functions";
 
 export const Route = createFileRoute("/crews/new")({
-  head: () => ({ meta: [{ title: "Found a Crew — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Found a Crew — DICE" },
+      { name: "description", content: "Found your own DICE crew: pick a name and tag, set the minimum level, choose open or invite-only, and start climbing the crew leaderboard." },
+      { property: "og:title", content: "Found a Crew — DICE" },
+      { property: "og:description", content: "Create a DICE crew, recruit members, and compete on the crew leaderboard." },
+      { property: "og:url", content: "https://yungdice.com/crews/new" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/crews/new" }],
+  }),
   component: () => <AppShell><NewCrewPage /></AppShell>,
 });
 

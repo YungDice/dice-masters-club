@@ -14,7 +14,16 @@ import { createChallengePaid } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/challenges/new")({
-  head: () => ({ meta: [{ title: "Create challenge — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "Create challenge — DICE" },
+      { name: "description", content: "Post a new DICE challenge: set the rules, proof type, difficulty, and DICE plus XP rewards for players who complete it." },
+      { property: "og:title", content: "Create challenge — DICE" },
+      { property: "og:description", content: "Set rules, proof type, and DICE rewards for a new community challenge." },
+      { property: "og:url", content: "https://yungdice.com/challenges/new" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/challenges/new" }],
+  }),
   component: () => <AppShell><Create /></AppShell>,
 });
 

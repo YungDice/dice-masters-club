@@ -96,6 +96,7 @@ function PlayHub() {
           ))}
         </div>
       </div>
+      <h2 className="font-display text-xl font-bold">Available Games</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((g) => <GameTile key={g.to} g={g} />)}
       </div>
