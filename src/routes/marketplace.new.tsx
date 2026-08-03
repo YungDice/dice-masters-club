@@ -18,7 +18,16 @@ import { useQuery } from "@tanstack/react-query";
 import eliasAsset from "@/assets/baddies/elias.png.asset.json";
 
 export const Route = createFileRoute("/marketplace/new")({
-  head: () => ({ meta: [{ title: "List item — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "List item — DICE" },
+      { name: "description", content: "List an item, tag, username, or Baddie for sale on the DICE marketplace. Set your price in DICE coins and upload previews." },
+      { property: "og:title", content: "List item — DICE" },
+      { property: "og:description", content: "Sell items, tags, usernames, and Baddies for DICE coins on the marketplace." },
+      { property: "og:url", content: "https://yungdice.com/marketplace/new" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/marketplace/new" }],
+  }),
   component: () => <AppShell><CreateListing /></AppShell>,
 });
 
