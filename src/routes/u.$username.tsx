@@ -165,7 +165,7 @@ function UProfile() {
       <Card className="glass overflow-hidden">
         {p.banner_url && vipActive && (
           <div className="h-32 md:h-48 w-full bg-black/40">
-            <img src={p.banner_url} alt="banner" className="w-full h-full object-cover" />
+            <img src={p.banner_url} alt={`${dn}'s profile banner`} className="w-full h-full object-cover" />
           </div>
         )}
         <div className="p-6">
