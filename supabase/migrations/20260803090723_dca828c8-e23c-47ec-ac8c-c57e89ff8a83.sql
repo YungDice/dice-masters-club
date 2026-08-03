@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.current_season() FROM authenticated, anon, PUBLIC;
