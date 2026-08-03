@@ -63,6 +63,7 @@ function Browse() {
           </SelectContent>
         </Select>
       </Card>
+      <h2 className="font-display text-xl font-bold">Browse Challenges</h2>
       {isLoading ? <div className="grid gap-3 md:grid-cols-3">{Array.from({length:6}).map((_,i) => <Card key={i} className="glass p-5 h-40 animate-pulse" />)}</div>
         : filtered.length === 0 ? <EmptyState icon={Trophy} title="No challenges yet" description="Try changing filters or create a new challenge." />
         : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{filtered.map((c, i) => (
