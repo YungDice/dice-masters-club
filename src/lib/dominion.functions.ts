@@ -246,24 +246,32 @@ export const dominionCollect = createServerFn({ method: "POST" })
     const b = (buildings ?? []) as BuildingRow[];
     const gains = projectResourceGain(b);
     const { cap } = cappedResources(profile as ProfileRow, b);
-    const nowIso = new Date().toISOString();
 
-    const newScrap = Math.min(cap, profile.scrap + gains.scrap);
-    const newPower = Math.min(cap, profile.power + gains.power);
-    const newRC = Math.min(cap, profile.roll_credits + gains.roll_credits);
-
-    await admin.from("dominion_profiles").update({
-      scrap: newScrap, power: newPower, roll_credits: newRC,
-    }).eq("user_id", uid);
-
-    // Reset all producing buildings' last_collected_at
+    // Atomic: the SQL function claims the producing buildings' collection window
+    // (guarded by their exact last_collected_at) before crediting resources, so
+    // concurrent collect requests cannot credit the same window twice.
     const producing = b.filter((x) => BUILDINGS[x.kind].produces);
-    if (producing.length) {
-      await admin.from("dominion_buildings").update({ last_collected_at: nowIso })
-        .in("id", producing.map((x) => x.id));
+    const { data: res, error } = await admin.rpc("dominion_collect_tx", {
+      _user: uid,
+      _building_ids: producing.map((x) => x.id),
+      _expected_stamps: producing.map((x) => x.last_collected_at),
+      _scrap: gains.scrap,
+      _power: gains.power,
+      _rc: gains.roll_credits,
+      _cap: cap,
+    } as any);
+    if (error) throw new Error(error.message);
+
+    const out = res as unknown as { claimed: boolean; scrap: number; power: number; roll_credits: number };
+    if (!out?.claimed) {
+      return {
+        ok: true,
+        gained: { scrap: 0, power: 0, roll_credits: 0 },
+        totals: { scrap: out?.scrap ?? profile.scrap, power: out?.power ?? profile.power, roll_credits: out?.roll_credits ?? profile.roll_credits },
+      };
     }
 
-    return { ok: true, gained: gains, totals: { scrap: newScrap, power: newPower, roll_credits: newRC } };
+    return { ok: true, gained: gains, totals: { scrap: out.scrap, power: out.power, roll_credits: out.roll_credits } };
   });
 
 // ============================================================

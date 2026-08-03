@@ -789,7 +789,11 @@ export const toggleGalleryLike = createServerFn({ method: "POST" })
       return { liked: false };
     }
     await supabaseAdmin.from("gallery_likes").insert({ item_id: data.itemId, user_id: context.userId });
-    if (item.user_id !== context.userId) {
+    // Reward is paid at most once per (user, item) for all time — unlike/relike cycles cannot farm DICE.
+    const { data: firstTime } = await supabaseAdmin.rpc("claim_gallery_like_reward", {
+      _user: context.userId, _item: data.itemId,
+    } as any);
+    if (firstTime === true && item.user_id !== context.userId) {
       // Creator gets +10
       await supabaseAdmin.rpc("wallet_adjust", {
         _user: item.user_id, _delta: 10, _type: "event",

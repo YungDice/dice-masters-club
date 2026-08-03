@@ -1495,6 +1495,32 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_like_rewards: {
+        Row: {
+          created_at: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_like_rewards_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gallery_likes: {
         Row: {
           created_at: string
@@ -2777,6 +2803,10 @@ export type Database = {
       cancel_trade_tx: { Args: { _trade_id: string }; Returns: Json }
       change_username: { Args: { _new_username: string }; Returns: Json }
       claim_daily_tx: { Args: { _uid: string }; Returns: Json }
+      claim_gallery_like_reward: {
+        Args: { _item: string; _user: string }
+        Returns: boolean
+      }
       claim_season_reward_tx: {
         Args: { _tier: number; _track: string }
         Returns: Json
@@ -2861,6 +2891,18 @@ export type Database = {
         Returns: boolean
       }
       delete_tag_tx: { Args: { _tag: string }; Returns: Json }
+      dominion_collect_tx: {
+        Args: {
+          _building_ids: string[]
+          _cap: number
+          _expected_stamps: string[]
+          _power: number
+          _rc: number
+          _scrap: number
+          _user: string
+        }
+        Returns: Json
+      }
       dominion_debit_energy: {
         Args: {
           _cap: number
