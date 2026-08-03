@@ -12,7 +12,16 @@ import { toggleGalleryLike } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dikdok")({
-  head: () => ({ meta: [{ title: "DikDok — DICE" }] }),
+  head: () => ({
+    meta: [
+      { title: "DikDok — DICE" },
+      { name: "description", content: "Scroll DikDok, the DICE short-video feed: watch community clips, like posts, and earn DICE coins for engaging with creators." },
+      { property: "og:title", content: "DikDok — DICE" },
+      { property: "og:description", content: "The DICE short-video feed — watch, like, and earn DICE coins." },
+      { property: "og:url", content: "https://yungdice.com/dikdok" },
+    ],
+    links: [{ rel: "canonical", href: "https://yungdice.com/dikdok" }],
+  }),
   component: () => <AppShell><DikDok /></AppShell>,
 });
 
