@@ -32,10 +32,10 @@ function cid() { return `${Date.now().toString(36)}-${Math.random().toString(36)
 function ResourceBar({ label, icon: Icon, value, cap, color }: { label: string; icon: any; value: number; cap?: number; color: string }) {
   const pct = cap ? Math.min(100, (value / cap) * 100) : 100;
   return (
-    <div className="rounded-xl border border-amber-400/20 bg-black/30 p-3">
-      <div className="flex items-center justify-between text-xs text-amber-100/70">
+    <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5"><Icon className="size-3.5" />{label}</span>
-        {cap ? <span>{fmt(value)}<span className="text-amber-100/40"> / {fmt(cap)}</span></span> : <span>{fmt(value)}</span>}
+        {cap ? <span>{fmt(value)}<span className="text-muted-foreground"> / {fmt(cap)}</span></span> : <span>{fmt(value)}</span>}
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
         <div className="h-full transition-all" style={{ width: `${pct}%`, background: color }} />
@@ -49,7 +49,7 @@ function CountdownPill({ endsAt }: { endsAt: string }) {
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(i); }, []);
   const remaining = Math.max(0, new Date(endsAt).getTime() - now);
   const s = Math.ceil(remaining / 1000);
-  return <span className="text-xs tabular-nums text-amber-200">{s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`}</span>;
+  return <span className="text-xs tabular-nums text-foreground">{s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`}</span>;
 }
 
 function Dominion() {
@@ -144,23 +144,23 @@ function Dominion() {
   const [attackTarget, setAttackTarget] = useState<any>(null);
 
   if (q.isLoading) {
-    return <div className="grid place-items-center py-20 text-amber-100/60"><RefreshCw className="size-5 animate-spin" /></div>;
+    return <div className="grid place-items-center py-20 text-muted-foreground"><RefreshCw className="size-5 animate-spin" /></div>;
   }
   if (!q.data?.initialized) {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
-        <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-amber-500/20 via-fuchsia-500/10 to-emerald-500/10 p-8 text-center">
-          <div className="absolute -right-16 -top-16 size-64 rounded-full bg-amber-400/20 blur-3xl" />
-          <div className="absolute -left-16 -bottom-16 size-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-emerald-500/10 p-8 text-center">
+          <div className="absolute -right-16 -top-16 size-64 rounded-full bg-white/5 blur-3xl" />
+          <div className="absolute -left-16 -bottom-16 size-64 rounded-full bg-white/5 blur-3xl" />
           <div className="relative">
-            <div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-orange-500 text-black text-4xl shadow-lg shadow-amber-500/30">
+            <div className="mx-auto mb-3 grid size-20 place-items-center rounded-full bg-gradient-to-br from-white/10 to-white/5 text-black text-4xl shadow-lg shadow-black/20">
               🏰
             </div>
-            <h2 className="font-display text-4xl font-black text-amber-100">DICE Dominion</h2>
-            <p className="mt-2 text-amber-100/80 max-w-md mx-auto">
+            <h2 className="font-display text-4xl font-black text-foreground">DICE Dominion</h2>
+            <p className="mt-2 text-muted-foreground max-w-md mx-auto">
               Build your own tiny city, train a crew, and conquer the map to stack up loot!
             </p>
-            <Button onClick={() => init.mutate()} disabled={init.isPending} size="lg" className="mt-6 bg-amber-400 text-black hover:bg-amber-300 font-bold text-base">
+            <Button onClick={() => init.mutate()} disabled={init.isPending} size="lg" className="mt-6 bg-primary text-black hover:bg-primary font-bold text-base">
               {init.isPending ? "Deploying…" : "🚀 Start My District"}
             </Button>
           </div>
@@ -184,36 +184,36 @@ function Dominion() {
     <div className="grid gap-4 lg:grid-cols-[280px_1fr_320px]">
       {/* LEFT — profile & resources */}
       <aside className="space-y-3">
-        <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-emerald-950/80 to-black/60 p-4">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-emerald-950/80 to-black/60 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-widest text-amber-200/60">HQ level</div>
-              <div className="font-display text-3xl font-bold text-amber-100">{profile.hq_level}</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">HQ level</div>
+              <div className="font-display text-3xl font-medium text-foreground">{profile.hq_level}</div>
             </div>
-            <div className="grid size-12 place-items-center rounded-xl bg-amber-400/10 ring-1 ring-amber-400/30">
-              <Building2 className="size-6 text-amber-300" />
+            <div className="grid size-12 place-items-center rounded-xl bg-white/5 ring-1 ring-white/10">
+              <Building2 className="size-6 text-foreground" />
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-amber-100/60">
+          <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Cpu className="size-3.5" />Command Energy
           </div>
           <div className="mt-1 flex items-baseline gap-1">
-            <span className="font-display text-xl font-bold text-amber-100">{derived.commandEnergy}</span>
-            <span className="text-xs text-amber-100/50">/ {derived.commandEnergyCap}</span>
+            <span className="font-display text-xl font-medium text-foreground">{derived.commandEnergy}</span>
+            <span className="text-xs text-muted-foreground">/ {derived.commandEnergyCap}</span>
           </div>
         </div>
         <ResourceBar label="Scrap"        icon={Hammer} value={profile.scrap}        cap={derived.capacity} color="#c9a84c" />
         <ResourceBar label="Power"        icon={Zap}    value={profile.power}        cap={derived.capacity} color="#3ee0a1" />
         <ResourceBar label="Roll Credits" icon={Coins}  value={profile.roll_credits} cap={derived.capacity} color="#f5d071" />
 
-        <div className="rounded-xl border border-amber-400/20 bg-black/40 p-3">
+        <div className="rounded-xl border border-white/10 bg-black/40 p-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-amber-100/70">Pending production</span>
-            <Button size="sm" onClick={() => collect.mutate()} disabled={collect.isPending} className="h-7 bg-amber-400 text-black hover:bg-amber-300">
+            <span className="text-muted-foreground">Pending production</span>
+            <Button size="sm" onClick={() => collect.mutate()} disabled={collect.isPending} className="h-7 bg-primary text-black hover:bg-primary">
               Collect
             </Button>
           </div>
-          <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[11px] text-amber-100/80">
+          <div className="mt-2 grid grid-cols-3 gap-1 text-center text-[11px] text-muted-foreground">
             <div><Hammer className="mx-auto size-3.5" />+{fmt(derived.pendingGains.scrap)}</div>
             <div><Zap className="mx-auto size-3.5" />+{fmt(derived.pendingGains.power)}</div>
             <div><Coins className="mx-auto size-3.5" />+{fmt(derived.pendingGains.roll_credits)}</div>
@@ -222,10 +222,10 @@ function Dominion() {
       </aside>
 
       {/* CENTER — district grid */}
-      <section className="rounded-2xl border border-amber-400/30 bg-[radial-gradient(ellipse_at_center,_#083a2c_0%,_#04211a_65%,_#02120e_100%)] p-4">
+      <section className="rounded-2xl border border-white/10 bg-[radial-gradient(ellipse_at_center,_#083a2c_0%,_#04211a_65%,_#02120e_100%)] p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-amber-100">District</h2>
-          <span className="text-xs text-amber-100/60">Tap an empty tile to build · tap a building to upgrade</span>
+          <h2 className="font-display text-lg font-medium text-foreground">District</h2>
+          <span className="text-xs text-muted-foreground">Tap an empty tile to build · tap a building to upgrade</span>
         </div>
         <div className="mx-auto grid aspect-square max-w-[520px] gap-2" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
           {grid.flatMap((row, y) =>
@@ -238,18 +238,18 @@ function Dominion() {
                   onClick={() => cell ? setSelected(cell.id) : setPlacing({ x, y })}
                   className={`group relative aspect-square rounded-xl border transition-all ${
                     cell
-                      ? "border-amber-400/40 bg-gradient-to-br from-emerald-800/40 to-black/40 hover:border-amber-400/70"
-                      : "border-dashed border-amber-400/15 bg-black/20 hover:border-amber-400/40 hover:bg-amber-400/5"
+                      ? "border-white/10 bg-gradient-to-br from-emerald-800/40 to-black/40 hover:border-white/10"
+                      : "border-dashed border-white/10 bg-black/20 hover:border-white/10 hover:bg-white/5"
                   }`}
                 >
-                  <Icon className={`absolute inset-0 m-auto size-8 ${cell ? "text-amber-200" : "text-amber-400/30 group-hover:text-amber-300/70"}`} />
+                  <Icon className={`absolute inset-0 m-auto size-8 ${cell ? "text-foreground" : "text-muted-foreground group-hover:text-muted-foreground"}`} />
                   {cell && (
-                    <div className="absolute left-1 top-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-amber-200 ring-1 ring-amber-400/40">
+                    <div className="absolute left-1 top-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-foreground ring-1 ring-white/10">
                       L{cell.level}
                     </div>
                   )}
                   {job && (
-                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-center gap-1 rounded-md bg-black/70 py-0.5 text-[10px] text-amber-200 ring-1 ring-amber-400/30">
+                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-center gap-1 rounded-md bg-black/70 py-0.5 text-[10px] text-foreground ring-1 ring-white/10">
                       <Timer className="size-3" /><CountdownPill endsAt={job.ends_at} />
                     </div>
                   )}
@@ -263,7 +263,7 @@ function Dominion() {
       {/* RIGHT — tabs */}
       <aside>
         <Tabs defaultValue="build">
-          <TabsList className="w-full bg-black/30 ring-1 ring-amber-400/20">
+          <TabsList className="w-full bg-black/30 ring-1 ring-white/10">
             <TabsTrigger value="build" className="flex-1 gap-1"><Hammer className="size-3.5" />Build</TabsTrigger>
             <TabsTrigger value="units" className="flex-1 gap-1"><Swords className="size-3.5" />Units</TabsTrigger>
             <TabsTrigger value="research" className="flex-1 gap-1"><FlaskConical className="size-3.5" />R&amp;D</TabsTrigger>
@@ -275,18 +275,18 @@ function Dominion() {
               const s = BUILDINGS[k];
               const Icon = BUILDING_ICON[k];
               return (
-                <div key={k} className="rounded-xl border border-amber-400/15 bg-black/30 p-3">
+                <div key={k} className="rounded-xl border border-white/10 bg-black/30 p-3">
                   <div className="flex items-start gap-3">
-                    <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-amber-400/10 text-amber-300 ring-1 ring-amber-400/30">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-white/5 text-foreground ring-1 ring-white/10">
                       <Icon className="size-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-semibold text-amber-100">{s.label}</div>
-                        <div className="text-[10px] text-amber-100/50">{s.buildSeconds(1)}s</div>
+                        <div className="font-semibold text-foreground">{s.label}</div>
+                        <div className="text-[10px] text-muted-foreground">{s.buildSeconds(1)}s</div>
                       </div>
-                      <p className="text-xs text-amber-100/60">{s.desc}</p>
-                      <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-amber-100/80">
+                      <p className="text-xs text-muted-foreground">{s.desc}</p>
+                      <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
                         {Object.entries(s.cost(1)).map(([res, v]) => (
                           <span key={res} className="rounded bg-white/5 px-1.5 py-0.5">{res}: {v}</span>
                         ))}
@@ -296,7 +296,7 @@ function Dominion() {
                 </div>
               );
             })}
-            <p className="pt-2 text-center text-xs text-amber-100/50">Click an empty grid tile to place.</p>
+            <p className="pt-2 text-center text-xs text-muted-foreground">Click an empty grid tile to place.</p>
           </TabsContent>
 
           <TabsContent value="units">
@@ -328,11 +328,11 @@ function Dominion() {
                   key={k}
                   disabled={!afford || build.isPending}
                   onClick={() => placing && build.mutate({ kind: k, slot_x: placing.x, slot_y: placing.y })}
-                  className="flex flex-col items-center rounded-xl border border-amber-400/20 bg-black/40 p-3 text-center transition hover:border-amber-400/60 disabled:opacity-40"
+                  className="flex flex-col items-center rounded-xl border border-white/10 bg-black/40 p-3 text-center transition hover:border-white/10 disabled:opacity-40"
                 >
-                  <Icon className="mb-1 size-6 text-amber-300" />
-                  <div className="text-sm font-semibold text-amber-100">{s.label}</div>
-                  <div className="mt-1 text-[10px] text-amber-100/60">
+                  <Icon className="mb-1 size-6 text-foreground" />
+                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
+                  <div className="mt-1 text-[10px] text-muted-foreground">
                     {Object.entries(cost).map(([r, v]) => `${v} ${r[0]}`).join(" · ")}
                   </div>
                 </button>
@@ -382,12 +382,12 @@ function TipBanner() {
   const [open, setOpen] = useState(true);
   if (!open) return null;
   return (
-    <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-r from-amber-500/15 via-fuchsia-500/10 to-emerald-500/10 p-3 flex items-start gap-3">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-white/10 via-white/5 to-emerald-500/10 p-3 flex items-start gap-3">
       <div className="text-2xl shrink-0">💡</div>
-      <div className="flex-1 text-sm text-amber-100/90">
-        <b className="text-amber-100">How to play:</b> Tap empty tiles to <b>build</b> · come back to <b>collect</b> resources · train units in <b>Units</b> · attack sectors on the <b>Map</b> to grab loot & DICE 🎲
+      <div className="flex-1 text-sm text-foreground">
+        <b className="text-foreground">How to play:</b> Tap empty tiles to <b>build</b> · come back to <b>collect</b> resources · train units in <b>Units</b> · attack sectors on the <b>Map</b> to grab loot & DICE 🎲
       </div>
-      <button onClick={() => setOpen(false)} className="text-amber-100/50 hover:text-amber-100 text-lg leading-none px-1">×</button>
+      <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground text-lg leading-none px-1">×</button>
     </div>
   );
 }
@@ -402,29 +402,29 @@ function UpgradePanel({ building, profile, onUpgrade, pending, isJobActive }: an
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="flex items-center gap-2"><Icon className="size-5 text-amber-300" />{spec.label} <span className="text-amber-300">L{building.level}</span></DialogTitle>
+        <DialogTitle className="flex items-center gap-2"><Icon className="size-5 text-foreground" />{spec.label} <span className="text-foreground">L{building.level}</span></DialogTitle>
         <DialogDescription>{spec.desc}</DialogDescription>
       </DialogHeader>
       {spec.produces && (
-        <div className="rounded-lg bg-black/40 p-3 text-xs text-amber-100/70">
+        <div className="rounded-lg bg-black/40 p-3 text-xs text-muted-foreground">
           Current output / hour: {Object.entries(spec.produces(building.level)).map(([k, v]) => `${k}: ${v}`).join(" · ")}
         </div>
       )}
       {atMax ? (
-        <div className="rounded-lg border border-amber-400/30 bg-amber-400/5 p-3 text-center text-sm text-amber-200">Max level reached</div>
+        <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center text-sm text-foreground">Max level reached</div>
       ) : (
         <div className="space-y-2">
-          <div className="text-xs uppercase tracking-widest text-amber-200/60">Upgrade to L{nextLevel}</div>
-          <div className="flex flex-wrap gap-2 text-sm text-amber-100/80">
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">Upgrade to L{nextLevel}</div>
+          <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
             {Object.entries(cost).map(([r, v]) => (
               <span key={r} className="rounded bg-white/5 px-2 py-1 ring-1 ring-white/10">{v} {r}</span>
             ))}
           </div>
-          <div className="text-xs text-amber-100/60">Time: {spec.buildSeconds(nextLevel)}s</div>
+          <div className="text-xs text-muted-foreground">Time: {spec.buildSeconds(nextLevel)}s</div>
         </div>
       )}
       <DialogFooter>
-        <Button onClick={onUpgrade} disabled={atMax || !afford || pending || isJobActive} className="bg-amber-400 text-black hover:bg-amber-300">
+        <Button onClick={onUpgrade} disabled={atMax || !afford || pending || isJobActive} className="bg-primary text-black hover:bg-primary">
           <ChevronUp className="mr-1 size-4" />{isJobActive ? "In progress…" : atMax ? "Max" : `Upgrade`}
         </Button>
       </DialogFooter>
@@ -446,22 +446,22 @@ function UnitsPanel({ units, onTrain, pending }: { units: any[]; onTrain: (k: Un
         const own = counts[k] ?? 0;
         const n = qty[k] ?? 1;
         return (
-          <div key={k} className="rounded-xl border border-amber-400/15 bg-black/30 p-3">
+          <div key={k} className="rounded-xl border border-white/10 bg-black/30 p-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 text-amber-100">
-                  <Swords className="size-4 text-amber-300" />
+                <div className="flex items-center gap-2 text-foreground">
+                  <Swords className="size-4 text-foreground" />
                   <span className="font-semibold">{u.label}</span>
-                  <span className="text-xs text-amber-100/60">×{own}</span>
+                  <span className="text-xs text-muted-foreground">×{own}</span>
                 </div>
-                <p className="text-[11px] text-amber-100/60">{u.desc}</p>
-                <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-amber-100/70">
+                <p className="text-[11px] text-muted-foreground">{u.desc}</p>
+                <div className="mt-1 flex flex-wrap gap-1 text-[10px] text-muted-foreground">
                   <span className="rounded bg-white/5 px-1.5 py-0.5">ATK {u.attack}</span>
                   <span className="rounded bg-white/5 px-1.5 py-0.5">DEF {u.defense}</span>
                   <span className="rounded bg-white/5 px-1.5 py-0.5">Cap {u.capacity}</span>
                   <span className="rounded bg-white/5 px-1.5 py-0.5">{u.trainSeconds}s each</span>
                 </div>
-                <div className="mt-1 text-[10px] text-amber-100/60">
+                <div className="mt-1 text-[10px] text-muted-foreground">
                   {Object.entries(u.cost).map(([r, v]) => `${v} ${r}`).join(" · ")}
                 </div>
               </div>
@@ -470,9 +470,9 @@ function UnitsPanel({ units, onTrain, pending }: { units: any[]; onTrain: (k: Un
               <input
                 type="number" min={1} max={20} value={n}
                 onChange={(e) => setQty({ ...qty, [k]: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })}
-                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-amber-100 ring-1 ring-amber-400/20"
+                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-foreground ring-1 ring-white/10"
               />
-              <Button size="sm" disabled={pending} onClick={() => onTrain(k, n)} className="h-8 flex-1 bg-amber-400 text-black hover:bg-amber-300">
+              <Button size="sm" disabled={pending} onClick={() => onTrain(k, n)} className="h-8 flex-1 bg-primary text-black hover:bg-primary">
                 Train ×{n}
               </Button>
             </div>
@@ -495,14 +495,14 @@ function ResearchPanel({ research, onResearch, pending, jobs }: { research: any[
   return (
     <div className="space-y-3">
       {activeResearch && (
-        <div className="flex items-center justify-between rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-xs text-amber-200">
+        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-foreground">
           <span className="flex items-center gap-1"><Timer className="size-3" />Research in progress</span>
           <CountdownPill endsAt={activeResearch.ends_at} />
         </div>
       )}
       {(Object.entries(groups) as [string, ResearchNodeId[]][]).map(([branch, nodes]) => (
         <div key={branch}>
-          <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-300/80">{branch}</div>
+          <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">{branch}</div>
           <div className="space-y-1.5">
             {nodes.map((n) => {
               const spec = RESEARCH[n];
@@ -510,16 +510,16 @@ function ResearchPanel({ research, onResearch, pending, jobs }: { research: any[
               const atMax = lv >= spec.maxLevel;
               const nxt = lv + 1;
               return (
-                <div key={n} className="rounded-lg border border-amber-400/15 bg-black/30 p-2">
+                <div key={n} className="rounded-lg border border-white/10 bg-black/30 p-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-amber-100">{spec.label}</span>
-                    <span className="text-xs text-amber-200/70">L{lv}{atMax ? " · MAX" : ""}</span>
+                    <span className="font-medium text-foreground">{spec.label}</span>
+                    <span className="text-xs text-muted-foreground">L{lv}{atMax ? " · MAX" : ""}</span>
                   </div>
-                  <p className="text-[11px] text-amber-100/60">{spec.desc}</p>
+                  <p className="text-[11px] text-muted-foreground">{spec.desc}</p>
                   {!atMax && (
                     <div className="mt-1 flex items-center justify-between">
-                      <span className="text-[10px] text-amber-100/60">{spec.cost(nxt)} RC · {spec.seconds(nxt)}s</span>
-                      <Button size="sm" disabled={pending || !!activeResearch} onClick={() => onResearch(n)} className="h-6 bg-amber-400 text-black hover:bg-amber-300">→ L{nxt}</Button>
+                      <span className="text-[10px] text-muted-foreground">{spec.cost(nxt)} RC · {spec.seconds(nxt)}s</span>
+                      <Button size="sm" disabled={pending || !!activeResearch} onClick={() => onResearch(n)} className="h-6 bg-primary text-black hover:bg-primary">→ L{nxt}</Button>
                     </div>
                   )}
                 </div>
@@ -536,16 +536,16 @@ function ResearchPanel({ research, onResearch, pending, jobs }: { research: any[
 // Territory panel
 // ============================================================
 const SECTOR_TONE: Record<string, string> = {
-  neutral: "border-amber-400/30 bg-emerald-900/40",
-  dice_vault: "border-amber-300 bg-amber-500/20",
+  neutral: "border-white/10 bg-emerald-900/40",
+  dice_vault: "border-white/10 bg-white/5",
   fortified: "border-red-400/60 bg-red-950/40",
-  event: "border-fuchsia-400/60 bg-fuchsia-900/30",
+  event: "border-white/10 bg-white/5",
 };
 
 function TerritoryPanel({ sectors, battles, onAttack, energy }: { sectors: any[]; battles: any[]; onAttack: (s: any) => void; energy: number }) {
   return (
     <div className="space-y-3">
-      <div className="text-[11px] text-amber-100/70">Command Energy: <span className="font-semibold text-amber-200">{energy}</span></div>
+      <div className="text-[11px] text-muted-foreground">Command Energy: <span className="font-semibold text-foreground">{energy}</span></div>
       <div className="grid grid-cols-4 gap-1.5">
         {sectors.map((s) => (
           <button
@@ -553,23 +553,23 @@ function TerritoryPanel({ sectors, battles, onAttack, energy }: { sectors: any[]
             onClick={() => onAttack(s)}
             className={`aspect-square rounded-lg border p-1 text-left transition hover:scale-[1.03] ${SECTOR_TONE[s.kind] ?? "border-white/10"}`}
           >
-            <div className="text-[9px] font-bold uppercase tracking-wide text-amber-200">{s.kind === "dice_vault" ? "Vault" : s.kind}</div>
-            <div className="mt-0.5 truncate text-[10px] text-amber-50/90">{s.name}</div>
-            <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-100/70"><Swords className="size-2.5" />{s.strength}</div>
+            <div className="text-[9px] font-bold uppercase tracking-wide text-foreground">{s.kind === "dice_vault" ? "Vault" : s.kind}</div>
+            <div className="mt-0.5 truncate text-[10px] text-foreground">{s.name}</div>
+            <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground"><Swords className="size-2.5" />{s.strength}</div>
           </button>
         ))}
       </div>
       <div>
-        <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-300/70">Recent battles</div>
+        <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Recent battles</div>
         {battles.length === 0 ? (
-          <div className="rounded-lg border border-white/5 bg-black/30 p-3 text-center text-xs text-amber-100/50">No battles yet.</div>
+          <div className="rounded-lg border border-white/5 bg-black/30 p-3 text-center text-xs text-muted-foreground">No battles yet.</div>
         ) : (
           <ul className="space-y-1">
             {battles.slice(0, 5).map((b: any) => (
-              <li key={b.id} className="flex items-center justify-between rounded-md bg-black/30 px-2 py-1 text-[11px] text-amber-100/80">
+              <li key={b.id} className="flex items-center justify-between rounded-md bg-black/30 px-2 py-1 text-[11px] text-muted-foreground">
                 <span>#{b.sector_id}</span>
                 <span className={b.outcome === "victory" ? "text-emerald-300" : "text-red-300"}>{b.outcome}</span>
-                <span className="text-amber-100/50">{b.attack_power} vs {b.defense_power}</span>
+                <span className="text-muted-foreground">{b.attack_power} vs {b.defense_power}</span>
               </li>
             ))}
           </ul>
@@ -591,7 +591,7 @@ function AttackPanel({ sector, units, onLaunch, pending }: { sector: any; units:
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="flex items-center gap-2"><Swords className="size-4 text-amber-300" />{sector.name}</DialogTitle>
+        <DialogTitle className="flex items-center gap-2"><Swords className="size-4 text-foreground" />{sector.name}</DialogTitle>
         <DialogDescription>Type: {sector.kind} · Strength {sector.strength}</DialogDescription>
       </DialogHeader>
       <div className="space-y-2">
@@ -601,23 +601,23 @@ function AttackPanel({ sector, units, onLaunch, pending }: { sector: any; units:
           return (
             <div key={k} className="flex items-center gap-2 rounded-lg bg-black/30 p-2">
               <div className="flex-1">
-                <div className="text-sm text-amber-100">{UNITS[k].label}</div>
-                <div className="text-[10px] text-amber-100/60">Own {own} · ATK {UNITS[k].attack}</div>
+                <div className="text-sm text-foreground">{UNITS[k].label}</div>
+                <div className="text-[10px] text-muted-foreground">Own {own} · ATK {UNITS[k].attack}</div>
               </div>
               <input
                 type="number" min={0} max={own} value={chosen}
                 onChange={(e) => setSel({ ...sel, [k]: Math.max(0, Math.min(own, Number(e.target.value) || 0)) })}
-                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-amber-100 ring-1 ring-amber-400/20"
+                className="w-16 rounded bg-black/40 px-2 py-1 text-sm text-foreground ring-1 ring-white/10"
               />
             </div>
           );
         })}
       </div>
-      <div className="rounded-lg border border-amber-400/20 bg-black/40 p-2 text-xs text-amber-100/80">
+      <div className="rounded-lg border border-white/10 bg-black/40 p-2 text-xs text-muted-foreground">
         Force sent: {total} · Attack power: {power} · Reward on win: {sector.reward_scrap} scrap / {sector.reward_power} pwr / {sector.reward_roll_credits} RC
       </div>
       <DialogFooter>
-        <Button disabled={total === 0 || pending} onClick={() => onLaunch(sel)} className="bg-amber-400 text-black hover:bg-amber-300">
+        <Button disabled={total === 0 || pending} onClick={() => onLaunch(sel)} className="bg-primary text-black hover:bg-primary">
           <Swords className="mr-1 size-4" />Launch attack
         </Button>
       </DialogFooter>
@@ -640,26 +640,26 @@ function BattleResultPanel({ result, onClose }: { result: any; onClose: () => vo
       </DialogHeader>
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="space-y-2">
         <div>
-          <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-200/60">Survivors returned</div>
+          <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Survivors returned</div>
           <div className="flex flex-wrap gap-1 text-xs">
             {Object.entries(result.survivors).map(([k, v]: any) => (
-              <span key={k} className="rounded bg-white/5 px-2 py-1 text-amber-100">{UNITS[k as UnitKind].label}: {v}</span>
+              <span key={k} className="rounded bg-white/5 px-2 py-1 text-foreground">{UNITS[k as UnitKind].label}: {v}</span>
             ))}
           </div>
         </div>
         {win && (
           <div>
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-amber-200/60">Rewards</div>
-            <div className="flex flex-wrap gap-1 text-xs text-amber-100">
-              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.scrap)} Scrap</span>
-              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.power)} Power</span>
-              <span className="rounded bg-amber-400/10 px-2 py-1 ring-1 ring-amber-400/30">+{fmt(result.rewards.roll_credits)} RC</span>
+            <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">Rewards</div>
+            <div className="flex flex-wrap gap-1 text-xs text-foreground">
+              <span className="rounded bg-white/5 px-2 py-1 ring-1 ring-white/10">+{fmt(result.rewards.scrap)} Scrap</span>
+              <span className="rounded bg-white/5 px-2 py-1 ring-1 ring-white/10">+{fmt(result.rewards.power)} Power</span>
+              <span className="rounded bg-white/5 px-2 py-1 ring-1 ring-white/10">+{fmt(result.rewards.roll_credits)} RC</span>
             </div>
           </div>
         )}
       </motion.div>
       <DialogFooter>
-        <Button onClick={onClose} className="bg-amber-400 text-black hover:bg-amber-300">Continue</Button>
+        <Button onClick={onClose} className="bg-primary text-black hover:bg-primary">Continue</Button>
       </DialogFooter>
     </>
   );
@@ -673,27 +673,27 @@ function HowItWorks() {
     { emoji: "🎲", title: "4. Level up", text: "Upgrade your HQ and unlock Research to unlock stronger buildings, faster training and better payouts." },
   ];
   return (
-    <div className="rounded-3xl border border-amber-400/20 bg-black/40 p-6">
+    <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="grid size-8 place-items-center rounded-full bg-amber-400/20 ring-1 ring-amber-400/30">💡</div>
-        <h3 className="font-display text-xl font-bold text-amber-100">How it works</h3>
+        <div className="grid size-8 place-items-center rounded-full bg-white/5 ring-1 ring-white/10">💡</div>
+        <h3 className="font-display text-xl font-medium text-foreground">How it works</h3>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {steps.map((s) => (
-          <div key={s.title} className="rounded-2xl border border-amber-400/15 bg-gradient-to-br from-white/[0.04] to-transparent p-4">
+          <div key={s.title} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-transparent p-4">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl">{s.emoji}</span>
-              <div className="font-display font-bold text-amber-100">{s.title}</div>
+              <div className="font-display font-medium text-foreground">{s.title}</div>
             </div>
-            <p className="text-sm text-amber-100/70 leading-snug">{s.text}</p>
+            <p className="text-sm text-muted-foreground leading-snug">{s.text}</p>
           </div>
         ))}
       </div>
-      <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100/90 flex gap-3">
+      <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-foreground flex gap-3">
         <div className="text-2xl">🎁</div>
         <div>
-          <div className="font-semibold text-amber-100">Earn free DICE from your district</div>
-          <p className="text-amber-100/70 text-xs mt-0.5">Conquering sectors, finishing daily objectives and leveling up your HQ pay out DICE straight to your wallet. The bigger your district, the bigger the rewards!</p>
+          <div className="font-semibold text-foreground">Earn free DICE from your district</div>
+          <p className="text-muted-foreground text-xs mt-0.5">Conquering sectors, finishing daily objectives and leveling up your HQ pay out DICE straight to your wallet. The bigger your district, the bigger the rewards!</p>
         </div>
       </div>
     </div>

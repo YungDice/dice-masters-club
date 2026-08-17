@@ -170,7 +170,7 @@ function Detail() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-[10px] uppercase text-muted-foreground">{c.category} · {c.difficulty}</div>
-            <h1 className="mt-1 font-display text-3xl font-bold">{c.title}</h1>
+            <h1 className="mt-1 font-display text-3xl font-medium">{c.title}</h1>
             <p className="mt-2 text-muted-foreground max-w-2xl whitespace-pre-wrap">{c.description}</p>
             {c.rules && <div className="mt-3 text-sm"><span className="font-semibold">Rules:</span> {c.rules}</div>}
             <div className="mt-3 flex flex-wrap gap-2">{(c.tags ?? []).map((t: string) => <span key={t} className="text-[10px] rounded-full bg-white/5 px-2 py-0.5">#{t}</span>)}</div>
@@ -197,7 +197,7 @@ function Detail() {
       </Card>
 
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold mb-3">Approved submissions</h2>
+        <h2 className="font-display text-lg font-medium mb-3">Approved submissions</h2>
         {proofs.isLoading ? <div className="grid gap-3 md:grid-cols-3">{Array.from({length:3}).map((_,i) => <Skeleton key={i} className="h-40" />)}</div>
           : proofs.data?.length ? (
           <div className="grid gap-3 md:grid-cols-3">
@@ -216,7 +216,7 @@ function Detail() {
       </Card>
 
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><MessageSquare className="size-4" /> Comments</h2>
+        <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2"><MessageSquare className="size-4" /> Comments</h2>
         {user && (
           <div className="flex gap-2 mb-3">
             <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment..." className="min-h-10" maxLength={500} />

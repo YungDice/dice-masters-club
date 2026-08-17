@@ -59,7 +59,7 @@ function NewCrewPage() {
         subtitle="Rally friends, donate DICE, and climb the weekly crew leaderboard."
       />
       <Card className="p-6 space-y-5 max-w-xl mx-auto">
-        <div className="rounded-md border border-amber-400/30 bg-amber-400/5 p-3 text-xs text-amber-100/80">
+        <div className="rounded-md border border-white/10 bg-white/5 p-3 text-xs text-muted-foreground">
           Founding a crew costs <b>5,000 DICE</b> and requires <b>Level 5+</b>. As owner you can invite,
           promote officers, kick members, or disband.
         </div>

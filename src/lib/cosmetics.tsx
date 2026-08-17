@@ -16,10 +16,10 @@ export type Cosmetic = {
 export const RARITY_COLOR: Record<string, string> = {
   common:    "border-slate-400/40 bg-slate-400/10 text-slate-200",
   uncommon:  "border-emerald-400/40 bg-emerald-400/10 text-emerald-200",
-  rare:      "border-sky-400/40 bg-sky-400/10 text-sky-200",
-  epic:      "border-fuchsia-400/40 bg-fuchsia-400/10 text-fuchsia-200",
-  legendary: "border-amber-400/50 bg-amber-400/10 text-amber-200",
-  unreal:    "border-cyan-200/60 bg-cyan-200/10 text-cyan-100",
+  rare:      "border-white/10 bg-white/5 text-white",
+  epic:      "border-white/10 bg-white/5 text-white",
+  legendary: "border-white/10 bg-white/5 text-foreground",
+  unreal:    "border-white/10 bg-white/5 text-white",
 };
 
 export function useCatalog() {

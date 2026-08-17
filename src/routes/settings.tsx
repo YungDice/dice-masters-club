@@ -80,7 +80,7 @@ function Settings() {
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       <div>
-        <h1 className="font-display text-3xl font-bold">Settings</h1>
+        <h1 className="font-display text-3xl font-medium">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your profile, identity, currency, and account.</p>
       </div>
 
@@ -202,7 +202,7 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
       <Card className="glass p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Camera className="size-4 text-primary" />
-          <h2 className="font-display text-lg font-semibold">Profile picture</h2>
+          <h2 className="font-display text-lg font-medium">Profile picture</h2>
         </div>
         <div className="flex items-center gap-4">
           <Avatar className="size-20 ring-2 ring-primary/40">
@@ -245,7 +245,7 @@ function ProfileTab({ user, profile, refetch, qc }: any) {
       <LoadoutEditor user={user} profile={profile} refetch={refetch} />
 
       <Card className="glass p-6 space-y-4">
-        <h2 className="font-display text-lg font-semibold">About you</h2>
+        <h2 className="font-display text-lg font-medium">About you</h2>
         <div>
           <div className="flex justify-between">
             <Label>Display name</Label>
@@ -347,7 +347,7 @@ function UsernameCard({ profile, refetch }: any) {
 
   return (
     <Card className="glass p-6 space-y-3">
-      <h2 className="font-display text-lg font-semibold">Username</h2>
+      <h2 className="font-display text-lg font-medium">Username</h2>
       <p className="text-xs text-muted-foreground">
         Your @handle. Can be changed once every 90 days. 3–20 chars, letters/numbers/underscore.
       </p>
@@ -367,7 +367,7 @@ function UsernameCard({ profile, refetch }: any) {
         </Button>
       </div>
       {!canChange && nextChangeAt && (
-        <p className="text-xs text-amber-400">
+        <p className="text-xs text-foreground">
           You can change your username again on {nextChangeAt.toLocaleDateString()}.
         </p>
       )}
@@ -402,9 +402,9 @@ function VipLevelCards({ profile, wallet, refetch, qc }: any) {
 
   return (
     <>
-      <Card className="glass p-6 space-y-3 border-amber-400/40">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-          <Crown className="text-amber-400" /> VIP Status
+      <Card className="glass p-6 space-y-3 border-white/10">
+        <h2 className="font-display text-lg font-medium flex items-center gap-2">
+          <Crown className="text-foreground" /> VIP Status
         </h2>
         {vipActive ? (
           <p className="text-sm text-emerald-400">Active until {vipUntil!.toLocaleString()}</p>
@@ -420,7 +420,7 @@ function VipLevelCards({ profile, wallet, refetch, qc }: any) {
       </Card>
 
       <Card className="glass p-6 space-y-3">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+        <h2 className="font-display text-lg font-medium flex items-center gap-2">
           <Sparkles className="text-primary" /> Leveling
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -481,7 +481,7 @@ function AccountTab({ user, nav }: any) {
   return (
     <>
       <Card className="glass p-6 space-y-3">
-        <h2 className="font-display text-lg font-semibold">Responsible play</h2>
+        <h2 className="font-display text-lg font-medium">Responsible play</h2>
         <p className="text-sm text-muted-foreground">
           DICE is meant to be fun. Long sessions get a reminder to take a break. Need to stop for now? Sign out and come
           back tomorrow.
@@ -497,7 +497,7 @@ function AccountTab({ user, nav }: any) {
         </Button>
       </Card>
       <Card className="glass p-6 space-y-3 border-destructive/40">
-        <h2 className="font-display text-lg font-semibold text-destructive">Danger zone</h2>
+        <h2 className="font-display text-lg font-medium text-destructive">Danger zone</h2>
         <p className="text-sm text-muted-foreground">
           Delete your account. This anonymises your profile and signs you out. Your historical proofs and listings
           remain attributed to "deleted_user".
@@ -619,7 +619,7 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
 
   return (
     <Card className="glass p-6 space-y-3 border-primary/40">
-      <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+      <h2 className="font-display text-lg font-medium flex items-center gap-2">
         <Hash className="text-primary" /> Your tags ({owned.length}/3)
       </h2>
       <p className="text-xs text-muted-foreground">
@@ -658,7 +658,7 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
                       </Button>
                     )}
                     {listingId ? (
-                      <span className="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300">For sale</span>
+                      <span className="text-xs px-2 py-1 rounded bg-white/5 text-foreground">For sale</span>
                     ) : (
                       <Button
                         size="sm"
@@ -779,7 +779,7 @@ function TagCard({ profile, wallet, refetch, qc }: any) {
           </Button>
         </div>
       ) : (
-        <div className="pt-2 border-t border-white/10 text-xs text-amber-300/90">
+        <div className="pt-2 border-t border-white/10 text-xs text-foreground">
           All 3 tag slots are full. Delete or sell one to claim or buy another.
         </div>
       )}
@@ -826,11 +826,11 @@ function BannerCard({ user, profile, refetch, qc }: any) {
   }
 
   return (
-    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-amber-400/40" : ""}`}>
+    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-white/10" : ""}`}>
       <div className="flex items-center gap-2">
-        <Crown className="size-4 text-amber-400" />
-        <h2 className="font-display text-lg font-semibold">Profile banner</h2>
-        {!vipActive && <span className="text-xs text-amber-400/80 ml-auto">VIP only</span>}
+        <Crown className="size-4 text-foreground" />
+        <h2 className="font-display text-lg font-medium">Profile banner</h2>
+        {!vipActive && <span className="text-xs text-muted-foreground ml-auto">VIP only</span>}
       </div>
       {bannerUrl ? (
         <div className="rounded-md overflow-hidden border border-border/60">
@@ -922,11 +922,11 @@ function ProfileBgCard({ user, profile, refetch, qc }: any) {
   }
 
   return (
-    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-amber-400/40" : ""}`}>
+    <Card className={`glass p-6 space-y-3 ${vipActive ? "border-white/10" : ""}`}>
       <div className="flex items-center gap-2">
-        <Crown className="size-4 text-amber-400" />
-        <h2 className="font-display text-lg font-semibold">Profile background</h2>
-        {!vipActive && <span className="text-xs text-amber-400/80 ml-auto">VIP only</span>}
+        <Crown className="size-4 text-foreground" />
+        <h2 className="font-display text-lg font-medium">Profile background</h2>
+        {!vipActive && <span className="text-xs text-muted-foreground ml-auto">VIP only</span>}
       </div>
       {bgUrl ? (
         <div className="rounded-md overflow-hidden border border-border/60 relative">

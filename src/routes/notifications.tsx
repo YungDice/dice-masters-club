@@ -48,7 +48,7 @@ function Notif() {
   }
   return (
     <div className="space-y-4 max-w-3xl mx-auto">
-      <div className="flex justify-between items-center"><h1 className="font-display text-3xl font-bold">Notifications</h1><Button variant="outline" onClick={markAll}>Mark all read</Button></div>
+      <div className="flex justify-between items-center"><h1 className="font-display text-3xl font-medium">Notifications</h1><Button variant="outline" onClick={markAll}>Mark all read</Button></div>
       {(q.data ?? []).length === 0 ? <EmptyState icon={Bell} title="All clear" description="No notifications yet." />
         : <Card className="glass p-2"><ul>{(q.data ?? []).map((n) => (
             <li key={n.id} className={`rounded-md p-3 ${n.read ? "" : "bg-primary/5"}`}>

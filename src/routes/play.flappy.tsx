@@ -156,7 +156,7 @@ function FlappyGame() {
       ctx.fillStyle = "#04201a";
       ctx.fillRect(0, 0, W, H);
       // Felt grid
-      ctx.strokeStyle = "rgba(201,168,76,0.06)";
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
       for (let i = 0; i < W; i += 32) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
       // Ground
       ctx.fillStyle = "#0b4d3a";
@@ -220,12 +220,12 @@ function FlappyGame() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Bird className="text-amber-400" /> Flappy DICE</h1>
+          <h1 className="font-display text-3xl font-medium flex items-center gap-2"><Bird className="text-foreground" /> Flappy DICE</h1>
           <p className="text-sm text-muted-foreground">Tap, click, or press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">Space</kbd> to flap. Clear a gate, earn 50 DICE.</p>
         </div>
         <div className="flex gap-3 text-sm">
-          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Score</div><div className="font-bold text-amber-200">{score}</div></div>
-          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Best</div><div className="font-bold text-amber-200">{best}</div></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Score</div><div className="font-bold text-foreground">{score}</div></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Best</div><div className="font-bold text-foreground">{best}</div></div>
           <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">+DICE</div><div className="font-bold text-emerald-300">+{reward}</div></div>
         </div>
       </div>
@@ -238,7 +238,7 @@ function FlappyGame() {
             height={H}
             onMouseDown={flap}
             onTouchStart={(e) => { e.preventDefault(); flap(); }}
-            className="rounded-xl border border-amber-400/30 max-w-full h-auto cursor-pointer select-none"
+            className="rounded-xl border border-white/10 max-w-full h-auto cursor-pointer select-none"
             style={{ background: "#04201a", touchAction: "none" }}
           />
           {status !== "playing" && (
@@ -246,15 +246,15 @@ function FlappyGame() {
               <div className="text-center space-y-3 p-6">
                 {status === "idle" ? (
                   <>
-                    <Bird className="mx-auto size-12 text-amber-300" />
+                    <Bird className="mx-auto size-12 text-foreground" />
                     <h2 className="font-display text-2xl">Ready to flap?</h2>
                     <Button size="lg" onClick={startRun}><Play className="mr-1.5 size-4" /> Start run</Button>
                   </>
                 ) : (
                   <>
-                    <Trophy className="mx-auto size-12 text-amber-300" />
+                    <Trophy className="mx-auto size-12 text-foreground" />
                     <h2 className="font-display text-2xl">Run over</h2>
-                    <p className="text-sm">Score <span className="text-amber-200 font-bold">{score}</span> · Earned <span className="text-emerald-300 font-bold">+{reward}</span> DICE</p>
+                    <p className="text-sm">Score <span className="text-foreground font-bold">{score}</span> · Earned <span className="text-emerald-300 font-bold">+{reward}</span> DICE</p>
                     <Button size="lg" onClick={startRun}><RotateCw className="mr-1.5 size-4" /> Play again</Button>
                   </>
                 )}

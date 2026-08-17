@@ -36,11 +36,11 @@ export const Route = createFileRoute("/trades")({
 const RARITY_STYLE: Record<string, string> = {
   common: "border-zinc-400/30 text-zinc-200",
   uncommon: "border-emerald-400/40 text-emerald-200",
-  rare: "border-sky-400/40 text-sky-200",
-  epic: "border-fuchsia-400/40 text-fuchsia-200",
-  legendary: "border-amber-300/60 text-amber-200",
-  unreal: "border-cyan-300/60 text-cyan-100",
-  elias: "border-amber-200 text-amber-50",
+  rare: "border-white/10 text-white",
+  epic: "border-white/10 text-white",
+  legendary: "border-white/10 text-foreground",
+  unreal: "border-white/10 text-white",
+  elias: "border-white/10 text-foreground",
 };
 
 function TradesPage() {
@@ -218,9 +218,9 @@ function TradeCard({
   const myDice = iAmSender ? trade.from_dice : trade.to_dice;
   const theirDice = iAmSender ? trade.to_dice : trade.from_dice;
   const statusColor: Record<string, string> = {
-    pending: "text-amber-300",
+    pending: "text-foreground",
     completed: "text-emerald-300",
-    declined: "text-rose-300",
+    declined: "text-white",
     cancelled: "text-zinc-400",
     expired: "text-zinc-400",
   };
@@ -294,7 +294,7 @@ function TradeSide({
             );
           })}
           {dice > 0 && (
-            <div className="flex items-center gap-1 text-xs font-semibold text-amber-300">
+            <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
               <Coins className="size-3.5" /> {fmt(dice)} DICE
             </div>
           )}

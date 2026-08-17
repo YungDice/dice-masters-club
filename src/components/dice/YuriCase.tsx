@@ -20,9 +20,9 @@ import { motion, AnimatePresence } from "framer-motion";
 const RARITY_STYLE: Record<string, string> = {
   common:    "from-zinc-500/20 to-zinc-700/10 border-zinc-400/30 text-zinc-200",
   uncommon:  "from-emerald-500/20 to-emerald-700/10 border-emerald-400/40 text-emerald-200",
-  rare:      "from-sky-500/20 to-sky-700/10 border-sky-400/40 text-sky-200",
-  epic:      "from-fuchsia-500/20 to-fuchsia-700/10 border-fuchsia-400/40 text-fuchsia-200",
-  legendary: "from-amber-400/30 to-rose-500/10 border-amber-300/60 text-amber-200",
+  rare:      "from-white/5 to-white/5 border-white/10 text-white",
+  epic:      "from-white/5 to-white/5 border-white/10 text-white",
+  legendary: "from-white/10 to-white/5 border-white/10 text-foreground",
 };
 const CASE_COST = 1200;
 const DUO_CAP = 240000;
@@ -191,8 +191,8 @@ export function YuriCase() {
       <Card className="glass p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
           <div>
-            <h2 className="font-display text-xl font-bold flex items-center gap-2">
-              <Heart className="size-5 text-pink-300" />Yuri Case
+            <h2 className="font-display text-xl font-medium flex items-center gap-2">
+              <Heart className="size-5 text-white" />Yuri Case
             </h2>
             <p className="text-sm text-muted-foreground mt-1 max-w-lg">
               Roll for Yuri girls and pair them into duos. 8 case slots · 4 duos · a duo only earns DICE when both slots are filled — mixed rarities are allowed.
@@ -211,14 +211,14 @@ export function YuriCase() {
         {/* Autosell — VIP only */}
         <div className="mt-4 border-t border-border/40 pt-3">
           <div className="text-xs font-semibold flex items-center gap-2 mb-2">
-            <Crown className="size-3.5 text-amber-300" />
+            <Crown className="size-3.5 text-foreground" />
             Autosell by rarity {isVip ? <span className="text-emerald-300">(VIP)</span> : <span className="text-muted-foreground">— VIP only</span>}
           </div>
           <div className="flex flex-wrap gap-3 text-xs">
             {(["common","uncommon","rare","epic","legendary"] as const).map((rar) => {
               const on = autosellList.includes(rar);
               return (
-                <label key={rar} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 cursor-pointer transition ${on ? "border-pink-300/60 bg-pink-500/10" : "border-border/60 bg-white/5"} ${!isVip ? "opacity-50 pointer-events-none" : ""}`}>
+                <label key={rar} className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 cursor-pointer transition ${on ? "border-white/10 bg-white/5" : "border-border/60 bg-white/5"} ${!isVip ? "opacity-50 pointer-events-none" : ""}`}>
                   <Checkbox checked={on} onCheckedChange={(v) => toggleAutosell(rar, !!v)} disabled={!isVip} />
                   <span className="capitalize">{rar}</span>
                 </label>
@@ -235,7 +235,7 @@ export function YuriCase() {
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <Card className="glass p-5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display text-lg font-bold">You pulled {results.length} Yuri girl{results.length > 1 ? "s" : ""}</h3>
+                <h3 className="font-display text-lg font-medium">You pulled {results.length} Yuri girl{results.length > 1 ? "s" : ""}</h3>
                 <Button variant="ghost" size="sm" onClick={() => setResults(null)}>Close</Button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -250,7 +250,7 @@ export function YuriCase() {
                     <div className="aspect-square rounded-md overflow-hidden mb-2 bg-black/30 grid place-items-center ring-1 ring-white/10">
                       {r.template?.image_url
                         ? <img src={r.template.image_url} alt={r.template.name} className="w-full h-full object-cover" />
-                        : <Heart className="size-8 text-pink-300/80" />}
+                        : <Heart className="size-8 text-fog" />}
                     </div>
                     <div className="font-semibold truncate">{r.template?.name}</div>
                     <div className="text-[11px] capitalize opacity-80">{r.template?.rarity} · {r.template?.income_per_hour}/h</div>
@@ -264,7 +264,7 @@ export function YuriCase() {
 
       {/* Case slots — 4 duo pairs */}
       <Card className="glass p-5">
-        <h3 className="font-display font-semibold mb-3 flex items-center gap-2"><Users2 className="size-4" />Duos</h3>
+        <h3 className="font-display font-medium mb-3 flex items-center gap-2"><Users2 className="size-4" />Duos</h3>
         <div className="grid gap-3 md:grid-cols-2">
           {[1, 2, 3, 4].map((g) => {
             const s1 = g * 2 - 1; const s2 = g * 2;
@@ -278,7 +278,7 @@ export function YuriCase() {
               : 0;
             const pending = complete ? Math.min(Math.floor((combined * secs) / 3600), DUO_CAP) : 0;
             return (
-              <div key={g} className={`rounded-xl border p-3 ${complete ? "border-pink-300/50 bg-gradient-to-br from-pink-500/10 to-fuchsia-500/5" : "border-border/60 bg-white/5"}`}>
+              <div key={g} className={`rounded-xl border p-3 ${complete ? "border-white/10 bg-gradient-to-br from-white/5 to-white/5" : "border-border/60 bg-white/5"}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs uppercase tracking-wider text-muted-foreground">Duo {g}</div>
                   <div className={`text-[10px] px-1.5 py-0.5 rounded ${complete ? "bg-emerald-500/20 text-emerald-300" : "bg-white/5 text-muted-foreground"}`}>
@@ -298,7 +298,7 @@ export function YuriCase() {
                             <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
                               {y.template?.image_url
                                 ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
-                                : <Heart className="size-6 text-pink-300/80" />}
+                                : <Heart className="size-6 text-fog" />}
                             </div>
                             <div className="text-xs font-semibold truncate">{y.template?.name}</div>
                             <div className="text-[10px] opacity-80">{y.template?.income_per_hour}/h</div>
@@ -307,7 +307,7 @@ export function YuriCase() {
                           <button
                             onClick={() => setPlaceTarget({ slot })}
                             disabled={inventory.length === 0}
-                            className="w-full aspect-[3/4] rounded-lg border border-dashed border-border/60 grid place-items-center text-xs text-muted-foreground hover:border-pink-300/60 hover:text-pink-200 transition disabled:opacity-40"
+                            className="w-full aspect-[3/4] rounded-lg border border-dashed border-border/60 grid place-items-center text-xs text-muted-foreground hover:border-white/10 hover:text-white transition disabled:opacity-40"
                           >
                             <div className="text-center">
                               <PackageOpen className="size-5 mx-auto mb-1 opacity-60" />
@@ -341,7 +341,7 @@ export function YuriCase() {
 
       {/* Inventory */}
       <Card className="glass p-5">
-        <h3 className="font-display font-semibold mb-3">Yuri Inventory ({inventory.length})</h3>
+        <h3 className="font-display font-medium mb-3">Yuri Inventory ({inventory.length})</h3>
         {inventory.length === 0 ? (
           <EmptyState icon={Sparkles} title="No Yuri girls yet" description="Open a Yuri Case to start building your duos." />
         ) : (
@@ -354,7 +354,7 @@ export function YuriCase() {
                   <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
                     {y.template?.image_url
                       ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
-                      : <Heart className="size-6 text-pink-300/80" />}
+                      : <Heart className="size-6 text-fog" />}
                   </div>
                   <div className="text-xs font-semibold truncate">{y.template?.name}</div>
                   <div className="text-[10px] opacity-80 capitalize">{y.template?.rarity} · {rate}/h</div>
@@ -385,12 +385,12 @@ export function YuriCase() {
               <button
                 key={y.id}
                 onClick={() => placeTarget && place(y.id, placeTarget.slot)}
-                className={`rounded-lg border bg-gradient-to-br p-2 hover:ring-2 hover:ring-pink-300 transition ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}
+                className={`rounded-lg border bg-gradient-to-br p-2 hover:ring-2 hover:ring-white/10 transition ${RARITY_STYLE[y.template?.rarity ?? "common"]}`}
               >
                 <div className="aspect-square rounded overflow-hidden mb-1 bg-black/30 grid place-items-center">
                   {y.template?.image_url
                     ? <img src={y.template.image_url} alt={y.template.name} className="w-full h-full object-cover" />
-                    : <Heart className="size-6 text-pink-300/80" />}
+                    : <Heart className="size-6 text-fog" />}
                 </div>
                 <div className="text-xs font-semibold truncate">{y.template?.name}</div>
                 <div className="text-[10px] opacity-80">{y.template?.income_per_hour}/h</div>

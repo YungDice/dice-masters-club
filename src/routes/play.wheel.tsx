@@ -86,36 +86,36 @@ function Wheel() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-        <CircleDot className="text-amber-400" /> Wheel of Fortune
+      <h1 className="font-display text-3xl font-medium flex items-center gap-2">
+        <CircleDot className="text-foreground" /> Wheel of Fortune
       </h1>
-      <CasinoFrame title="Spin to win" subtitle="Bet DICE, multiply up to 10x" icon={<CircleDot className="size-6 text-amber-400" />}>
+      <CasinoFrame title="Spin to win" subtitle="Bet DICE, multiply up to 10x" icon={<CircleDot className="size-6 text-foreground" />}>
         <div className="grid md:grid-cols-[1fr_1.2fr] gap-6 items-center">
           <div className="space-y-4">
             <div>
-              <Label className="text-amber-100">Bet (DICE)</Label>
+              <Label className="text-foreground">Bet (DICE)</Label>
               <Input type="number" min={1} max={10000} value={bet}
                 onChange={(e) => setBet(Math.max(1, Math.floor(Number(e.target.value) || 0)))}
-                disabled={busy} className="bg-black/40 text-amber-50" />
+                disabled={busy} className="bg-black/40 text-foreground" />
               <div className="mt-2 flex gap-2 flex-wrap">
                 {[10, 50, 100, 500, 1000].map((v) => (
                   <button key={v} disabled={busy} onClick={() => setBet(v)}
-                    className="px-2 py-1 rounded bg-amber-400/10 text-amber-100 text-xs hover:bg-amber-400/20 disabled:opacity-50">{v}</button>
+                    className="px-2 py-1 rounded bg-white/5 text-foreground text-xs hover:bg-white/5 disabled:opacity-50">{v}</button>
                 ))}
                 <button disabled={busy || !wallet} onClick={() => setBet(Math.min(10000, Number(wallet?.balance ?? 0)))}
-                  className="px-2 py-1 rounded bg-amber-400/10 text-amber-100 text-xs hover:bg-amber-400/20 disabled:opacity-50">Max</button>
+                  className="px-2 py-1 rounded bg-white/5 text-foreground text-xs hover:bg-white/5 disabled:opacity-50">Max</button>
               </div>
             </div>
             <Button onClick={spin} disabled={busy} className="w-full glow-red font-display text-base h-11">
               {busy ? "Spinning…" : "Spin the wheel"}
             </Button>
-            <div className="text-xs text-amber-100/70">
+            <div className="text-xs text-muted-foreground">
               Segments: {WHEEL_SEGMENTS.filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b).map((m) => `${m}x`).join(" · ")}
             </div>
             {result && (
-              <div className="rounded-lg border border-amber-400/30 bg-black/40 p-4 text-center">
-                <div className="text-xs uppercase tracking-widest text-amber-200/70">Result</div>
-                <div className={`font-display text-3xl font-bold ${result.mult > 1 ? "text-emerald-300" : result.mult > 0 ? "text-amber-200" : "text-red-400"}`}>
+              <div className="rounded-lg border border-white/10 bg-black/40 p-4 text-center">
+                <div className="text-xs uppercase tracking-widest text-muted-foreground">Result</div>
+                <div className={`font-display text-3xl font-bold ${result.mult > 1 ? "text-emerald-300" : result.mult > 0 ? "text-foreground" : "text-red-400"}`}>
                   {result.mult}x
                 </div>
                 <div className={`text-sm ${result.payout - bet > 0 ? "text-emerald-300" : "text-red-400"}`}>

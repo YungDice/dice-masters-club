@@ -172,7 +172,7 @@ function UProfile() {
           <div className="flex flex-wrap items-center gap-5">
             <Avatar className={`size-24 ring-2 ring-primary/40 ${frameClasses(equipped?.frame)}`}><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback className="text-2xl">{dn[0]?.toUpperCase() ?? "?"}</AvatarFallback></Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-bold flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-3xl font-medium flex items-center gap-2 flex-wrap">
                 <span>{dn}{p.tag && <span className="text-primary font-mono">#{p.tag}</span>}</span>
                 <TitleBadge title={equipped?.title} />
 
@@ -218,12 +218,12 @@ function UProfile() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
+          <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
           {pid && <AchievementGrid userId={pid} />}
         </Card>
 
         <Card className="glass p-5">
-          <h2 className="font-display text-lg font-semibold mb-3">Recent games</h2>
+          <h2 className="font-display text-lg font-medium mb-3">Recent games</h2>
           {games.data?.length === 0 && <p className="text-sm text-muted-foreground">No games yet.</p>}
           <ul className="space-y-1 text-sm">
             {(games.data ?? []).map((g) => (

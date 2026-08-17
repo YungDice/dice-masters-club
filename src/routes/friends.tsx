@@ -117,7 +117,7 @@ function Friends() {
                 ) : p._rel === "sent" ? (
                   <span className="text-xs text-muted-foreground px-2">Requested</span>
                 ) : p._rel === "incoming" ? (
-                  <span className="text-xs text-amber-400 px-2">Wants to be friends</span>
+                  <span className="text-xs text-foreground px-2">Wants to be friends</span>
                 ) : p._rel === "blocked" ? (
                   <span className="text-xs text-destructive px-2">Blocked</span>
                 ) : (
@@ -131,7 +131,7 @@ function Friends() {
 
       {(pending.data ?? []).length > 0 && (
         <Card className="glass p-5">
-          <h2 className="font-display font-semibold mb-3">Pending requests</h2>
+          <h2 className="font-display font-medium mb-3">Pending requests</h2>
           <div className="space-y-2">
             {(pending.data ?? []).map((r: any) => (
               <div key={r.id} className="flex items-center justify-between rounded-md bg-white/5 p-2">
@@ -144,7 +144,7 @@ function Friends() {
       )}
 
       <Card className="glass p-5">
-        <h2 className="font-display font-semibold mb-3">Your friends</h2>
+        <h2 className="font-display font-medium mb-3">Your friends</h2>
         {(friends.data ?? []).length === 0
           ? <EmptyState icon={Users} title="No friends yet" description="Search above to find people on DICE." />
           : <div className="grid gap-2 md:grid-cols-2">{(friends.data ?? []).map((p: any) => {

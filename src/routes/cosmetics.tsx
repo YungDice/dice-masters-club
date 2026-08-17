@@ -103,7 +103,7 @@ function CosmeticsPage() {
         <div className="flex items-center gap-3 flex-wrap">
           <Palette className="size-8 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
-            <h1 className="font-display text-3xl font-bold">Cosmetics</h1>
+            <h1 className="font-display text-3xl font-medium">Cosmetics</h1>
             <p className="text-sm text-muted-foreground">
               Titles, avatar frames, banners, chat emotes and dice skins. Purely visual — no gameplay advantage.
               {" "}Submit your own for <b className="text-foreground">{fmt(SUBMISSION_FEE)} DICE</b> (refunded if rejected).
@@ -134,9 +134,9 @@ function CosmeticsPage() {
                   <Card key={c.id} className={`glass p-4 flex flex-col gap-3 border ${RARITY_COLOR[c.rarity]}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="font-display font-semibold flex items-center gap-1.5">
+                        <div className="font-display font-medium flex items-center gap-1.5">
                           {c.name}
-                          {c.vip_only && <Crown className="size-3.5 text-amber-300" />}
+                          {c.vip_only && <Crown className="size-3.5 text-foreground" />}
                         </div>
                         <div className="text-[10px] uppercase tracking-wider opacity-70">{c.rarity}</div>
                       </div>
@@ -183,7 +183,7 @@ function CosmeticPreview({ c }: { c: Cosmetic }) {
   const img = (c.meta as any)?.image_url as string | undefined;
   if (c.kind === "title") return <div className="flex items-center gap-2"><TitleBadge title={c} /><span className="text-xs text-muted-foreground">appears next to your name</span></div>;
   if (c.kind === "frame") return (
-    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-fuchsia-500/30 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
+    <div className={`size-16 rounded-full bg-gradient-to-br from-primary/40 to-white/5 grid place-items-center overflow-hidden ${frameClasses(c)}`}>
       {img ? <img src={img} alt={c.name} className="w-full h-full object-cover" /> : <Sparkles className="size-6 opacity-80" />}
     </div>
   );
@@ -412,9 +412,9 @@ function MySubmissions({ userId }: { userId: string }) {
             <span className="font-semibold truncate">{s.name}</span>
             <span className="text-xs text-muted-foreground capitalize">{s.kind} · {s.rarity}</span>
             <span className="ml-auto text-xs inline-flex items-center gap-1">
-              {s.status === "pending" && <><Clock className="size-3 text-amber-400" /><span className="text-amber-300">Pending</span></>}
+              {s.status === "pending" && <><Clock className="size-3 text-foreground" /><span className="text-foreground">Pending</span></>}
               {s.status === "approved" && <><Check className="size-3 text-emerald-400" /><span className="text-emerald-300">Approved</span></>}
-              {s.status === "rejected" && <><X className="size-3 text-rose-400" /><span className="text-rose-300">Rejected · refunded</span></>}
+              {s.status === "rejected" && <><X className="size-3 text-white" /><span className="text-white">Rejected · refunded</span></>}
             </span>
           </div>
         ))}

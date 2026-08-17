@@ -47,7 +47,7 @@ function DiePair({ total, rolling }: { total: number; rolling: boolean }) {
 function DicePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Dices className="size-7" /> Dice</h1>
+      <h1 className="font-display text-3xl font-medium flex items-center gap-2"><Dices className="size-7" /> Dice</h1>
       <Tabs defaultValue="solo">
         <TabsList><TabsTrigger value="solo">Solo vs House</TabsTrigger><TabsTrigger value="pvp">Multiplayer</TabsTrigger></TabsList>
         <TabsContent value="solo"><Solo /></TabsContent>
@@ -77,13 +77,13 @@ function Solo() {
 
   return (
     <div className="space-y-4">
-      <CasinoFrame title="Solo vs House" subtitle="Higher roll wins · tie refunds" icon={<Dices className="size-6 text-amber-400" />}>
+      <CasinoFrame title="Solo vs House" subtitle="Higher roll wins · tie refunds" icon={<Dices className="size-6 text-foreground" />}>
         <div className="mt-2 flex items-center justify-center gap-10">
-          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
-          <div className="text-2xl text-amber-200/60">vs</div>
-          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">You</div><DiePair total={result?.me ?? 0} rolling={rolling} /></div>
+          <div className="text-2xl text-muted-foreground">vs</div>
+          <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">House</div><DiePair total={result?.house ?? 0} rolling={rolling} /></div>
         </div>
-        {result && <div className={`mt-6 text-center font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-amber-100/70" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
+        {result && <div className={`mt-6 text-center font-display text-2xl ${result.outcome === "win" ? "text-emerald-400" : result.outcome === "tie" ? "text-muted-foreground" : "text-destructive"}`}>{result.outcome.toUpperCase()} {result.delta > 0 && `+${fmt(result.delta)} DICE`}{result.delta < 0 && `${fmt(result.delta)} DICE`}</div>}
       </CasinoFrame>
       <Card className="glass p-5">
         <div className="flex justify-between text-sm"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
@@ -186,20 +186,20 @@ function PvP() {
       </Card>
 
       {lastResult && (
-        <CasinoFrame title="Result" icon={<Dices className="size-6 text-amber-400" />}>
+        <CasinoFrame title="Result" icon={<Dices className="size-6 text-foreground" />}>
           <div className="flex items-center justify-center gap-10">
-            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
-            <div className="text-2xl text-amber-200/60">vs</div>
-            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-amber-100/70 mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Host</div><DiePair total={lastResult.hostRoll} rolling={false} /></div>
+            <div className="text-2xl text-muted-foreground">vs</div>
+            <div className="flex flex-col items-center"><div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Challenger</div><DiePair total={lastResult.joinRoll} rolling={false} /></div>
           </div>
-          <div className={`mt-4 text-center font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-amber-100/70" : "text-destructive"}`}>
+          <div className={`mt-4 text-center font-display text-2xl ${lastResult.winnerId === user?.id ? "text-emerald-400" : lastResult.winnerId === null ? "text-muted-foreground" : "text-destructive"}`}>
             {lastResult.winnerId === user?.id ? `+${fmt(lastResult.pot / 2)} DICE` : lastResult.winnerId === null ? "TIE — refunded" : `-${fmt(lastResult.pot / 2)} DICE`}
           </div>
         </CasinoFrame>
       )}
 
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold">Open lobbies</h2>
+        <h2 className="font-display text-lg font-medium">Open lobbies</h2>
         <div className="mt-3 space-y-2">
           {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public lobbies. Create one!</p>}
           {(rooms.data ?? []).map((r: any) => (

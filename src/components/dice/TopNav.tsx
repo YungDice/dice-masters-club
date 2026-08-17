@@ -113,10 +113,11 @@ function SideRailItem({
           {active && (
             <motion.span
               layoutId="rail-active"
-              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary shadow-[0_0_12px_rgba(232,93,58,0.7)]"
+              className="absolute -left-2 top-1/2 -translate-y-1/2 h-6 w-0.5 bg-primary"
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
             />
           )}
+
           {children}
         </div>
       </TooltipTrigger>
@@ -132,15 +133,14 @@ function Sidebar({ isStaff }: { isStaff: boolean }) {
   const groupActive = (g: Group) => g.children.some((c) => isActive(c.to));
 
   const iconBtn =
-    "grid size-11 place-items-center rounded-xl text-muted-foreground hover:text-amber-100 hover:bg-white/[0.06] transition-colors";
-  const activeCls =
-    "text-amber-100 bg-gradient-to-br from-primary/25 to-amber-400/10 ring-1 ring-amber-400/40 shadow-[0_0_20px_-6px_rgba(232,93,58,0.5)]";
+    "grid size-10 place-items-center rounded text-white/70 hover:text-white hover:bg-slate transition-colors";
+  const activeCls = "text-primary bg-slate";
 
   return (
     <TooltipProvider delayDuration={150}>
       <aside
-        className="hidden md:flex fixed inset-y-0 left-0 z-40 w-16 flex-col items-center gap-1 py-3 bg-background/85 backdrop-blur-xl"
-        style={{ borderRight: "1px solid rgba(201,168,76,0.14)" }}
+        className="hidden md:flex fixed inset-y-0 left-0 z-40 w-14 flex-col items-center gap-1 py-3 bg-void"
+        style={{ borderRight: "1px solid rgba(255,255,255,0.08)" }}
       >
         <Link to="/" className="mb-2 grid place-items-center">
           <DiceLogo size={36} />
@@ -168,7 +168,7 @@ function Sidebar({ isStaff }: { isStaff: boolean }) {
                   </DropdownMenuTrigger>
                 </SideRailItem>
                 <DropdownMenuContent side="right" align="start" sideOffset={12} className="min-w-44">
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-amber-200/70">
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">
                     {it.label}
                   </DropdownMenuLabel>
                   {it.children.map((c) => (
@@ -214,7 +214,7 @@ function MobileMenu({ isStaff }: { isStaff: boolean }) {
               return (
                 <Link key={it.to} to={it.to} onClick={() => setOpen(false)}
                   className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
-                    isActive(it.to, it.exact) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
+                    isActive(it.to, it.exact) ? "bg-white/5 text-foreground" : "hover:bg-white/5"
                   }`}>
                   <it.icon className="size-4" /> {it.label}
                 </Link>
@@ -222,14 +222,14 @@ function MobileMenu({ isStaff }: { isStaff: boolean }) {
             }
             return (
               <div key={it.label}>
-                <div className="text-[10px] uppercase tracking-widest text-amber-200/60 mb-1.5 flex items-center gap-1.5">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5 flex items-center gap-1.5">
                   <it.icon className="size-3" /> {it.label}
                 </div>
                 <div className="space-y-0.5">
                   {it.children.map((c) => (
                     <Link key={c.to} to={c.to} onClick={() => setOpen(false)}
                       className={`flex items-center gap-2 rounded-md px-2 py-2 text-sm ${
-                        isActive(c.to) ? "bg-amber-400/15 text-amber-100" : "hover:bg-white/5"
+                        isActive(c.to) ? "bg-white/5 text-foreground" : "hover:bg-white/5"
                       }`}>
                       <c.icon className="size-4" /> {c.label}
                     </Link>
@@ -282,8 +282,8 @@ export function TopNav() {
     <>
       <Sidebar isStaff={isStaff} />
       <header
-        className="sticky top-0 z-30 backdrop-blur-xl bg-background/75 md:pl-16"
-        style={{ borderBottom: "1px solid rgba(201,168,76,0.14)" }}
+        className="sticky top-0 z-30 bg-obsidian md:pl-14"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
         <div className="flex h-14 items-center gap-2 sm:gap-3 px-3 sm:px-5">
           <MobileMenu isStaff={isStaff} />
@@ -299,7 +299,7 @@ export function TopNav() {
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search marketplace, players, challenges…"
                 aria-label="Search"
-                className="w-full h-9 rounded-full bg-white/[0.04] pl-9 pr-4 text-sm outline-none ring-1 ring-white/10 focus:ring-amber-400/40 placeholder:text-muted-foreground/70 transition"
+                className="w-full h-9 rounded bg-charcoal pl-9 pr-4 text-sm outline-none ring-1 ring-white/10 focus:ring-primary placeholder:text-muted-foreground/70 transition"
               />
             </label>
           </form>
@@ -311,7 +311,7 @@ export function TopNav() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button aria-label="Open account menu" className="flex items-center gap-2 rounded-full pl-1 pr-2 sm:pr-3 py-1 hover:bg-white/5 transition shrink-0">
-                  <Avatar className="size-8 ring-1 ring-amber-400/40">
+                  <Avatar className="size-8 ring-1 ring-white/10">
                     <AvatarImage src={profile?.avatar_url ?? undefined} />
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
@@ -361,8 +361,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <TopNav />
-      <main className="md:pl-16">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 py-6">{children}</div>
+      <main className="md:pl-14">
+        <div className="mx-auto max-w-[1440px] px-4 md:px-6 py-6">{children}</div>
       </main>
     </div>
   );

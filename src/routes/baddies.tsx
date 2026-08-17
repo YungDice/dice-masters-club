@@ -45,11 +45,11 @@ const MULTIS = [1, 2, 3, 5, 10];
 const RARITY_STYLE: Record<string, string> = {
   common:    "from-zinc-500/20 to-zinc-700/10 border-zinc-400/30 text-zinc-200",
   uncommon:  "from-emerald-500/20 to-emerald-700/10 border-emerald-400/40 text-emerald-200",
-  rare:      "from-sky-500/20 to-sky-700/10 border-sky-400/40 text-sky-200",
-  epic:      "from-fuchsia-500/20 to-fuchsia-700/10 border-fuchsia-400/40 text-fuchsia-200",
-  legendary: "from-amber-400/30 to-rose-500/10 border-amber-300/60 text-amber-200",
-  unreal:    "from-violet-500/30 via-cyan-400/20 to-fuchsia-500/20 border-cyan-300/60 text-cyan-100 shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]",
-  elias:     "from-amber-300/40 via-black/40 to-amber-500/30 border-amber-200 text-amber-50 ring-2 ring-amber-300/70 shadow-[0_0_28px_-4px_rgba(252,211,77,0.75)]",
+  rare:      "from-white/5 to-white/5 border-white/10 text-white",
+  epic:      "from-white/5 to-white/5 border-white/10 text-white",
+  legendary: "from-white/10 to-white/5 border-white/10 text-foreground",
+  unreal:    "from-white/5 via-white/5 to-white/5 border-white/10 text-white shadow-[0_0_24px_-6px_rgba(34,211,238,0.55)]",
+  elias:     "from-white/10 via-black/40 to-white/10 border-white/10 text-foreground ring-2 ring-white/10 shadow-[0_0_28px_-4px_rgba(252,211,77,0.75)]",
 };
 const RARITY_ORDER = ["common","uncommon","rare","epic","legendary","unreal","elias"];
 
@@ -68,9 +68,9 @@ const TIER_ORDER = ["base","shiny","elite","prestige"] as const;
 const TIER_NEXT: Record<string, string | null> = { base:"shiny", shiny:"elite", elite:"prestige", prestige:null };
 const TIER_META: Record<string, { label: string; icon: any; className: string }> = {
   base:     { label: "Base",     icon: Sparkles, className: "" },
-  shiny:    { label: "Shiny",    icon: Star,     className: "ring-1 ring-cyan-300/60 shadow-[0_0_18px_-6px_rgba(103,232,249,0.6)]" },
-  elite:    { label: "Elite",    icon: Zap,      className: "ring-2 ring-fuchsia-300/70 shadow-[0_0_22px_-4px_rgba(232,121,249,0.7)]" },
-  prestige: { label: "Prestige", icon: Crown,    className: "ring-2 ring-amber-300 shadow-[0_0_28px_-4px_rgba(252,211,77,0.85)]" },
+  shiny:    { label: "Shiny",    icon: Star,     className: "ring-1 ring-white/10 shadow-[0_0_18px_-6px_rgba(103,232,249,0.6)]" },
+  elite:    { label: "Elite",    icon: Zap,      className: "ring-2 ring-white/10 shadow-[0_0_22px_-4px_rgba(232,121,249,0.7)]" },
+  prestige: { label: "Prestige", icon: Crown,    className: "ring-2 ring-white/10 shadow-[0_0_28px_-4px_rgba(252,211,77,0.85)]" },
 };
 // DICE storage cap per baddie by tier — enforced server-side in collect_baddie_tx
 const TIER_STORAGE_CAP: Record<string, number> = { base: 120000, shiny: 240000, elite: 360000, prestige: 480000 };
@@ -282,7 +282,7 @@ function Page() {
       <Card className="glass p-6">
         <div className="grid md:grid-cols-[1fr_320px] gap-6 items-center">
           <div>
-            <h2 className="font-display text-xl font-bold mb-2">Mystery Baddie Case</h2>
+            <h2 className="font-display text-xl font-medium mb-2">Mystery Baddie Case</h2>
             <p className="text-sm text-muted-foreground mb-3">
               Every unboxed Baddie goes to your <b>Inventory</b>. Move them into active Base slots to earn passive DICE,
               sell them, list them on the Marketplace, or use them in the Upgrader.
@@ -338,7 +338,7 @@ function Page() {
               Active Base capacity: <b>{activeSlotUsage}</b> / {cap} {isVip ? "(VIP)" : ""} · Inventory is unlimited.
             </div>
           </div>
-          <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-primary/30 to-fuchsia-700/20 border border-primary/40 grid place-items-center overflow-hidden">
+          <div className="relative aspect-square rounded-2xl bg-gradient-to-br from-primary/30 to-white/5 border border-primary/40 grid place-items-center overflow-hidden">
             <div className={`absolute inset-0 ${rolling ? "animate-pulse" : ""} bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_60%)]`} />
             <PackageOpen className={`size-28 text-primary ${rolling ? "animate-bounce" : ""}`} />
             {rolling && <div className="absolute bottom-3 text-xs uppercase tracking-widest text-primary">Rolling x{multi}…</div>}
@@ -353,7 +353,7 @@ function Page() {
             <Card className="glass p-5">
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="font-display text-lg font-bold">
+                  <h3 className="font-display text-lg font-medium">
                     You unboxed {results.length} Baddie{results.length > 1 ? "s" : ""}
                   </h3>
                   <div className="text-xs text-muted-foreground">
@@ -409,9 +409,9 @@ function Page() {
           </div>
 
           {/* VIP Autosell */}
-          <div className={`rounded-lg border px-3 py-2 ${isVip ? "border-amber-300/40 bg-amber-300/5" : "border-border/60 bg-white/5 opacity-70"}`}>
+          <div className={`rounded-lg border px-3 py-2 ${isVip ? "border-white/10 bg-white/5" : "border-border/60 bg-white/5 opacity-70"}`}>
             <div className="flex items-center gap-2 mb-1.5">
-              <Crown className="size-4 text-amber-300" />
+              <Crown className="size-4 text-foreground" />
               <div className="text-sm font-semibold">Auto-sell by rarity {isVip ? "" : "(VIP only)"}</div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -429,9 +429,9 @@ function Page() {
 
           {/* Fusion panel */}
           {fusionGroups.length > 0 && (
-            <div className="rounded-lg border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/5 px-3 py-2 space-y-2">
+            <div className="rounded-lg border border-white/10 bg-gradient-to-br from-white/5 to-white/5 px-3 py-2 space-y-2">
               <div className="flex items-center gap-2">
-                <Flame className="size-4 text-fuchsia-300" />
+                <Flame className="size-4 text-white" />
                 <div className="text-sm font-semibold">Baddie Fusion — combine 3 identical to level up their tier</div>
               </div>
               <div className="text-[11px] text-muted-foreground -mt-1">Tiers: Base → Shiny (+10%) → Elite (+25%) → Prestige (+50%). Uses the 3 oldest matching Baddies.</div>
@@ -448,7 +448,7 @@ function Page() {
                       key={key}
                       size="sm"
                       variant="outline"
-                      className="border-fuchsia-300/50 hover:bg-fuchsia-400/10"
+                      className="border-white/10 hover:bg-white/5"
                       onClick={() => setFuseTarget({
                         key,
                         tier,
@@ -492,7 +492,7 @@ function Page() {
                         <div className="size-14 rounded-md grid place-items-center bg-white/5"><Sparkles className="size-6 opacity-80" /></div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="font-display font-semibold truncate flex items-center gap-1.5">
+                        <div className="font-display font-medium truncate flex items-center gap-1.5">
                           {b.name ?? t.name}
                           {tier !== "base" && (
                             <span className="inline-flex items-center gap-0.5 text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-black/40 border border-white/20">
@@ -510,9 +510,9 @@ function Page() {
                     </div>
                     <div className="text-sm mb-1">Pending: <b>{fmt(pending)}</b> <span className="opacity-70">/ {fmt(cap)} DICE</span></div>
                     <div className="h-1.5 rounded-full bg-black/30 overflow-hidden mb-2">
-                      <div className={`h-full ${atCap ? "bg-amber-400" : "bg-primary"}`} style={{ width: `${Math.min(100, (pending / cap) * 100)}%` }} />
+                      <div className={`h-full ${atCap ? "bg-primary" : "bg-primary"}`} style={{ width: `${Math.min(100, (pending / cap) * 100)}%` }} />
                     </div>
-                    {atCap && <div className="text-[10px] text-amber-300 mb-1.5">Storage full — collect to keep earning.</div>}
+                    {atCap && <div className="text-[10px] text-foreground mb-1.5">Storage full — collect to keep earning.</div>}
                     <div className="flex gap-2 flex-wrap">
                       <Button size="sm" onClick={() => collect(b.id)} disabled={pending <= 0 || listed}>Collect</Button>
                       <Button size="sm" variant="outline" onClick={() => setSellTarget({ ...b, template: t, price })} disabled={listed}>

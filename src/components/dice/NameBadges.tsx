@@ -3,9 +3,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePodium, type PodiumEntry } from "@/hooks/use-podium";
 
 const RANK_COLOR: Record<number, string> = {
-  1: "text-amber-300 drop-shadow-[0_0_6px_rgba(252,211,77,0.7)]",
+  1: "text-foreground drop-shadow-[0_0_6px_rgba(252,211,77,0.7)]",
   2: "text-slate-200 drop-shadow-[0_0_6px_rgba(203,213,225,0.6)]",
-  3: "text-orange-400 drop-shadow-[0_0_6px_rgba(251,146,60,0.6)]",
+  3: "text-white drop-shadow-[0_0_6px_rgba(251,146,60,0.6)]",
 };
 
 /** Detects if `emoji` is actually a URL (or data URI) so we render an <img>. */

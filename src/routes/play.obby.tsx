@@ -215,7 +215,7 @@ function ObbyGame() {
           if (t === "#") {
             ctx.fillStyle = "#0b4d3a";
             ctx.fillRect(px, py, TILE, TILE);
-            ctx.strokeStyle = "rgba(201,168,76,0.3)";
+            ctx.strokeStyle = "rgba(255,255,255,0.08)";
             ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
           } else if (t === "L") {
             const wob = Math.sin((Date.now() + tx * 60) / 200) * 2;
@@ -261,12 +261,12 @@ function ObbyGame() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Mountain className="text-amber-400" /> DICE Obby</h1>
+          <h1 className="font-display text-3xl font-medium flex items-center gap-2"><Mountain className="text-foreground" /> DICE Obby</h1>
           <p className="text-sm text-muted-foreground">Run, jump, dodge the lava. <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">A/D</kbd> or <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">←/→</kbd>, <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-xs">Space</kbd> jump. Reach the flag for 150 DICE.</p>
         </div>
         <div className="flex gap-3 text-sm">
-          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Checkpoint</div><div className="font-bold text-amber-200">{checkpoint}/8</div></div>
-          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Attempts</div><div className="font-bold text-amber-200 flex items-center gap-1"><Flame className="size-3" />{tries}</div></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Checkpoint</div><div className="font-bold text-foreground">{checkpoint}/8</div></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 ring-1 ring-white/10"><div className="text-[10px] uppercase text-muted-foreground">Attempts</div><div className="font-bold text-foreground flex items-center gap-1"><Flame className="size-3" />{tries}</div></div>
         </div>
       </div>
 
@@ -276,7 +276,7 @@ function ObbyGame() {
             ref={canvasRef}
             width={VIEW_W}
             height={VIEW_H}
-            className="rounded-xl border border-amber-400/30 max-w-full h-auto select-none"
+            className="rounded-xl border border-white/10 max-w-full h-auto select-none"
             style={{ background: "#04201a" }}
           />
           {status !== "playing" && (
@@ -284,22 +284,22 @@ function ObbyGame() {
               <div className="text-center space-y-3 p-6">
                 {status === "idle" ? (
                   <>
-                    <Mountain className="mx-auto size-12 text-amber-300" />
+                    <Mountain className="mx-auto size-12 text-foreground" />
                     <h2 className="font-display text-2xl">Ready to climb?</h2>
                     <Button size="lg" onClick={startRun}><Play className="mr-1.5 size-4" /> Start level</Button>
                   </>
                 ) : status === "won" ? (
                   <>
-                    <Trophy className="mx-auto size-12 text-amber-300" />
+                    <Trophy className="mx-auto size-12 text-foreground" />
                     <h2 className="font-display text-2xl">Level cleared</h2>
                     <p className="text-sm">Earned <span className="text-emerald-300 font-bold">+{reward}</span> DICE</p>
                     <Button size="lg" onClick={startRun}><RotateCw className="mr-1.5 size-4" /> New level</Button>
                   </>
                 ) : (
                   <>
-                    <Flame className="mx-auto size-12 text-rose-400" />
+                    <Flame className="mx-auto size-12 text-white" />
                     <h2 className="font-display text-2xl">You died</h2>
-                    <p className="text-sm">Reached checkpoint <span className="text-amber-200 font-bold">{checkpoint}/8</span>.</p>
+                    <p className="text-sm">Reached checkpoint <span className="text-foreground font-bold">{checkpoint}/8</span>.</p>
                     <Button size="lg" onClick={startRun}><RotateCw className="mr-1.5 size-4" /> Try again</Button>
                   </>
                 )}

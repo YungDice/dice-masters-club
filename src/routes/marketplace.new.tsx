@@ -60,7 +60,7 @@ function CreateListing() {
 
       <Card className="glass p-6 md:p-8">
         <div className="space-y-1 mb-5">
-          <h1 className="font-display text-3xl font-bold">Create a listing</h1>
+          <h1 className="font-display text-3xl font-medium">Create a listing</h1>
           <p className="text-sm text-muted-foreground">Pick what you want to sell — an item, a Baddie, your tag, or your username.</p>
         </div>
 
@@ -304,7 +304,7 @@ function UsernameForm({ profile, onDone }: { profile: any; onDone: () => void })
       <div className="rounded-md bg-primary/5 border border-primary/30 p-4">
         <div className="text-xs text-muted-foreground">Listing your username</div>
         <div className="text-3xl font-mono font-bold text-primary mt-1">@{profile?.username ?? "you"}</div>
-        <p className="text-xs text-amber-300 mt-2">
+        <p className="text-xs text-foreground mt-2">
           ⚠️ When sold, the buyer takes over <b>@{profile?.username}</b>. You'll be assigned an automatic placeholder username and can change it later (90-day cooldown applies).
         </p>
       </div>

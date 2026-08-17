@@ -98,7 +98,7 @@ export function CrewMissions({ crewId, canManage }: { crewId: string; canManage:
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <Target className="size-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Weekly missions</h2>
+        <h2 className="font-display text-lg font-medium">Weekly missions</h2>
         {canManage && <span className="text-[10px] text-muted-foreground ml-auto">Owner &amp; officers can curate</span>}
       </div>
       <p className="text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export function CrewMissions({ crewId, canManage }: { crewId: string; canManage:
                 <Progress value={pct} className="h-2" />
                 <div className="flex justify-between text-[11px] mt-1">
                   <span className="text-muted-foreground">{fmt(m.progress)} / {fmt(m.target)}</span>
-                  <span className="text-amber-200">
+                  <span className="text-foreground">
                     +{fmt(m.reward_dice)} <span className="text-muted-foreground">DICE</span>
                     {m.reward_points > 0 && <span className="text-muted-foreground"> · +{fmt(m.reward_points)} pts</span>}
                   </span>
@@ -181,7 +181,7 @@ export function CrewMissions({ crewId, canManage }: { crewId: string; canManage:
                     <div className="font-medium">{t.name}</div>
                     <div className="text-xs text-muted-foreground">{t.description}</div>
                   </div>
-                  <div className="text-xs text-amber-200 shrink-0">
+                  <div className="text-xs text-foreground shrink-0">
                     +{fmt(t.reward_dice)} DICE
                     <div className="text-[10px] text-muted-foreground">+{fmt(t.reward_points)} pts</div>
                   </div>

@@ -63,7 +63,7 @@ function Browse() {
           </SelectContent>
         </Select>
       </Card>
-      <h2 className="font-display text-xl font-bold">Browse Challenges</h2>
+      <h2 className="font-display text-xl font-medium">Browse Challenges</h2>
       {isLoading ? <div className="grid gap-3 md:grid-cols-3">{Array.from({length:6}).map((_,i) => <Card key={i} className="glass p-5 h-40 animate-pulse" />)}</div>
         : filtered.length === 0 ? <EmptyState icon={Trophy} title="No challenges yet" description="Try changing filters or create a new challenge." />
         : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{filtered.map((c, i) => (
@@ -72,7 +72,7 @@ function Browse() {
                 <Card className="glass p-5 h-full hover:border-primary/50 hover:-translate-y-0.5 transition-all relative overflow-hidden group">
                   <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-0 group-hover:opacity-100 transition" />
                   <div className="flex items-start justify-between"><span className="text-[10px] uppercase tracking-wider text-muted-foreground">{c.category} · {c.difficulty}</span><DiceBadge size="sm" amount={c.dice_reward} /></div>
-                  <h3 className="mt-2 font-display font-semibold text-lg">{c.title}</h3>
+                  <h3 className="mt-2 font-display font-medium text-lg">{c.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground line-clamp-3">{c.description}</p>
                   <div className="mt-3 flex gap-1 flex-wrap">{(c.tags ?? []).slice(0,4).map((t) => <span key={t} className="text-[10px] rounded-full bg-white/5 px-2 py-0.5 border border-white/5">#{t}</span>)}</div>
                 </Card>

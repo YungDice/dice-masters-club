@@ -103,7 +103,7 @@ function DikDok() {
     return (
       <div className="max-w-md mx-auto text-center py-20">
         <Music2 className="mx-auto text-primary size-10" />
-        <h1 className="mt-3 font-display text-2xl font-bold">DikDok is empty</h1>
+        <h1 className="mt-3 font-display text-2xl font-medium">DikDok is empty</h1>
         <p className="mt-2 text-sm text-muted-foreground">Upload an image or video to the Gallery to start the feed.</p>
       </div>
     );

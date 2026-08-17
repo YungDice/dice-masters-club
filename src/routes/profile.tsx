@@ -133,10 +133,10 @@ function MyProfile() {
               <AvatarFallback className="text-2xl">{p.display_name[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h1 className="font-display text-3xl font-bold flex items-center gap-2 flex-wrap">
+              <h1 className="font-display text-3xl font-medium flex items-center gap-2 flex-wrap">
                 <span>{p.display_name}{tag && <span className="text-primary font-mono">#{tag}</span>}</span>
                 <TitleBadge title={equipped?.title} />
-                {vipActive && <Crown className="size-5 text-amber-400" />}
+                {vipActive && <Crown className="size-5 text-foreground" />}
                 <NameBadges userId={p.id} emoji={(p as any).user_emoji} />
               </h1>
 
@@ -167,13 +167,13 @@ function MyProfile() {
 
 
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
+        <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2"><Award className="size-4 text-primary" />Achievements</h2>
         {user?.id && <AchievementGrid userId={user.id} />}
       </Card>
 
 
       <Card className="glass p-5">
-        <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2"><ShoppingBag className="size-4 text-primary" />Items I sold</h2>
+        <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2"><ShoppingBag className="size-4 text-primary" />Items I sold</h2>
         {!sold.data?.length ? (
           <p className="text-sm text-muted-foreground">You haven't sold anything on the marketplace yet.</p>
         ) : (

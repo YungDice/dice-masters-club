@@ -97,7 +97,7 @@ export function LoadoutEditor({ user, profile, refetch }: any) {
     <Card className="glass p-6 space-y-4">
       <div className="flex items-center gap-2">
         <Sparkles className="size-4 text-primary" />
-        <h2 className="font-display text-lg font-semibold">Loadout</h2>
+        <h2 className="font-display text-lg font-medium">Loadout</h2>
       </div>
       <p className="text-xs text-muted-foreground">Show off your identity on your profile. Frame, banner and title come from the Cosmetics shop.</p>
 

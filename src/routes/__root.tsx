@@ -19,7 +19,7 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="glass max-w-md text-center rounded-2xl p-10">
         <DiceLogo />
-        <h1 className="mt-6 font-display text-6xl font-bold">404</h1>
+        <h1 className="mt-6 font-display text-6xl font-medium">404</h1>
         <p className="mt-2 text-muted-foreground">This page rolled off the table.</p>
         <Link to="/" className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
           Back to lobby
@@ -35,7 +35,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="glass max-w-md text-center rounded-2xl p-8">
-        <h1 className="font-display text-xl font-semibold">Something glitched</h1>
+        <h1 className="font-display text-xl font-medium">Something glitched</h1>
         <p className="mt-2 text-sm text-muted-foreground">Something went wrong on our end. Please try again in a moment.</p>
         <button onClick={() => { router.invalidate(); reset(); }} className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
           Try again
@@ -66,7 +66,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" },
     ],
     scripts: [
       {

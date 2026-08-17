@@ -6,14 +6,29 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+
+  --text-caption: 12px;
+  --text-body: 14px;
+  --text-heading-sm: 20px;
+  --text-heading-lg: 32px;
+
+  --color-void: var(--surface-void);
+  --color-obsidian: var(--surface-obsidian);
+  --color-charcoal: var(--surface-charcoal);
+  --color-graphite: var(--surface-graphite);
+  --color-slate: var(--surface-slate);
+  --color-ice: var(--ice);
+  --color-fog: var(--fog);
+  --color-iron: var(--iron);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -51,43 +66,53 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* DICE — dark casino premium. Single theme; .dark is identical. */
+/* DICE — dark trading-terminal theme (OpenSea reference). Single theme; .dark identical. */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.13 0.012 20);
-  --foreground: oklch(0.97 0.005 250);
-  --card: oklch(0.18 0.014 20 / 0.7);
-  --card-foreground: oklch(0.97 0.005 250);
-  --popover: oklch(0.16 0.014 20);
-  --popover-foreground: oklch(0.97 0.005 250);
-  --primary: oklch(0.58 0.21 22);          /* casino red */
-  --primary-foreground: oklch(0.98 0.005 0);
-  --secondary: oklch(0.24 0.018 20);
-  --secondary-foreground: oklch(0.97 0.005 250);
-  --muted: oklch(0.22 0.015 20);
-  --muted-foreground: oklch(0.78 0.02 250);
-  --accent: oklch(0.28 0.04 28);
-  --accent-foreground: oklch(0.97 0.005 250);
-  --destructive: oklch(0.55 0.22 28);
-  --destructive-foreground: oklch(0.98 0.005 0);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.12);
-  --ring: oklch(0.58 0.21 22 / 0.6);
-  --neon: oklch(0.7 0.22 295);             /* neon purple */
-  --gold: oklch(0.82 0.16 85);
-  --chart-1: oklch(0.58 0.21 22);
-  --chart-2: oklch(0.7 0.22 295);
-  --chart-3: oklch(0.82 0.16 85);
-  --chart-4: oklch(0.65 0.18 200);
-  --chart-5: oklch(0.6 0.15 145);
-  --sidebar: oklch(0.15 0.012 20);
-  --sidebar-foreground: oklch(0.97 0.005 250);
-  --sidebar-primary: oklch(0.58 0.21 22);
-  --sidebar-primary-foreground: oklch(0.98 0.005 0);
-  --sidebar-accent: oklch(0.22 0.018 20);
-  --sidebar-accent-foreground: oklch(0.97 0.005 250);
-  --sidebar-border: oklch(1 0 0 / 0.08);
-  --sidebar-ring: oklch(0.58 0.21 22 / 0.6);
+  --radius: 0.5rem;
+
+  --surface-void: #080809;
+  --surface-obsidian: #141415;
+  --surface-charcoal: #1b1d1f;
+  --surface-graphite: #26272d;
+  --surface-slate: #3c3d40;
+  --ice: #83c3ff;
+  --fog: #acadae;
+  --iron: #34353c;
+
+  --background: #080809;
+  --foreground: #ffffff;
+  --card: #1b1d1f;
+  --card-foreground: #ffffff;
+  --popover: #26272d;
+  --popover-foreground: #ffffff;
+  --primary: #83c3ff;
+  --primary-foreground: #080809;
+  --secondary: #26272d;
+  --secondary-foreground: #ffffff;
+  --muted: #26272d;
+  --muted-foreground: #acadae;
+  --accent: #3c3d40;
+  --accent-foreground: #ffffff;
+  --destructive: #e24756;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #34353c;
+  --ring: #83c3ff;
+  --neon: #83c3ff;
+  --gold: #acadae;
+  --chart-1: #83c3ff;
+  --chart-2: #acadae;
+  --chart-3: #ffffff;
+  --chart-4: #e24756;
+  --chart-5: #3c3d40;
+  --sidebar: #080809;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #83c3ff;
+  --sidebar-primary-foreground: #080809;
+  --sidebar-accent: #3c3d40;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #83c3ff;
 }
 .dark { color-scheme: dark; }
 
@@ -95,35 +120,41 @@
   html, body { color-scheme: dark; }
   * { border-color: var(--color-border); }
   body {
-    background-color: var(--color-background);
+    background-color: var(--surface-void);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(at 12% 0%, oklch(0.58 0.21 22 / 0.12) 0px, transparent 50%),
-      radial-gradient(at 88% 12%, oklch(0.7 0.22 295 / 0.10) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, oklch(0.58 0.21 22 / 0.08) 0px, transparent 60%);
-    background-attachment: fixed;
+    font-size: 14px;
+    line-height: 1.5;
+    background-image: none;
     min-height: 100vh;
   }
-  h1, h2, h3, h4, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+  h1, h2, h3, h4, .font-display { font-family: var(--font-sans); font-weight: 500; letter-spacing: 0; }
 }
 
 @utility glass {
-  background: linear-gradient(180deg, oklch(1 0 0 / 0.04), oklch(1 0 0 / 0.02));
-  backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid oklch(1 0 0 / 0.08);
-  box-shadow: 0 10px 40px -10px oklch(0 0 0 / 0.5);
+  background: var(--surface-charcoal);
+  box-shadow: rgba(255, 255, 255, 0.08) 0 0 0 1px inset, rgba(0, 0, 0, 0.03) 0 1px 2px 0;
+  border: 0;
+  backdrop-filter: none;
 }
 @utility glow-red {
-  box-shadow: 0 0 0 1px oklch(0.58 0.21 22 / 0.4), 0 8px 32px -8px oklch(0.58 0.21 22 / 0.6);
+  box-shadow: rgba(255, 255, 255, 0.08) 0 0 0 1px inset;
+}
+@utility glow-gold {
+  box-shadow: rgba(255, 255, 255, 0.08) 0 0 0 1px inset;
+}
+@utility card-hover {
+  transition: background-color 120ms ease;
 }
 @utility text-gradient-red {
-  background: linear-gradient(135deg, oklch(0.7 0.22 22), oklch(0.55 0.22 25));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: none;
+  color: var(--ice);
 }
 @utility felt-bg {
-  background:
-    radial-gradient(ellipse at center, oklch(0.26 0.05 145) 0%, oklch(0.16 0.04 145) 70%, oklch(0.1 0.03 145) 100%);
+  background: var(--surface-obsidian);
 }
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+

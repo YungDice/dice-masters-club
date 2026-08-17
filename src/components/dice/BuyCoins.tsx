@@ -21,8 +21,8 @@ export function BuyCoinsCard() {
 
   if (!isPaymentsConfigured()) {
     return (
-      <Card className="glass p-6 border-amber-400/30">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Coins className="text-amber-400" /> Buy DICE coins</h2>
+      <Card className="glass p-6 border-white/10">
+        <h2 className="font-display text-lg font-medium flex items-center gap-2"><Coins className="text-foreground" /> Buy DICE coins</h2>
         <p className="text-sm text-muted-foreground mt-2">Payments are not yet configured in production. Complete Stripe go-live to enable purchases.</p>
       </Card>
     );
@@ -50,9 +50,9 @@ export function BuyCoinsCard() {
   const dice = units * 1000;
 
   return (
-    <Card className="glass p-6 space-y-4 border-amber-400/40">
+    <Card className="glass p-6 space-y-4 border-white/10">
       <div>
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Coins className="text-amber-400" /> Buy DICE coins</h2>
+        <h2 className="font-display text-lg font-medium flex items-center gap-2"><Coins className="text-foreground" /> Buy DICE coins</h2>
         <p className="text-xs text-muted-foreground mt-1">1 {currency.toUpperCase()} = 1,000 DICE · purchases are non-refundable, non-transferable, and have no real-world value.</p>
       </div>
       {!open ? (
@@ -78,7 +78,7 @@ export function BuyCoinsCard() {
           </div>
           <div className="flex items-center justify-between rounded-md bg-white/5 p-3">
             <div className="text-sm">Total</div>
-            <div className="text-sm"><b>{units} {currency.toUpperCase()}</b> → <b className="text-amber-400">{fmt(dice)} DICE</b></div>
+            <div className="text-sm"><b>{units} {currency.toUpperCase()}</b> → <b className="text-foreground">{fmt(dice)} DICE</b></div>
           </div>
           <Button onClick={start} disabled={busy} className="glow-red w-full">{busy ? "Loading..." : `Buy ${fmt(dice)} DICE`}</Button>
         </>

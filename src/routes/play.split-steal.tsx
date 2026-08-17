@@ -64,7 +64,7 @@ function SS() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><HandHelping className="text-amber-400" />Split or Steal</h1>
+      <h1 className="font-display text-3xl font-medium flex items-center gap-2"><HandHelping className="text-foreground" />Split or Steal</h1>
       <Tabs defaultValue="bot">
         <TabsList>
           <TabsTrigger value="bot">Solo vs Bot</TabsTrigger>
@@ -74,13 +74,13 @@ function SS() {
         <TabsContent value="bot"><BotPanel /></TabsContent>
 
         <TabsContent value="pvp" className="space-y-4">
-          <CasinoFrame title="Create a room" subtitle="Split or steal the pot" icon={<HandHelping className="size-6 text-amber-400" />}>
-            <p className="text-sm text-amber-100/80">Both stake DICE. Each secretly chooses SPLIT or STEAL. Split/split → divide pot. Steal/split → stealer takes all. Steal/steal → both lose stake.</p>
+          <CasinoFrame title="Create a room" subtitle="Split or steal the pot" icon={<HandHelping className="size-6 text-foreground" />}>
+            <p className="text-sm text-muted-foreground">Both stake DICE. Each secretly chooses SPLIT or STEAL. Split/split → divide pot. Steal/split → stealer takes all. Steal/steal → both lose stake.</p>
             <div className="mt-4 grid md:grid-cols-2 gap-4">
               <div>
-                <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+                <div className="flex justify-between text-sm text-foreground"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
                 <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
-                <label className="flex items-center gap-2 mt-3 text-sm text-amber-100"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private</label>
+                <label className="flex items-center gap-2 mt-3 text-sm text-foreground"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private</label>
                 <Button className="mt-3 glow-red" onClick={host}>Create room</Button>
                 {active && (
                   <Button variant="outline" className="mt-2 ml-2"
@@ -91,8 +91,8 @@ function SS() {
                 )}
               </div>
               {active && (
-                <div className="rounded-lg p-4 text-center" style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(201,168,76,0.3)" }}>
-                  <div className="text-xs text-amber-100/70">In room. Pick a card:</div>
+                <div className="rounded-lg p-4 text-center" style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="text-xs text-muted-foreground">In room. Pick a card:</div>
                   <div className="mt-4 flex gap-4 justify-center">
                     <ChoiceCard label="SPLIT" sub="share the pot" tone="green" onClick={() => pick("split")} />
                     <ChoiceCard label="STEAL" sub="take it all" tone="red" onClick={() => pick("steal")} />
@@ -102,7 +102,7 @@ function SS() {
             </div>
           </CasinoFrame>
           <Card className="glass p-5">
-            <h2 className="font-display text-lg font-semibold">Open rooms</h2>
+            <h2 className="font-display text-lg font-medium">Open rooms</h2>
             <div className="mt-3 space-y-2">
               {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public rooms.</p>}
               {(rooms.data ?? []).map((r: any) => (
@@ -158,8 +158,8 @@ function BotPanel() {
   }
 
   return (
-    <CasinoFrame title="Split or Steal vs Bot" subtitle="Trust… or betray" icon={<HandHelping className="size-6 text-amber-400" />}>
-      <div className="text-center text-sm text-amber-100/80 mb-4">
+    <CasinoFrame title="Split or Steal vs Bot" subtitle="Trust… or betray" icon={<HandHelping className="size-6 text-foreground" />}>
+      <div className="text-center text-sm text-muted-foreground mb-4">
         Bot occasionally bluffs. Pick SPLIT to cooperate, STEAL to grab the pot.
       </div>
       <div className="flex justify-center gap-4">
@@ -167,12 +167,12 @@ function BotPanel() {
         <ChoiceCard label="STEAL" sub="take it all" tone="red" onClick={() => play("steal")} disabled={busy} />
       </div>
       <div className="mt-5 max-w-md mx-auto">
-        <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+        <div className="flex justify-between text-sm text-foreground"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
         <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
       </div>
       {result && (
         <div className="mt-5 text-center">
-          <div className="text-sm text-amber-100/80">You chose <b className="text-white">{result.choice.toUpperCase()}</b> · Bot chose <b className="text-white">{result.bot.toUpperCase()}</b></div>
+          <div className="text-sm text-muted-foreground">You chose <b className="text-white">{result.choice.toUpperCase()}</b> · Bot chose <b className="text-white">{result.bot.toUpperCase()}</b></div>
           <div className={`mt-1 font-display text-2xl ${result.delta > 0 ? "text-emerald-400" : result.delta < 0 ? "text-destructive" : "text-muted-foreground"}`}>
             {result.delta > 0 ? `+${fmt(result.delta)}` : fmt(result.delta)} DICE
           </div>

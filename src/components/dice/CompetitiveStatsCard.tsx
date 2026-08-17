@@ -55,7 +55,7 @@ export function CompetitiveStatsCard({ stats }: { stats?: CompetitiveStats | nul
         </div>
         <div className="flex flex-wrap gap-4 md:gap-6 text-sm">
           <Stat label="Wins" value={s.wins} valueClass="text-emerald-400" />
-          <Stat label="Losses" value={s.losses} valueClass="text-rose-400" />
+          <Stat label="Losses" value={s.losses} valueClass="text-white" />
           <Stat label="Draws" value={s.draws} />
           <Stat label="W/L" value={ratioLabel} icon={<Swords className="size-4 text-primary" />} />
           <Stat label="Games" value={fmt(s.total)} />

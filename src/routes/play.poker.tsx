@@ -117,7 +117,7 @@ function VP() {
   return (
     <div className="max-w-3xl mx-auto space-y-4">
       <Card className="glass p-8 felt-bg">
-        <h1 className="font-display text-3xl font-bold text-center flex items-center justify-center gap-2"><Club />Video Poker <span className="text-sm font-normal text-muted-foreground">— Jacks or Better</span></h1>
+        <h1 className="font-display text-3xl font-medium text-center flex items-center justify-center gap-2"><Club />Video Poker <span className="text-sm font-normal text-muted-foreground">— Jacks or Better</span></h1>
 
         <div className="mt-8 min-h-44 flex justify-center gap-3">
           <AnimatePresence>
@@ -153,7 +153,7 @@ function VP() {
       </Card>
 
       <Card className="glass p-5">
-        <h3 className="font-display font-semibold mb-2">Paytable (per 1 DICE bet)</h3>
+        <h3 className="font-display font-medium mb-2">Paytable (per 1 DICE bet)</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-xs">
           {Object.entries(VP_PAYTABLE).filter(([k]) => k !== "none").map(([k, v]) => (
             <div key={k} className="flex justify-between rounded bg-white/5 px-2 py-1">
