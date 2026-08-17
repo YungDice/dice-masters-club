@@ -8,8 +8,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useWallet, useMyProfile } from "@/hooks/use-profile";
 import { AppShell } from "@/components/dice/TopNav";
+import { RightRail } from "@/components/dice/RightRail";
+import { Panel, SectionHeader, PillLink, OutlineAction } from "@/components/dice/Surface";
 import { DiceBadge } from "@/components/dice/DiceBadge";
 import { EmptyState } from "@/components/dice/EmptyState";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
