@@ -40,7 +40,7 @@ function HomePage() {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen grid place-items-center"><DiceLogo size={48} /></div>;
   if (!user) return <Landing />;
-  return <AppShell><Dashboard /></AppShell>;
+  return <AppShell rightRail={<RightRail />}><Dashboard /></AppShell>;
 }
 
 function Landing() {
