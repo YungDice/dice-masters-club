@@ -281,10 +281,8 @@ export function TopNav() {
   return (
     <>
       <Sidebar isStaff={isStaff} />
-      <header
-        className="sticky top-0 z-30 bg-obsidian md:pl-14"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
-      >
+      <header className="sticky top-0 z-30 bg-obsidian md:pl-14">
+
         <div className="flex h-14 items-center gap-2 sm:gap-3 px-3 sm:px-5">
           <MobileMenu isStaff={isStaff} />
           <Link to="/" className="md:hidden flex items-center shrink-0">
