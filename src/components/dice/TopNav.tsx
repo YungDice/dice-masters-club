@@ -353,7 +353,44 @@ export function TopNav() {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function SiteFooter() {
+  const links = [
+    { to: "/play", label: "Play" },
+    { to: "/marketplace", label: "Market" },
+    { to: "/leaderboard", label: "Ranks" },
+    { to: "/settings", label: "Settings" },
+  ];
+  return (
+    <footer
+      className="bg-obsidian md:pl-14"
+      style={{ borderTop: "1px solid var(--iron)" }}
+    >
+      <div className="mx-auto flex min-h-10 max-w-[1440px] flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 md:px-6">
+        {links.map((l, i) => (
+          <span key={l.to} className="flex items-center gap-3">
+            {i > 0 && <span aria-hidden className="h-3 w-px bg-iron" />}
+            <Link to={l.to as any} className="text-[12px] text-fog hover:text-white transition-colors">
+              {l.label}
+            </Link>
+          </span>
+        ))}
+        <span className="ml-auto flex items-center gap-3">
+          <span className="num text-[12px] text-fog">DICE · virtual currency only</span>
+          <span aria-hidden className="h-3 w-px bg-iron" />
+          <span className="text-[12px] text-fog">18+</span>
+        </span>
+      </div>
+    </footer>
+  );
+}
+
+export function AppShell({
+  children,
+  rightRail,
+}: {
+  children: React.ReactNode;
+  rightRail?: React.ReactNode;
+}) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   if (!loading && !user) {
@@ -361,13 +398,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return null;
   }
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col bg-charcoal">
       <TopNav />
-      <main className="md:pl-14">
-        <div className="mx-auto max-w-[1440px] px-4 md:px-6 py-6">{children}</div>
+      <main className="flex-1 md:pl-14">
+        <div className="mx-auto flex max-w-[1440px] gap-3 px-3 py-4 md:px-4">
+          <div className="min-w-0 flex-1">{children}</div>
+          {rightRail && (
+            <aside
+              className="hidden xl:block w-[320px] shrink-0 self-start sticky top-[72px] max-h-[calc(100vh-88px)] overflow-y-auto overscroll-contain pl-3"
+              style={{ borderLeft: "1px solid var(--iron)" }}
+            >
+              {rightRail}
+            </aside>
+          )}
+        </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }
+
 
 export function _useButton() { return Button; }
