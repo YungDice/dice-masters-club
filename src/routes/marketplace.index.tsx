@@ -19,8 +19,8 @@ import { buyListing } from "@/lib/dice.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    q: typeof search.q === "string" ? search.q : "",
+  validateSearch: (search: Record<string, unknown>): { q?: string } => ({
+    q: typeof search.q === "string" && search.q ? search.q : undefined,
   }),
   head: () => ({
     meta: [
@@ -115,7 +115,7 @@ function Mkt() {
         </div>
         <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="rounded-md border border-input bg-background px-3 py-2 text-sm"><option value="newest">Newest</option><option value="price">Price ↑</option></select>
       </Card>
-      <h2 className="font-display text-xl font-bold">Current Listings</h2>
+      <h2 className="font-display text-xl font-medium">Current Listings</h2>
       {filtered.length === 0
         ? <EmptyState icon={ShoppingBag} title="No listings yet" description="Be the first to list something for DICE." />
         : <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">{filtered.map((l: any, i: number) => {
@@ -126,7 +126,7 @@ function Mkt() {
             <motion.div key={l.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
             <Card className="glass overflow-hidden relative group hover:border-primary/50 hover:-translate-y-0.5 transition-all">
               {l.sale_type === "auction" && <div className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/80 text-white text-xs"><Gavel className="size-3" />Auction</div>}
-              {l.baddie_id && <div className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-fuchsia-500/80 text-white text-xs"><Sparkles className="size-3" />Baddie</div>}
+              {l.baddie_id && <div className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 text-white text-xs"><Sparkles className="size-3" />Baddie</div>}
               <Link to="/marketplace/$id" params={{ id: l.id }}>
                 <div className="aspect-square bg-gradient-to-br from-black/60 to-black/20 grid place-items-center overflow-hidden">
                   {l.category === "tag"

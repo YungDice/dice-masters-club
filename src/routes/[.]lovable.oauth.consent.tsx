@@ -49,7 +49,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   errorComponent: ({ error }) => (
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="max-w-md p-6 glass text-center">
-        <h1 className="font-display text-lg font-semibold">Could not load this authorization request</h1>
+        <h1 className="font-display text-lg font-medium">Could not load this authorization request</h1>
         <p className="mt-2 text-sm text-muted-foreground">{String((error as Error)?.message ?? error)}</p>
       </Card>
     </div>
@@ -80,7 +80,7 @@ function Consent() {
       <Card className="w-full max-w-md p-8 glass text-center space-y-5">
         <div className="flex justify-center"><DiceLogo /></div>
         <div>
-          <h1 className="font-display text-2xl font-semibold">Connect {clientName} to your DICE account</h1>
+          <h1 className="font-display text-2xl font-medium">Connect {clientName} to your DICE account</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {clientName} is requesting to read your DICE profile, wallet, and public activity through the DICE MCP tools.
             You can revoke access anytime in your DICE settings.

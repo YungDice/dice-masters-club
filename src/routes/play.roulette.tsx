@@ -38,7 +38,7 @@ function Chip({ value, selected, onClick }: { value: number; selected?: boolean;
   const c = CHIP_COLORS[value];
   return (
     <button onClick={onClick} aria-label={`${value} chip`}
-      className={`relative size-12 rounded-full transition ${selected ? "scale-110 ring-2 ring-amber-400" : "hover:scale-105"}`}
+      className={`relative size-12 rounded-full transition ${selected ? "scale-110 ring-2 ring-white/10" : "hover:scale-105"}`}
       style={{
         background: `radial-gradient(circle at 35% 30%, ${c}cc, ${c} 70%)`,
         border: `3px dashed rgba(255,255,255,0.85)`,
@@ -89,8 +89,8 @@ function Wheel({ angle }: { angle: number }) {
         className="absolute inset-0 rounded-full"
         style={{
           background: "radial-gradient(circle at 50% 50%, #3b1f10, #1a0c06)",
-          border: "8px solid #c9a84c",
-          boxShadow: "0 0 40px -6px rgba(201,168,76,0.6), inset 0 0 24px rgba(0,0,0,0.7)",
+          border: "8px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 0 40px -6px rgba(255,255,255,0.08), inset 0 0 24px rgba(0,0,0,0.7)",
         }}
       >
         <svg viewBox={`0 0 ${size} ${size}`} className="absolute inset-0">
@@ -107,19 +107,19 @@ function Wheel({ angle }: { angle: number }) {
             const ty = r + (r - 22) * Math.sin(mid * Math.PI / 180);
             return (
               <g key={i}>
-                <path d={path} fill={fill} stroke="#c9a84c" strokeWidth={0.5} />
+                <path d={path} fill={fill} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5} />
                 <text x={tx} y={ty} fill="white" fontSize="10" fontWeight="700" textAnchor="middle"
                   dominantBaseline="middle" transform={`rotate(${mid + 90} ${tx} ${ty})`}>{p}</text>
               </g>
             );
           })}
-          <circle cx={r} cy={r} r={48} fill="#1a0c06" stroke="#c9a84c" strokeWidth={3} />
-          <circle cx={r} cy={r} r={20} fill="#c9a84c" />
+          <circle cx={r} cy={r} r={48} fill="#1a0c06" stroke="rgba(255,255,255,0.08)" strokeWidth={3} />
+          <circle cx={r} cy={r} r={20} fill="rgba(255,255,255,0.08)" />
         </svg>
       </motion.div>
       {/* Pointer at top */}
       <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-10"
-        style={{ width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "16px solid #c9a84c" }} />
+        style={{ width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "16px solid rgba(255,255,255,0.08)" }} />
     </div>
   );
 }
@@ -209,7 +209,7 @@ function RoulettePage() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="font-display text-3xl font-bold flex items-center gap-2"><CircleDot className="text-amber-400" />Roulette <span className="text-sm font-normal text-muted-foreground">— American (0 / 00)</span></h1>
+        <h1 className="font-display text-3xl font-medium flex items-center gap-2"><CircleDot className="text-foreground" />Roulette <span className="text-sm font-normal text-muted-foreground">— American (0 / 00)</span></h1>
         <div className="flex gap-1 text-xs">
           {history.map((p, i) => (
             <span key={i} className="size-6 rounded-full grid place-items-center font-bold text-white"
@@ -227,7 +227,7 @@ function RoulettePage() {
         </TabsList>
 
         <TabsContent value="solo" className="space-y-4">
-          <CasinoFrame title="American Roulette" subtitle="0 / 00 · place chips · spin" icon={<CircleDot className="size-6 text-amber-400" />}>
+          <CasinoFrame title="American Roulette" subtitle="0 / 00 · place chips · spin" icon={<CircleDot className="size-6 text-foreground" />}>
 
             <div className="grid grid-cols-1 md:grid-cols-[300px,1fr] gap-6 items-center">
               <div className="flex flex-col items-center gap-3">
@@ -325,7 +325,7 @@ function RoulettePage() {
 
         <TabsContent value="live">
           <Card className="glass p-10 text-center">
-            <CircleDot className="size-10 mx-auto text-amber-400 opacity-70" />
+            <CircleDot className="size-10 mx-auto text-foreground opacity-70" />
             <h3 className="font-display text-xl mt-3">Live shared table — coming soon</h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
               We're rolling out a shared live wheel where everyone bets into the same spin. Spin solo for now —

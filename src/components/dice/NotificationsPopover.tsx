@@ -68,7 +68,7 @@ export function NotificationsPopover() {
       <PopoverContent align="end" className="w-[360px] p-0 glass">
         <div className="border-b border-border/60 px-3 py-2 flex items-center gap-2">
           <Bell className="size-4 text-primary" />
-          <div className="font-display text-sm font-semibold">Notifications</div>
+          <div className="font-display text-sm font-medium">Notifications</div>
           {unread > 0 && (
             <button onClick={markAll} className="ml-auto text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
               <CheckCheck className="size-3" /> Mark all read

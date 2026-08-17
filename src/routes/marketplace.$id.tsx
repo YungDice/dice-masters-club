@@ -194,7 +194,7 @@ function Detail() {
               <span>{l.category}</span>
               {isAuction && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/20 text-primary"><Gavel className="size-3" /> Auction</span>}
             </div>
-            <h1 className="font-display text-2xl font-bold">{l.title}</h1>
+            <h1 className="font-display text-2xl font-medium">{l.title}</h1>
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{l.description}</p>
             {l.license_notes && <div className="text-xs"><span className="font-semibold">License:</span> {l.license_notes}</div>}
 
@@ -218,7 +218,7 @@ function Detail() {
                   </div>
                 )}
                 {l.status === "sold" && <div className="text-sm text-emerald-400">Sold to winner for {fmt(curBid)} DICE</div>}
-                {l.status === "expired" && <div className="text-sm text-amber-400">Auction ended with no bids</div>}
+                {l.status === "expired" && <div className="text-sm text-foreground">Auction ended with no bids</div>}
                 {l.bids?.length > 0 && (
                   <div className="pt-2 border-t border-white/10">
                     <div className="text-xs text-muted-foreground mb-1">Recent bids</div>
@@ -247,7 +247,7 @@ function Detail() {
             )}
             <div className="text-xs text-muted-foreground">Sold by @{l.seller?.username}{l.seller?.tag ? `#${l.seller.tag}` : ""}</div>
             {(isTag || l.category === "username") && l.status === "active" && (
-              <div className="text-xs text-amber-400">Still attached to seller until purchase.</div>
+              <div className="text-xs text-foreground">Still attached to seller until purchase.</div>
             )}
             {isOwn && l.status === "active" && (!isAuction || !l.current_bidder_id) && (
               <Button variant="outline" className="w-full mt-1" onClick={async () => {

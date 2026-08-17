@@ -55,11 +55,11 @@ const RARITY_LABELS: Record<string, string> = {
 const RARITY_STYLE: Record<string, string> = {
   common: "border-zinc-400/35 text-zinc-200",
   uncommon: "border-emerald-400/45 text-emerald-200",
-  rare: "border-sky-400/45 text-sky-200",
-  epic: "border-fuchsia-400/45 text-fuchsia-200",
-  legendary: "border-amber-300/55 text-amber-200",
-  unreal: "border-cyan-300/60 text-cyan-100",
-  elias: "border-amber-200/70 text-amber-50",
+  rare: "border-white/10 text-white",
+  epic: "border-white/10 text-white",
+  legendary: "border-white/10 text-foreground",
+  unreal: "border-white/10 text-white",
+  elias: "border-white/10 text-foreground",
 };
 
 type UpgradePhase = "idle" | "securing" | "spinning" | "success" | "failure";
@@ -190,7 +190,7 @@ function BaddieCard({
           </motion.span>
         )}
         {reason && (
-          <span className="absolute inset-x-1.5 bottom-1.5 truncate rounded bg-black/75 px-1.5 py-1 text-[9px] font-semibold text-amber-200">
+          <span className="absolute inset-x-1.5 bottom-1.5 truncate rounded bg-black/75 px-1.5 py-1 text-[9px] font-semibold text-foreground">
             {reason}
           </span>
         )}
@@ -199,7 +199,7 @@ function BaddieCard({
         <div className="truncate text-xs font-bold text-foreground">{template?.name ?? "Unknown Baddie"}</div>
         <div className="mt-0.5 flex items-center justify-between gap-1 text-[10px]">
           <span className="truncate capitalize opacity-75">{RARITY_LABELS[template?.rarity] ?? template?.rarity}</span>
-          <span className="shrink-0 font-semibold text-amber-200/90">{template?.income_per_hour ?? 0}/h</span>
+          <span className="shrink-0 font-semibold text-foreground">{template?.income_per_hour ?? 0}/h</span>
         </div>
       </div>
     </motion.button>
@@ -252,13 +252,13 @@ function UpgradeWheel({
               : { duration: 0 }}
             onAnimationComplete={onSpinComplete}
           >
-            <div className="absolute left-1/2 top-[11%] h-[40%] w-[3px] -translate-x-1/2 rounded-full bg-gradient-to-t from-amber-100 via-amber-300 to-primary shadow-[0_0_12px_rgba(250,204,21,0.8)]" />
-            <div className="absolute left-1/2 top-[8%] size-0 -translate-x-1/2 border-x-[7px] border-b-[14px] border-x-transparent border-b-amber-100 drop-shadow-[0_0_5px_rgba(253,230,138,0.95)]" />
+            <div className="absolute left-1/2 top-[11%] h-[40%] w-[3px] -translate-x-1/2 rounded-full bg-gradient-to-t from-white/10 via-white/10 to-primary shadow-[0_0_12px_rgba(250,204,21,0.8)]" />
+            <div className="absolute left-1/2 top-[8%] size-0 -translate-x-1/2 border-x-[7px] border-b-[14px] border-x-transparent border-b-white drop-shadow-[0_0_5px_rgba(253,230,138,0.95)]" />
           </motion.div>
 
           <div className="absolute inset-[31%] z-30 grid place-items-center rounded-full border border-white/10 bg-[#141419] shadow-[inset_0_0_30px_rgba(0,0,0,0.65)]">
             <div className="text-center">
-              <div className={`font-display text-4xl font-black tracking-tight ${success ? "text-emerald-300" : failure ? "text-rose-300" : "bg-gradient-to-br from-amber-100 via-amber-300 to-emerald-300 bg-clip-text text-transparent"}`}>
+              <div className={`font-display text-4xl font-black tracking-tight ${success ? "text-emerald-300" : failure ? "text-white" : "bg-gradient-to-br from-white/10 via-white/10 to-emerald-300 bg-clip-text text-transparent"}`}>
                 {chanceText(chancePct)}
               </div>
               <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -449,7 +449,7 @@ function Page() {
         <div className="border-b border-white/[0.07] bg-black/15 px-5 py-3 text-xs text-muted-foreground">
           <span className="font-semibold text-foreground">Upgrade flow</span>
           <span className="mx-2 text-primary/80">Materials</span><ChevronRight className="inline size-3" />
-          <span className="mx-2 text-amber-200">Secure roll</span><ChevronRight className="inline size-3" />
+          <span className="mx-2 text-foreground">Secure roll</span><ChevronRight className="inline size-3" />
           <span className="ml-2 text-emerald-200">Target</span>
         </div>
 
@@ -457,7 +457,7 @@ function Page() {
           <section className="flex min-w-0 flex-col rounded-2xl border border-white/10 bg-black/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="sticky top-0 z-10 flex items-start justify-between gap-3 rounded-t-2xl border-b border-white/[0.07] bg-[#121217]/95 px-4 py-3 backdrop-blur">
               <div>
-                <div className="text-sm font-display font-bold">Materials</div>
+                <div className="text-sm font-display font-medium">Materials</div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">{selected.length} / {MAX_MATERIALS} selected · {selectedValueText}</div>
               </div>
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={isLocked || selected.length === 0} onClick={() => setSelected([])}>
@@ -469,7 +469,7 @@ function Page() {
               <div className="mb-3 rounded-xl border border-white/[0.08] bg-white/[0.025] p-2.5">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Selected tray</span>
-                  <span className="text-[10px] font-semibold text-amber-200">{selected.length ? `${selected.length} Baddie${selected.length === 1 ? "" : "s"}` : "Empty"}</span>
+                  <span className="text-[10px] font-semibold text-foreground">{selected.length ? `${selected.length} Baddie${selected.length === 1 ? "" : "s"}` : "Empty"}</span>
                 </div>
                 {selectedMaterials.length ? (
                   <div className="flex max-h-20 flex-wrap gap-1.5 overflow-y-auto pr-1" style={{ scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.18) transparent" }}>
@@ -515,9 +515,9 @@ function Page() {
             </div>
           </section>
 
-          <section className="flex min-w-0 flex-col items-center justify-between rounded-2xl border border-amber-300/15 bg-[radial-gradient(circle_at_50%_20%,rgba(250,204,21,0.12),transparent_38%),rgba(0,0,0,0.2)] p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
+          <section className="flex min-w-0 flex-col items-center justify-between rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_50%_20%,rgba(250,204,21,0.12),transparent_38%),rgba(0,0,0,0.2)] p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
             <div className="mb-2">
-              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-100/70">Secure upgrade roll</div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Secure upgrade roll</div>
               <div className="mt-1 text-sm text-muted-foreground">{targetTpl ? `Target: ${targetTpl.name}` : "Choose a target to begin"}</div>
             </div>
 
@@ -527,7 +527,7 @@ function Page() {
               <Button className="glow-red h-11 w-full text-sm font-bold" disabled={!canUpgrade} onClick={() => setConfirmOpen(true)}>
                 {phase === "securing" ? <><RotateCw className="mr-2 size-4 animate-spin" />Securing result…</> : phase === "spinning" ? <><RotateCw className="mr-2 size-4 animate-spin" />Wheel spinning…</> : "Upgrade Baddies"}
               </Button>
-              <div className="mt-2.5 flex items-start justify-center gap-1.5 text-[11px] leading-relaxed text-amber-200/90">
+              <div className="mt-2.5 flex items-start justify-center gap-1.5 text-[11px] leading-relaxed text-foreground">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                 <span>Selected materials are consumed on both success and failure.</span>
               </div>
@@ -541,7 +541,7 @@ function Page() {
             <div className="sticky top-0 z-10 rounded-t-2xl border-b border-white/[0.07] bg-[#121217]/95 px-4 py-3 backdrop-blur">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-display font-bold">Target Baddie</div>
+                  <div className="text-sm font-display font-medium">Target Baddie</div>
                   <div className="mt-0.5 text-[11px] text-muted-foreground">Choose exactly one target template.</div>
                 </div>
                 {targetTpl && <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">Selected</span>}
@@ -581,7 +581,7 @@ function Page() {
       <AnimatePresence>
         {result && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-sm" onClick={closeResult}>
-            <motion.div initial={result.success ? { opacity: 0, scale: 0.7, y: 20 } : { opacity: 0, scale: 0.92, x: -12 }} animate={result.success ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1, x: [0, -5, 5, -2, 2, 0] }} exit={{ opacity: 0, scale: 0.94 }} transition={result.success ? { type: "spring", stiffness: 220, damping: 17 } : { duration: 0.38 }} onClick={(event) => event.stopPropagation()} className={`w-full max-w-sm rounded-2xl border-2 bg-[#121217] p-6 text-center ${result.success ? "border-emerald-400 shadow-[0_0_55px_-8px_rgba(52,211,153,0.75)]" : "border-rose-500/90 shadow-[0_0_45px_-10px_rgba(244,63,94,0.7)]"}`}>
+            <motion.div initial={result.success ? { opacity: 0, scale: 0.7, y: 20 } : { opacity: 0, scale: 0.92, x: -12 }} animate={result.success ? { opacity: 1, scale: 1, y: 0 } : { opacity: 1, scale: 1, x: [0, -5, 5, -2, 2, 0] }} exit={{ opacity: 0, scale: 0.94 }} transition={result.success ? { type: "spring", stiffness: 220, damping: 17 } : { duration: 0.38 }} onClick={(event) => event.stopPropagation()} className={`w-full max-w-sm rounded-2xl border-2 bg-[#121217] p-6 text-center ${result.success ? "border-emerald-400 shadow-[0_0_55px_-8px_rgba(52,211,153,0.75)]" : "border-white/10 shadow-[0_0_45px_-10px_rgba(244,63,94,0.7)]"}`}>
               {result.success ? (
                 <>
                   <div className="mx-auto mb-3 grid size-14 place-items-center rounded-full border border-emerald-300/40 bg-emerald-400/10 text-emerald-300 shadow-[0_0_25px_-4px_rgba(52,211,153,0.9)]"><Check className="size-8 stroke-[3]" /></div>
@@ -590,17 +590,17 @@ function Page() {
                   {result.target?.name && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }} className="mt-5 rounded-xl border border-emerald-300/25 bg-emerald-400/[0.06] p-3">
                       {imgOf(result.target) ? <img src={imgOf(result.target)!} alt={result.target.name} className="mx-auto mb-3 size-32 rounded-lg object-cover ring-1 ring-emerald-200/30" /> : <Sparkles className="mx-auto mb-3 size-12 text-emerald-200" />}
-                      <div className="font-display text-xl font-bold">{result.target.name}</div>
+                      <div className="font-display text-xl font-medium">{result.target.name}</div>
                       <div className="mt-1 text-xs capitalize text-emerald-100/75">{RARITY_LABELS[result.target.rarity] ?? result.target.rarity} · {result.target.income_per_hour ?? 0} DICE/hour</div>
                     </motion.div>
                   )}
                 </>
               ) : (
                 <>
-                  <div className="mx-auto mb-3 grid size-14 place-items-center rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300"><X className="size-8 stroke-[3]" /></div>
-                  <div className="font-display text-3xl font-black text-rose-200">Upgrade Failed</div>
+                  <div className="mx-auto mb-3 grid size-14 place-items-center rounded-full border border-white/10 bg-white/5 text-white"><X className="size-8 stroke-[3]" /></div>
+                  <div className="font-display text-3xl font-black text-white">Upgrade Failed</div>
                   <div className="mt-2 text-sm leading-relaxed text-muted-foreground">The result was secured before the wheel spun. Your selected materials have been consumed.</div>
-                  <div className="mt-4 rounded-lg border border-rose-300/15 bg-rose-500/[0.05] px-3 py-2 text-xs text-rose-100/80">Try a higher-value material set to improve your next chance.</div>
+                  <div className="mt-4 rounded-lg border border-white/10 bg-graphite/[0.05] px-3 py-2 text-xs text-fog">Try a higher-value material set to improve your next chance.</div>
                 </>
               )}
               <Button className="mt-5 w-full" onClick={closeResult}>Continue</Button>
@@ -617,7 +617,7 @@ function Page() {
               You will permanently consume <b>{selected.length}</b> Baddie{selected.length === 1 ? "" : "s"} for a displayed <b>{chanceText(previewChancePct)}</b> chance at <b>{targetTpl?.name}</b>. The server locks the actual chance and result before the wheel starts.
             </DialogDescription>
           </DialogHeader>
-          <div className="rounded-lg border border-amber-300/20 bg-amber-300/[0.06] p-3 text-xs text-amber-100/85">
+          <div className="rounded-lg border border-white/10 bg-primary/[0.06] p-3 text-xs text-foreground/85">
             <div className="flex gap-2"><Lock className="mt-0.5 size-3.5 shrink-0" /><span>Materials are consumed whether the upgrade succeeds or fails.</span></div>
           </div>
           <DialogFooter>

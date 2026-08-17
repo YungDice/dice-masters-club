@@ -24,7 +24,7 @@ function safeNext(next: string | undefined): string {
 }
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { next?: string } => ({
     next: typeof s.next === "string" ? s.next : undefined,
   }),
   head: () => ({
@@ -62,7 +62,7 @@ function AuthPage() {
         <div className="relative space-y-6">
           <motion.h1
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-            className="font-display text-5xl font-bold leading-tight"
+            className="font-display text-5xl font-medium leading-tight"
           >
             Complete challenges.<br />
             Earn <span className="text-gradient-red">DICE</span>.<br />

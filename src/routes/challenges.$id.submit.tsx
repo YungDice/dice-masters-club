@@ -85,7 +85,7 @@ function Submit() {
     <div className="max-w-2xl mx-auto space-y-4">
       <Link to="/challenges/$id" params={{ id }} className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4 mr-1" />Back</Link>
       <Card className="glass p-5">
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2"><Camera className="size-5 text-primary" /> Record proof</h1>
+        <h1 className="font-display text-2xl font-medium flex items-center gap-2"><Camera className="size-5 text-primary" /> Record proof</h1>
         <p className="text-sm text-muted-foreground mt-1">Submissions are consent-based. You can delete your media at any time. No unsafe content.</p>
         <div className="mt-4 aspect-video rounded-lg overflow-hidden bg-black grid place-items-center">
           {preview ? (

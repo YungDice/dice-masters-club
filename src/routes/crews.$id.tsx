@@ -219,7 +219,7 @@ function CrewPage() {
       <Card
         className="p-0 relative overflow-hidden"
         style={{
-          borderColor: "rgba(201,168,76,0.35)",
+          borderColor: "rgba(255,255,255,0.08)",
         }}
       >
         {c.banner_url && (
@@ -227,9 +227,9 @@ function CrewPage() {
             <img src={c.banner_url} alt={`${c.name ?? "Crew"} banner`} className="w-full h-full object-cover" />
           </div>
         )}
-        <div className="p-6" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.10), rgba(0,0,0,0.4))" }}>
+        <div className="p-6" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(0,0,0,0.4))" }}>
         <div className="flex flex-col sm:flex-row items-start gap-5">
-          <Avatar className="size-20 ring-2 ring-amber-400/50">
+          <Avatar className="size-20 ring-2 ring-white/10">
             <AvatarImage src={c.avatar_url ?? undefined} />
             <AvatarFallback className="text-lg font-mono">{c.tag}</AvatarFallback>
           </Avatar>
@@ -239,7 +239,7 @@ function CrewPage() {
               <span className="font-mono text-primary text-lg">[{c.tag}]</span>
               {c.is_open
                 ? <span className="text-[10px] uppercase tracking-widest text-emerald-300/80 border border-emerald-400/30 rounded px-1.5 py-0.5">Open</span>
-                : <span className="text-[10px] uppercase tracking-widest text-amber-200/80 border border-amber-400/30 rounded px-1.5 py-0.5">Approval</span>}
+                : <span className="text-[10px] uppercase tracking-widest text-muted-foreground border border-white/10 rounded px-1.5 py-0.5">Approval</span>}
             </div>
             {c.description && <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{c.description}</p>}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-sm">
@@ -316,14 +316,14 @@ function CrewPage() {
                       <NameBadges userId={m.user_id} />
                     </Link>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
-                      {m.role === "owner" && <span className="text-amber-300 inline-flex items-center gap-1"><Crown className="size-3" /> Owner</span>}
-                      {m.role === "officer" && <span className="text-sky-300 inline-flex items-center gap-1"><Shield className="size-3" /> Officer</span>}
+                      {m.role === "owner" && <span className="text-foreground inline-flex items-center gap-1"><Crown className="size-3" /> Owner</span>}
+                      {m.role === "officer" && <span className="text-white inline-flex items-center gap-1"><Shield className="size-3" /> Officer</span>}
                       {m.role === "member" && <span>Member</span>}
                       · Lvl {m.profile?.level ?? 1}
                     </div>
                   </div>
                   <div className="text-right text-xs">
-                    <div className="font-semibold text-amber-200">{fmt(m.contribution_weekly)}</div>
+                    <div className="font-semibold text-foreground">{fmt(m.contribution_weekly)}</div>
                     <div className="text-muted-foreground">weekly · total {fmt(m.contribution_total)}</div>
                   </div>
                   {isOwner && (
@@ -332,7 +332,7 @@ function CrewPage() {
                         size="icon"
                         variant="ghost"
                         title={m.role === "owner" ? "Award DICE to yourself from crew bank" : "Award DICE from crew bank"}
-                        className="text-amber-300"
+                        className="text-foreground"
                         onClick={() => {
                           setAwardTarget({ id: m.user_id, name: m.profile?.display_name ?? m.profile?.username ?? "member" });
                           setAwardAmount(500);
@@ -383,7 +383,7 @@ function CrewPage() {
                     <div className="flex-1 min-w-0 truncate">
                       <b>{d.profile?.display_name ?? d.profile?.username ?? "Someone"}</b>
                       <span className="text-muted-foreground"> donated </span>
-                      <b className="text-amber-200">{fmt(d.amount)} DICE</b>
+                      <b className="text-foreground">{fmt(d.amount)} DICE</b>
                     </div>
                     <div className="text-xs text-muted-foreground">{new Date(d.created_at).toLocaleString()}</div>
                   </div>
@@ -524,7 +524,7 @@ function CrewPage() {
             <DialogTitle>Award DICE to {awardTarget?.name}</DialogTitle>
             <DialogDescription>
               Only the crew owner can award DICE. The amount is deducted from the crew bank
-              (total pts: <b className="text-amber-200">{fmt(c.total_score)}</b>) and credited to the member's wallet.
+              (total pts: <b className="text-foreground">{fmt(c.total_score)}</b>) and credited to the member's wallet.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -569,7 +569,7 @@ function Stat({ label, value, accent }: { label: string; value: any; accent?: bo
   return (
     <div className="rounded-md bg-white/[0.04] px-3 py-2">
       <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className={`font-semibold ${accent ? "text-amber-200" : ""}`}>{value}</div>
+      <div className={`font-semibold ${accent ? "text-foreground" : ""}`}>{value}</div>
     </div>
   );
 }

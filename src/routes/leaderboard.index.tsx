@@ -37,9 +37,9 @@ type Row = {
 };
 
 const DAILY_REWARDS = [
-  { dice: 1500, vip: "1 Day VIP", podiumH: "h-48", grad: "from-amber-200 via-amber-400 to-amber-700", ring: "ring-amber-300/80", glow: "shadow-[0_0_50px_-5px_rgba(252,211,77,0.55)]" },
+  { dice: 1500, vip: "1 Day VIP", podiumH: "h-48", grad: "from-white/10 via-white/10 to-white/10", ring: "ring-white/10", glow: "shadow-[0_0_50px_-5px_rgba(252,211,77,0.55)]" },
   { dice: 750,  vip: "12h VIP",   podiumH: "h-36", grad: "from-slate-100 via-slate-300 to-slate-500", ring: "ring-slate-200/70", glow: "shadow-[0_0_40px_-5px_rgba(203,213,225,0.4)]" },
-  { dice: 500,  vip: null,        podiumH: "h-28", grad: "from-orange-300 via-orange-500 to-orange-800", ring: "ring-orange-400/70", glow: "shadow-[0_0_40px_-5px_rgba(251,146,60,0.45)]" },
+  { dice: 500,  vip: null,        podiumH: "h-28", grad: "from-white/5 via-white/5 to-white/5", ring: "ring-white/10", glow: "shadow-[0_0_40px_-5px_rgba(251,146,60,0.45)]" },
 ];
 
 function NameTag({ p }: { p: Row }) {
@@ -74,19 +74,19 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
   const order = [top[1], top[0], top[2]];
   const ranks = [2, 1, 3];
   return (
-    <div className="relative rounded-2xl overflow-hidden border-2 border-amber-400/30 mb-6"
+    <div className="relative rounded-2xl overflow-hidden border-2 border-white/10 mb-6"
       style={{
-        background: "radial-gradient(ellipse at top, #0b4d3a 0%, #073023 55%, #04201a 100%)",
+        background: "#141415",
         boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 10px 40px -10px rgba(0,0,0,0.7)",
       }}
     >
       {/* gold hairline */}
-      <div className="pointer-events-none absolute inset-1 rounded-xl border border-amber-300/20" />
+      <div className="pointer-events-none absolute inset-1 rounded-xl border border-white/10" />
       {/* felt dots */}
       <div className="pointer-events-none absolute inset-0 opacity-25 mix-blend-overlay"
         style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)", backgroundSize: "6px 6px" }} />
       {/* red spotlights */}
-      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[80%] h-40 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-400/30 via-primary/10 to-transparent blur-2xl" />
+      <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-[80%] h-40 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-primary/10 to-transparent blur-2xl" />
 
       <div className="relative px-3 md:px-8 pt-10 pb-6">
         <div className="grid grid-cols-3 gap-3 md:gap-6 items-end">
@@ -110,9 +110,9 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
                       className="absolute -top-9 left-1/2 -translate-x-1/2"
                     >
                       <Crown className={`drop-shadow-[0_0_10px_rgba(0,0,0,0.6)] ${
-                        rank === 1 ? "size-9 text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.9)]"
+                        rank === 1 ? "size-9 text-foreground drop-shadow-[0_0_10px_rgba(252,211,77,0.9)]"
                         : rank === 2 ? "size-7 text-slate-200 drop-shadow-[0_0_8px_rgba(203,213,225,0.8)]"
-                        : "size-6 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]"
+                        : "size-6 text-white drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]"
                       }`} />
                     </motion.div>
                   )}
@@ -122,13 +122,13 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
                   </Avatar>
                 </div>
                 <Link to="/u/$username" params={{ username: p.username }} className="text-center max-w-full px-1 hover:underline">
-                  <div className="font-display font-bold truncate text-sm md:text-base text-amber-50">
+                  <div className="font-display font-medium truncate text-sm md:text-base text-foreground">
                     {p.display_name}
                     {p.tag && <span className="text-primary font-mono">#{p.tag}</span>}
                   </div>
-                  <div className="text-[11px] text-amber-200/50 font-mono truncate">@{p.username}</div>
+                  <div className="text-[11px] text-muted-foreground font-mono truncate">@{p.username}</div>
                 </Link>
-                <div className={`mt-3 w-full ${r.podiumH} rounded-t-xl bg-gradient-to-b ${r.grad} relative overflow-hidden border border-amber-300/30`}
+                <div className={`mt-3 w-full ${r.podiumH} rounded-t-xl bg-gradient-to-b ${r.grad} relative overflow-hidden border border-white/10`}
                   style={{ boxShadow: "inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -8px 20px rgba(0,0,0,0.35)" }}
                 >
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.25),transparent_45%)]" />
@@ -138,8 +138,8 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
                   </div>
                 </div>
                 <div className="mt-2 text-center text-xs">
-                  <div className="flex items-center justify-center gap-1 text-amber-300 font-bold"><Gem className="size-3" />+{fmt(r.dice)}</div>
-                  {r.vip && <div className="text-amber-200/80 text-[10px] font-medium">+{r.vip}</div>}
+                  <div className="flex items-center justify-center gap-1 text-foreground font-bold"><Gem className="size-3" />+{fmt(r.dice)}</div>
+                  {r.vip && <div className="text-muted-foreground text-[10px] font-medium">+{r.vip}</div>}
                 </div>
               </motion.div>
             );
@@ -156,8 +156,8 @@ function Board({ rows, unit }: { rows: Row[]; unit: string }) {
   return (
     <Card className="glass p-4 md:p-6 overflow-hidden">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 className="font-display text-base md:text-lg font-semibold flex items-center gap-2">
-          <Trophy className="size-4 text-amber-300" /> Daily rewards reset in
+        <h2 className="font-display text-base md:text-lg font-medium flex items-center gap-2">
+          <Trophy className="size-4 text-foreground" /> Daily rewards reset in
         </h2>
         <div className="text-sm text-muted-foreground flex items-center gap-1"><Clock className="size-4" /><Countdown /></div>
       </div>
@@ -166,7 +166,7 @@ function Board({ rows, unit }: { rows: Row[]; unit: string }) {
         <ol className="space-y-1 mt-6 border-t border-white/5 pt-4">
           {rest.map((p, i) => (
             <li key={p.id} className="flex items-center gap-3 rounded-md hover:bg-white/5 p-2">
-              <span className="w-7 text-right font-display font-bold text-muted-foreground">#{i + 4}</span>
+              <span className="w-7 text-right font-display font-medium text-muted-foreground">#{i + 4}</span>
               <Avatar className="size-8"><AvatarImage src={p.avatar_url ?? undefined} /><AvatarFallback>{p.display_name[0]}</AvatarFallback></Avatar>
               <Link to="/u/$username" params={{ username: p.username }} className="flex-1 text-sm hover:underline truncate">
                 <NameTag p={p} />
@@ -287,16 +287,16 @@ function CrewBoard({ orderBy, unit }: { orderBy: "level" | "total" | "weekly"; u
   const rows = q.data ?? [];
   return (
     <Card className="glass p-4 md:p-6 overflow-hidden">
-      <h2 className="font-display text-base md:text-lg font-semibold flex items-center gap-2 mb-4">
-        <Users className="size-4 text-amber-300" /> Top Crews · {unit}
+      <h2 className="font-display text-base md:text-lg font-medium flex items-center gap-2 mb-4">
+        <Users className="size-4 text-foreground" /> Top Crews · {unit}
       </h2>
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">No crews yet.</p>
       ) : (
         <ol className="space-y-1">
           {rows.map((c, i) => (
-            <li key={c.id} className={`flex items-center gap-3 rounded-md p-2 ${i < 3 ? "bg-amber-400/5 border border-amber-400/20" : "hover:bg-white/5"}`}>
-              <span className={`w-8 text-right font-display font-bold ${i === 0 ? "text-amber-300" : i === 1 ? "text-slate-300" : i === 2 ? "text-orange-400" : "text-muted-foreground"}`}>#{i + 1}</span>
+            <li key={c.id} className={`flex items-center gap-3 rounded-md p-2 ${i < 3 ? "bg-white/5 border border-white/10" : "hover:bg-white/5"}`}>
+              <span className={`w-8 text-right font-display font-bold ${i === 0 ? "text-foreground" : i === 1 ? "text-slate-300" : i === 2 ? "text-white" : "text-muted-foreground"}`}>#{i + 1}</span>
               <Avatar className="size-9">
                 <AvatarImage src={c.avatar_url ?? undefined} />
                 <AvatarFallback>{c.name[0]}</AvatarFallback>
@@ -319,10 +319,10 @@ function CrewBoard({ orderBy, unit }: { orderBy: "level" | "total" | "weekly"; u
 function CrewsSection() {
   return (
     <Tabs defaultValue="total">
-      <TabsList className="mx-auto flex w-full max-w-lg h-11 p-1 bg-card/50 border border-amber-300/20 rounded-lg">
-        <TabsTrigger value="total" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Trophy className="size-4 mr-1.5" /> Total</TabsTrigger>
-        <TabsTrigger value="weekly" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Clock className="size-4 mr-1.5" /> Weekly</TabsTrigger>
-        <TabsTrigger value="level" className="flex-1 rounded-md data-[state=active]:bg-amber-400/20 data-[state=active]:text-amber-100"><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
+      <TabsList className="mx-auto flex w-full max-w-lg h-11 p-1 bg-card/50 border border-white/10 rounded-lg">
+        <TabsTrigger value="total" className="flex-1 rounded-md data-[state=active]:bg-white/5 data-[state=active]:text-foreground"><Trophy className="size-4 mr-1.5" /> Total</TabsTrigger>
+        <TabsTrigger value="weekly" className="flex-1 rounded-md data-[state=active]:bg-white/5 data-[state=active]:text-foreground"><Clock className="size-4 mr-1.5" /> Weekly</TabsTrigger>
+        <TabsTrigger value="level" className="flex-1 rounded-md data-[state=active]:bg-white/5 data-[state=active]:text-foreground"><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
       </TabsList>
       <TabsContent value="total" className="mt-4"><CrewBoard orderBy="total" unit="PTS" /></TabsContent>
       <TabsContent value="weekly" className="mt-4"><CrewBoard orderBy="weekly" unit="PTS" /></TabsContent>
@@ -331,7 +331,7 @@ function CrewsSection() {
   );
 }
 
-const tabTrigger = "flex-1 h-full text-sm md:text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]";
+const tabTrigger = "flex-1 h-full text-sm md:text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-white/10 data-[state=active]:to-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]";
 
 function LB() {
   return (
@@ -342,15 +342,15 @@ function LB() {
         subtitle="Top 3 each day earn DICE & VIP — climb the ranks."
         accent="gold"
       />
-      <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm flex flex-wrap items-center gap-x-6 gap-y-1">
-        <span className="font-semibold text-amber-300 flex items-center gap-1"><Trophy className="size-4" /> Daily prizes</span>
-        <span><span className="text-amber-300 font-bold">#1</span> 1,500 DICE + 1 Day VIP</span>
+      <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm flex flex-wrap items-center gap-x-6 gap-y-1">
+        <span className="font-semibold text-foreground flex items-center gap-1"><Trophy className="size-4" /> Daily prizes</span>
+        <span><span className="text-foreground font-bold">#1</span> 1,500 DICE + 1 Day VIP</span>
         <span><span className="text-slate-300 font-bold">#2</span> 750 DICE + 12h VIP</span>
-        <span><span className="text-orange-400 font-bold">#3</span> 500 DICE</span>
-        <Link to="/leaderboard/crews" className="ml-auto text-amber-300 hover:underline inline-flex items-center gap-1"><Users className="size-4" /> Crews leaderboard →</Link>
+        <span><span className="text-white font-bold">#3</span> 500 DICE</span>
+        <Link to="/leaderboard/crews" className="ml-auto text-foreground hover:underline inline-flex items-center gap-1"><Users className="size-4" /> Crews leaderboard →</Link>
       </div>
       <Tabs defaultValue="xp">
-        <TabsList className="mx-auto grid w-full max-w-4xl grid-cols-3 sm:grid-cols-6 h-auto sm:h-14 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl">
+        <TabsList className="mx-auto grid w-full max-w-4xl grid-cols-3 sm:grid-cols-6 h-auto sm:h-14 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-white/10 rounded-xl">
           <TabsTrigger value="xp" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> XP</TabsTrigger>
           <TabsTrigger value="dice" className={tabTrigger}><Coins className="size-4 mr-1.5" /> DICE</TabsTrigger>
           <TabsTrigger value="wins" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> Wins</TabsTrigger>

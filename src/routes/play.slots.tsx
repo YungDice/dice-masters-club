@@ -30,7 +30,7 @@ export const Route = createFileRoute("/play/slots")({
 
 const SYMBOLS = ["7", "BAR", "🍒", "🍋", "🔔", "💎"];
 const SYMBOL_COLOR: Record<string, string> = {
-  "7": "text-amber-300", "BAR": "text-rose-400",
+  "7": "text-foreground", "BAR": "text-white",
   "🍒": "", "🍋": "", "🔔": "", "💎": "",
 };
 const ROW_H = 96;
@@ -60,7 +60,7 @@ function Reel({
   const spinY = -(STRIP_LEN - VISIBLE) * ROW_H;
   return (
     <div
-      className="relative w-28 overflow-hidden rounded-xl bg-black/70 border border-amber-300/40 shadow-inner"
+      className="relative w-28 overflow-hidden rounded-xl bg-black/70 border border-white/10 shadow-inner"
       style={{ height: ROW_H * VISIBLE }}
     >
       {/* fade edges */}
@@ -73,7 +73,7 @@ function Reel({
       />
       {/* center highlight */}
       <div
-        className="pointer-events-none absolute left-0 right-0 z-10 border-y border-amber-300/40 bg-amber-300/5"
+        className="pointer-events-none absolute left-0 right-0 z-10 border-y border-white/10 bg-white/5"
         style={{ top: ROW_H, height: ROW_H }}
       />
       <div
@@ -93,7 +93,7 @@ function Reel({
         {strip.map((s, i) => (
           <div
             key={i}
-            className={`grid place-items-center font-display font-bold select-none ${SYMBOL_COLOR[s] ?? "text-amber-100"}`}
+            className={`grid place-items-center font-display font-bold select-none ${SYMBOL_COLOR[s] ?? "text-foreground"}`}
             style={{ height: ROW_H, fontSize: s === "BAR" ? 30 : 46 }}
           >
             {s}
@@ -186,7 +186,7 @@ function Slots() {
       <CasinoFrame
         title="Slots"
         subtitle="Pull the lever · match three"
-        icon={<Cherry className="size-6 text-rose-300" />}
+        icon={<Cherry className="size-6 text-white" />}
       >
         <div className="text-center">
           {/* Machine */}
@@ -194,10 +194,10 @@ function Slots() {
             className="relative inline-block rounded-2xl px-6 pt-6 pb-5"
             style={{
               background:
-                "radial-gradient(120% 80% at 50% 0%, rgba(201,168,76,0.25), rgba(0,0,0,0.65) 65%)",
-              border: "1px solid rgba(201,168,76,0.55)",
+                "radial-gradient(120% 80% at 50% 0%, rgba(255,255,255,0.08), rgba(0,0,0,0.65) 65%)",
+              border: "1px solid rgba(255,255,255,0.08)",
               boxShadow:
-                "inset 0 0 30px rgba(0,0,0,0.6), 0 0 32px -8px rgba(201,168,76,0.45)",
+                "inset 0 0 30px rgba(0,0,0,0.6), 0 0 32px -8px rgba(255,255,255,0.08)",
             }}
           >
             <div className="flex gap-3 justify-center">
@@ -213,12 +213,12 @@ function Slots() {
             {/* Side bulbs */}
             <div className="pointer-events-none absolute -left-1 top-6 bottom-6 w-2 flex flex-col justify-between">
               {Array.from({ length: 6 }).map((_, i) => (
-                <span key={i} className={`block size-2 rounded-full ${isSpinning ? "bg-amber-300 animate-pulse" : "bg-amber-300/40"}`} />
+                <span key={i} className={`block size-2 rounded-full ${isSpinning ? "bg-primary animate-pulse" : "bg-white/5"}`} />
               ))}
             </div>
             <div className="pointer-events-none absolute -right-1 top-6 bottom-6 w-2 flex flex-col justify-between">
               {Array.from({ length: 6 }).map((_, i) => (
-                <span key={i} className={`block size-2 rounded-full ${isSpinning ? "bg-amber-300 animate-pulse" : "bg-amber-300/40"}`} />
+                <span key={i} className={`block size-2 rounded-full ${isSpinning ? "bg-primary animate-pulse" : "bg-white/5"}`} />
               ))}
             </div>
           </div>
@@ -230,7 +230,7 @@ function Slots() {
               </div>
             )}
             {!isSpinning && payout === 0 && (
-              <div className="font-display text-lg text-amber-100/70">No win — spin again</div>
+              <div className="font-display text-lg text-muted-foreground">No win — spin again</div>
             )}
           </div>
         </div>
@@ -239,7 +239,7 @@ function Slots() {
       <Card className="glass p-5 space-y-3">
         <div className="flex items-center justify-between text-sm">
           <span className="font-semibold">Bet</span>
-          <span className="font-display text-amber-200">{fmt(bet)} DICE</span>
+          <span className="font-display text-foreground">{fmt(bet)} DICE</span>
         </div>
         <div className="flex items-center gap-2">
           <Button size="icon" variant="outline" onClick={() => setBet((b) => Math.max(5, b - 5))} disabled={isSpinning}>

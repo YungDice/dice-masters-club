@@ -30,31 +30,31 @@ function GameTile({ g }: { g: Game }) {
       <div
         className="relative h-full rounded-2xl p-5 overflow-hidden transition-transform group-hover:-translate-y-0.5"
         style={{
-          background: "radial-gradient(ellipse at top, #0b4d3a 0%, #073023 60%, #04201a 100%)",
-          border: "1.5px solid #c9a84c",
+          background: "#141415",
+          border: "1px solid rgba(255,255,255,0.08)",
           boxShadow: "inset 0 0 40px rgba(0,0,0,0.55), 0 8px 24px -10px rgba(0,0,0,0.6)",
         }}
       >
-        <div className="pointer-events-none absolute inset-1 rounded-xl" style={{ border: "1px solid rgba(201,168,76,0.3)" }} />
+        <div className="pointer-events-none absolute inset-1 rounded-xl" style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
         <div className="relative flex items-start justify-between gap-2">
-          <div className="grid size-12 place-items-center rounded-xl bg-amber-400/15 text-amber-200 ring-1 ring-amber-400/30 group-hover:scale-110 transition">
+          <div className="grid size-12 place-items-center rounded-xl bg-white/5 text-foreground ring-1 ring-white/10 group-hover:scale-110 transition">
             <g.icon className="size-6" />
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className="text-[10px] uppercase tracking-widest text-amber-200/70">Min bet</span>
-            <span className="text-sm font-bold text-amber-100">{g.minBet} DICE</span>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Min bet</span>
+            <span className="text-sm font-bold text-foreground">{g.minBet} DICE</span>
           </div>
         </div>
-        <h2 className="relative mt-4 font-display text-lg font-bold text-amber-50">{g.title}</h2>
-        <p className="relative text-xs text-amber-100/60 mt-1 line-clamp-2">{g.desc}</p>
+        <h2 className="relative mt-4 font-display text-lg font-medium text-foreground">{g.title}</h2>
+        <p className="relative text-xs text-muted-foreground mt-1 line-clamp-2">{g.desc}</p>
         <div className="relative mt-3 flex gap-1.5">
           {(g.modes === "solo" || g.modes === "both") && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-amber-100/80 ring-1 ring-white/10">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground ring-1 ring-white/10">
               <User className="size-3" /> Solo
             </span>
           )}
           {(g.modes === "pvp" || g.modes === "both") && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-amber-100/80 ring-1 ring-white/10">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-muted-foreground ring-1 ring-white/10">
               <Users className="size-3" /> PvP
             </span>
           )}
@@ -73,8 +73,8 @@ function PlayHub() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold flex items-center gap-2">
-            <Gamepad2 className="text-amber-400" /> Play
+          <h1 className="font-display text-3xl font-medium flex items-center gap-2">
+            <Gamepad2 className="text-foreground" /> Play
           </h1>
           <p className="text-sm text-muted-foreground">All games are virtual-currency only. Stakes use DICE — never real money.</p>
         </div>
@@ -88,7 +88,7 @@ function PlayHub() {
               key={c.k}
               onClick={() => setFilter(c.k)}
               className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                filter === c.k ? "bg-amber-400/20 text-amber-100 ring-1 ring-amber-400/40" : "text-muted-foreground hover:text-foreground"
+                filter === c.k ? "bg-white/5 text-foreground ring-1 ring-white/10" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {c.l}
@@ -96,7 +96,7 @@ function PlayHub() {
           ))}
         </div>
       </div>
-      <h2 className="font-display text-xl font-bold">Available Games</h2>
+      <h2 className="font-display text-xl font-medium">Available Games</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((g) => <GameTile key={g.to} g={g} />)}
       </div>

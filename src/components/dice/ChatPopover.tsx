@@ -146,8 +146,8 @@ export function ChatPopover() {
       <PopoverContent align="end" className="w-[380px] p-0 glass">
         <div className="border-b border-border/60 px-3 py-2 flex items-center gap-2">
           <MessageSquare className="size-4 text-primary" />
-          <div className="font-display text-sm font-semibold">Global Chat</div>
-          {isVip && <span className="ml-auto flex items-center gap-1 text-xs text-amber-400"><Crown className="size-3" />VIP</span>}
+          <div className="font-display text-sm font-medium">Global Chat</div>
+          {isVip && <span className="ml-auto flex items-center gap-1 text-xs text-foreground"><Crown className="size-3" />VIP</span>}
         </div>
         <div ref={scrollRef} className="h-80 overflow-y-auto p-3 space-y-2">
           {q.isLoading && <p className="text-xs text-muted-foreground text-center py-6">Loading…</p>}
@@ -169,7 +169,7 @@ export function ChatPopover() {
                   {!mine && (
                     <div className="text-[10px] opacity-70 mb-0.5 flex items-center gap-1">
                       @{m.user?.username ?? "user"}
-                      {senderVip && <Crown className="size-2.5 text-amber-400" />}
+                      {senderVip && <Crown className="size-2.5 text-foreground" />}
                       <NameBadges userId={m.user_id} emoji={m.user?.user_emoji} />
                     </div>
                   )}

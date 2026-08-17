@@ -131,7 +131,7 @@ function MissionsPage() {
             return (
               <div key={i}
                 className={`h-2 flex-1 rounded-full transition ${
-                  filled ? "bg-gradient-to-r from-red-400 to-amber-300" : "bg-white/10"
+                  filled ? "bg-gradient-to-r from-red-400 to-white/10" : "bg-white/10"
                 }`}
               />
             );
@@ -153,14 +153,14 @@ function MissionsPage() {
                   <CheckCircle2 className="size-5" />
                 </div>
               )}
-              <div className="text-xs uppercase tracking-widest text-amber-200/70">Mission {m.slot}</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground">Mission {m.slot}</div>
               <div className="text-base font-semibold mt-1">{meta.title}</div>
               <div className="text-xs text-muted-foreground">{meta.desc}</div>
               <div className="mt-3 space-y-1.5">
                 <Progress value={pct} />
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">{fmt(m.progress)} / {fmt(m.target)} {meta.unit}</span>
-                  <span className="text-amber-200">+{fmt(m.reward_dice)} DICE · +{m.reward_xp} XP</span>
+                  <span className="text-foreground">+{fmt(m.reward_dice)} DICE · +{m.reward_xp} XP</span>
                 </div>
               </div>
             </Card>

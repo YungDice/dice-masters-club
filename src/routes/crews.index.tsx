@@ -117,7 +117,7 @@ function CrewsIndex() {
 
       {myCrew && (
         <Card className="p-4 flex items-center gap-4">
-          <Avatar className="size-12 ring-1 ring-amber-400/40">
+          <Avatar className="size-12 ring-1 ring-white/10">
             <AvatarFallback>{myCrew.tag}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
@@ -126,7 +126,7 @@ function CrewsIndex() {
               {myCrew.name} <span className="font-mono text-primary">[{myCrew.tag}]</span>
             </div>
             <div className="text-xs text-muted-foreground">
-              Weekly score: <b className="text-amber-200">{fmt(myCrew.weekly_score)}</b> · Members: {myCrew.member_count}/{myCrew.max_members} · Level {myCrew.level}
+              Weekly score: <b className="text-foreground">{fmt(myCrew.weekly_score)}</b> · Members: {myCrew.member_count}/{myCrew.max_members} · Level {myCrew.level}
             </div>
           </div>
           <Button asChild variant="outline" size="sm">
@@ -164,7 +164,7 @@ function CrewsIndex() {
                     {c.is_open ? (
                       <span className="absolute top-2 right-2 text-[10px] uppercase tracking-widest text-emerald-300/90 bg-black/50 rounded px-1.5 py-0.5">Open</span>
                     ) : (
-                      <span className="absolute top-2 right-2 text-[10px] uppercase tracking-widest text-amber-200/80 bg-black/50 rounded px-1.5 py-0.5">Request</span>
+                      <span className="absolute top-2 right-2 text-[10px] uppercase tracking-widest text-muted-foreground bg-black/50 rounded px-1.5 py-0.5">Request</span>
                     )}
                   </Link>
                   <div className="p-4 pt-0 -mt-8 relative flex flex-col gap-3">
@@ -185,7 +185,7 @@ function CrewsIndex() {
                     {c.description && <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div><div className="text-muted-foreground">Members</div><div className="font-semibold">{c.member_count}/{c.max_members}</div></div>
-                      <div><div className="text-muted-foreground">Weekly</div><div className="font-semibold text-amber-200">{fmt(c.weekly_score)}</div></div>
+                      <div><div className="text-muted-foreground">Weekly</div><div className="font-semibold text-foreground">{fmt(c.weekly_score)}</div></div>
                       <div><div className="text-muted-foreground">Min lvl</div><div className="font-semibold">{c.min_level}</div></div>
                     </div>
                     <Button
@@ -216,8 +216,8 @@ function CrewsIndex() {
                     params={{ id: c.id }}
                     className="flex items-center gap-3 p-3 hover:bg-white/[0.04]"
                   >
-                    <div className={`w-8 text-center font-mono text-lg ${i === 0 ? "text-amber-300" : i === 1 ? "text-zinc-200" : i === 2 ? "text-amber-700" : "text-muted-foreground"}`}>
-                      {i === 0 ? <Crown className="size-5 inline text-amber-300" /> : `#${i + 1}`}
+                    <div className={`w-8 text-center font-mono text-lg ${i === 0 ? "text-foreground" : i === 1 ? "text-zinc-200" : i === 2 ? "text-fog" : "text-muted-foreground"}`}>
+                      {i === 0 ? <Crown className="size-5 inline text-foreground" /> : `#${i + 1}`}
                     </div>
                     <Avatar className="size-9"><AvatarFallback className="text-[10px] font-mono">{c.tag}</AvatarFallback></Avatar>
                     <div className="flex-1 min-w-0">
@@ -225,14 +225,14 @@ function CrewsIndex() {
                       <div className="text-xs text-muted-foreground">Lvl {c.level} · {c.member_count} members</div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold text-amber-200">{fmt(c.weekly_score)}</div>
+                      <div className="font-semibold text-foreground">{fmt(c.weekly_score)}</div>
                       <div className="text-[10px] text-muted-foreground uppercase tracking-widest">weekly pts</div>
                     </div>
                   </Link>
                 ))}
               </div>
               <div className="p-3 border-t border-white/5 text-[11px] text-muted-foreground flex items-center gap-2">
-                <Sparkles className="size-3.5 text-amber-300" />
+                <Sparkles className="size-3.5 text-foreground" />
                 Weekly rewards paid Mondays 00:05 UTC — top 5 crews split up to 100k / 50k / 25k / 10k / 5k DICE,
                 distributed to members by contribution.
               </div>

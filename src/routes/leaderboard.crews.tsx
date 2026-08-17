@@ -26,11 +26,11 @@ export const Route = createFileRoute("/leaderboard/crews")({
           subtitle="Top crews by total points, weekly score, and crew level."
           accent="gold"
         />
-        <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm flex items-center justify-between flex-wrap gap-2">
-          <span className="font-semibold text-amber-300 inline-flex items-center gap-1">
+        <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm flex items-center justify-between flex-wrap gap-2">
+          <span className="font-semibold text-foreground inline-flex items-center gap-1">
             <Users className="size-4" /> Crew rankings
           </span>
-          <Link to="/leaderboard" className="text-amber-300 hover:underline inline-flex items-center gap-1">
+          <Link to="/leaderboard" className="text-foreground hover:underline inline-flex items-center gap-1">
             <Trophy className="size-4" /> Players leaderboard →
           </Link>
         </div>
@@ -41,12 +41,12 @@ export const Route = createFileRoute("/leaderboard/crews")({
 });
 
 const tabTrigger =
-  "flex-1 h-full text-sm md:text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-amber-400/30 data-[state=active]:to-amber-700/20 data-[state=active]:text-amber-100 data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]";
+  "flex-1 h-full text-sm md:text-base font-display font-semibold rounded-lg data-[state=active]:bg-gradient-to-b data-[state=active]:from-white/10 data-[state=active]:to-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-[inset_0_0_0_1px_rgba(252,211,77,0.4)]";
 
 function CrewsLeaderboard() {
   return (
     <Tabs defaultValue="total">
-      <TabsList className="mx-auto grid w-full max-w-lg grid-cols-3 h-12 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-amber-300/20 rounded-xl">
+      <TabsList className="mx-auto grid w-full max-w-lg grid-cols-3 h-12 gap-1 p-1.5 bg-gradient-to-b from-card/70 to-card/30 backdrop-blur border border-white/10 rounded-xl">
         <TabsTrigger value="total" className={tabTrigger}><Trophy className="size-4 mr-1.5" /> Total</TabsTrigger>
         <TabsTrigger value="weekly" className={tabTrigger}><Clock className="size-4 mr-1.5" /> Weekly</TabsTrigger>
         <TabsTrigger value="level" className={tabTrigger}><Crown className="size-4 mr-1.5" /> Level</TabsTrigger>
@@ -161,7 +161,7 @@ function Board({ orderBy, unit }: { orderBy: "level" | "total" | "weekly"; unit:
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-amber-200">{fmt(points)}</div>
+                    <div className="font-semibold text-foreground">{fmt(points)}</div>
                     <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{unit}</div>
                   </div>
                 </Link>
@@ -187,13 +187,13 @@ function PodiumCard({
 }) {
   const points = orderBy === "level" ? crew.level : orderBy === "weekly" ? crew.weekly_score : crew.total_score;
   const ring =
-    rank === 1 ? "ring-amber-300/70 shadow-[0_0_40px_-8px_rgba(252,211,77,0.5)]"
+    rank === 1 ? "ring-white/10 shadow-[0_0_40px_-8px_rgba(252,211,77,0.5)]"
     : rank === 2 ? "ring-slate-200/60"
-    : "ring-orange-400/60";
+    : "ring-white/10";
   const badge =
-    rank === 1 ? "text-amber-300"
+    rank === 1 ? "text-foreground"
     : rank === 2 ? "text-slate-200"
-    : "text-orange-400";
+    : "text-white";
   return (
     <Link
       to="/crews/$id"
@@ -229,7 +229,7 @@ function PodiumCard({
           </div>
         </div>
         <div className="text-right">
-          <div className="font-bold text-amber-200 text-lg leading-none">{fmt(points)}</div>
+          <div className="font-bold text-foreground text-lg leading-none">{fmt(points)}</div>
           <div className="text-[10px] text-muted-foreground uppercase tracking-widest">{unit}</div>
         </div>
       </div>

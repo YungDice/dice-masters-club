@@ -61,7 +61,7 @@ function Create() {
   }
   return (
     <Card className="glass p-6 max-w-2xl mx-auto">
-      <h1 className="font-display text-2xl font-bold">Create a challenge</h1>
+      <h1 className="font-display text-2xl font-medium">Create a challenge</h1>
       <p className="text-sm text-muted-foreground mt-1">
         Challenges go live instantly. Keep it safe — no alcohol, no self-harm,
         no harassment, nothing explicit. Unsafe posts will be removed and may cost you DICE.

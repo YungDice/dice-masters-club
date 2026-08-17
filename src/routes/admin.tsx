@@ -40,7 +40,7 @@ function Admin() {
         <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-primary/10 ring-1 ring-primary/30">
           <Shield className="size-7 text-primary" />
         </div>
-        <h1 className="mt-4 font-display text-2xl font-bold">Admin panel</h1>
+        <h1 className="mt-4 font-display text-2xl font-medium">Admin panel</h1>
         <p className="text-sm text-muted-foreground mt-2">You don't have staff access. Ask an owner to grant you a role.</p>
       </Card>
     );
@@ -49,7 +49,7 @@ function Admin() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/20 via-fuchsia-500/10 to-transparent p-6">
+      <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/20 via-white/5 to-transparent p-6">
         <div className="absolute -right-16 -top-16 size-64 rounded-full bg-primary/20 blur-3xl" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -57,7 +57,7 @@ function Admin() {
               <Shield className="size-7 text-primary" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold">Admin Console</h1>
+              <h1 className="font-display text-3xl font-medium">Admin Console</h1>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Signed in as <b className="text-foreground">@{(user?.email ?? "").split("@")[0]}</b> · Role:{" "}
                 <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase tracking-wider">
@@ -162,10 +162,10 @@ function Stats() {
     },
   });
   const items = [
-    { l: "Users",        v: stats.data?.users,    icon: Users,      tone: "from-sky-500/20 to-sky-500/5 text-sky-300 ring-sky-400/30" },
-    { l: "Challenges",   v: stats.data?.chals,    icon: Sparkles,   tone: "from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-300 ring-fuchsia-400/30" },
+    { l: "Users",        v: stats.data?.users,    icon: Users,      tone: "from-white/5 to-white/5 text-white ring-white/10" },
+    { l: "Challenges",   v: stats.data?.chals,    icon: Sparkles,   tone: "from-white/5 to-white/5 text-white ring-white/10" },
     { l: "Listings",     v: stats.data?.listings, icon: Store,      tone: "from-emerald-500/20 to-emerald-500/5 text-emerald-300 ring-emerald-400/30" },
-    { l: "Transactions", v: stats.data?.txs,      icon: Coins,      tone: "from-amber-500/20 to-amber-500/5 text-amber-300 ring-amber-400/30" },
+    { l: "Transactions", v: stats.data?.txs,      icon: Coins,      tone: "from-white/10 to-white/10 text-foreground ring-white/10" },
   ];
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -175,7 +175,7 @@ function Stats() {
             <div className="text-[11px] uppercase tracking-widest font-semibold opacity-80">{s.l}</div>
             <s.icon className="size-4 opacity-80" />
           </div>
-          <div className="font-display text-3xl font-bold mt-2 text-foreground">{s.v?.toLocaleString() ?? "—"}</div>
+          <div className="font-display text-3xl font-medium mt-2 text-foreground">{s.v?.toLocaleString() ?? "—"}</div>
         </Card>
       ))}
     </div>

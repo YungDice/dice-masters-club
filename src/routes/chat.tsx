@@ -186,7 +186,7 @@ function Chat() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><MessageSquare className="text-primary" /> Global Chat</h1>
+      <h1 className="font-display text-3xl font-medium flex items-center gap-2"><MessageSquare className="text-primary" /> Global Chat</h1>
       <Card className="glass p-0 overflow-hidden flex flex-col h-[70vh] relative">
         <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto p-4 space-y-3">
           {pages.isFetchingNextPage && (

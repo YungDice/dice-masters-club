@@ -68,7 +68,7 @@ function PlayingCard({ r, s, hidden, index }: { r: string; s: string; hidden?: b
             border: "1px solid rgba(255,255,255,0.2)",
             boxShadow: "inset 0 0 0 3px #fbbf24, inset 0 0 0 4px #7f1d1d",
           }}>
-          <Spade className="size-8 text-amber-300/90" />
+          <Spade className="size-8 text-foreground" />
         </div>
       </div>
     </motion.div>
@@ -79,7 +79,7 @@ function BJPage() {
   const [tab, setTab] = useState("solo");
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold text-center flex items-center justify-center gap-2"><Spade />Blackjack</h1>
+      <h1 className="font-display text-3xl font-medium text-center flex items-center justify-center gap-2"><Spade />Blackjack</h1>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="mx-auto"><TabsTrigger value="solo">Solo vs House</TabsTrigger><TabsTrigger value="mp">Multiplayer</TabsTrigger></TabsList>
         <TabsContent value="solo"><Solo /></TabsContent>
@@ -125,22 +125,22 @@ function Solo() {
       <Card className="p-10 felt-bg relative overflow-hidden border-0"
         style={{
           borderRadius: 24,
-          boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 0 6px #3a1f0a, 0 0 0 8px #c9a84c, 0 24px 60px -10px rgba(0,0,0,0.7)",
+          boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 0 6px #3a1f0a, 0 0 0 8px rgba(255,255,255,0.08), 0 24px 60px -10px rgba(0,0,0,0.7)",
         }}>
         {/* Gold arc trim */}
-        <div aria-hidden className="absolute inset-x-10 top-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.6), transparent)" }} />
-        <div aria-hidden className="absolute inset-x-10 bottom-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(201,168,76,0.6), transparent)" }} />
+        <div aria-hidden className="absolute inset-x-10 top-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)" }} />
+        <div aria-hidden className="absolute inset-x-10 bottom-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)" }} />
         {/* Stake badge */}
         {hand && (
-          <div className="absolute top-4 left-4 text-[10px] tracking-widest uppercase text-amber-300/80 font-display">
+          <div className="absolute top-4 left-4 text-[10px] tracking-widest uppercase text-muted-foreground font-display">
             Stake · {fmt(hand.bet)} DICE
           </div>
         )}
-        <div className="absolute top-4 right-4 text-[10px] tracking-widest uppercase text-amber-300/60 font-display">Blackjack pays 3:2</div>
+        <div className="absolute top-4 right-4 text-[10px] tracking-widest uppercase text-muted-foreground font-display">Blackjack pays 3:2</div>
 
         <div className="space-y-10 relative">
           <div>
-            <div className="text-[10px] tracking-[0.3em] uppercase text-amber-200/80 mb-3 text-center font-display">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3 text-center font-display">
               Dealer {hand ? `· ${hand.dealerScore}${playing ? " + ?" : ""}` : ""}
             </div>
             <div className="flex justify-center gap-3 min-h-28">
@@ -154,14 +154,14 @@ function Solo() {
 
           {/* Center divider with logo */}
           <div className="relative flex items-center justify-center">
-            <div className="absolute inset-x-12 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
-            <div className="relative px-4 py-1 rounded-full bg-black/40 border border-amber-400/30 text-[10px] tracking-[0.4em] uppercase text-amber-200/80 font-display">
+            <div className="absolute inset-x-12 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="relative px-4 py-1 rounded-full bg-black/40 border border-white/10 text-[10px] tracking-[0.4em] uppercase text-muted-foreground font-display">
               Dice · 21
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] tracking-[0.3em] uppercase text-amber-200/80 mb-3 text-center font-display">
+            <div className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground mb-3 text-center font-display">
               You {hand ? `· ${hand.playerScore}` : ""}
             </div>
             <div className="flex justify-center gap-3 min-h-28">
@@ -255,7 +255,7 @@ function Lobbies({ onEnter }: { onEnter: (id: string) => void }) {
   return (
     <div className="space-y-4 mt-3">
       <Card className="glass p-5 space-y-3">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Plus className="size-4" />Create a table</h2>
+        <h2 className="font-display text-lg font-medium flex items-center gap-2"><Plus className="size-4" />Create a table</h2>
         <div className="grid grid-cols-2 gap-3">
           <div><div className="text-xs text-muted-foreground">Bet per seat</div>
             <div className="text-sm font-semibold">{fmt(bet)} DICE</div>
@@ -269,7 +269,7 @@ function Lobbies({ onEnter }: { onEnter: (id: string) => void }) {
         <Button onClick={makeRoom} disabled={busy} className="w-full glow-red">{busy ? "..." : `Create — pay ${fmt(bet)} DICE`}</Button>
       </Card>
       <Card className="glass p-5 space-y-2">
-        <h2 className="font-display text-lg font-semibold flex items-center gap-2"><Users className="size-4" />Open tables</h2>
+        <h2 className="font-display text-lg font-medium flex items-center gap-2"><Users className="size-4" />Open tables</h2>
         {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">No tables — create one.</p>}
         {(rooms.data ?? []).map((r: any) => {
           const seatsTaken = (r.state?.seats ?? []).length;

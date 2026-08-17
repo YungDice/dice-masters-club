@@ -17,14 +17,14 @@ export function PageHeader({
 }) {
   const tints: Record<string, string> = {
     primary: "from-primary/30 via-primary/10 to-transparent",
-    gold: "from-amber-400/25 via-amber-300/10 to-transparent",
-    violet: "from-violet-500/25 via-violet-500/10 to-transparent",
+    gold: "from-white/10 via-white/10 to-transparent",
+    violet: "from-white/5 via-white/5 to-transparent",
     emerald: "from-emerald-500/25 via-emerald-500/10 to-transparent",
   };
   const ringTints: Record<string, string> = {
     primary: "bg-primary/15 text-primary ring-primary/30",
-    gold: "bg-amber-400/15 text-amber-300 ring-amber-400/30",
-    violet: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
+    gold: "bg-white/5 text-foreground ring-white/10",
+    violet: "bg-white/5 text-white ring-white/10",
     emerald: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
   };
   return (
@@ -44,7 +44,7 @@ export function PageHeader({
             <Icon className="size-6" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-2xl md:text-3xl font-bold leading-tight truncate">{title}</h1>
+            <h1 className="font-display text-2xl md:text-3xl font-medium leading-tight truncate">{title}</h1>
             {subtitle && <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
         </div>

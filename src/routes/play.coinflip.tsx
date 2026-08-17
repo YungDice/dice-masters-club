@@ -124,7 +124,7 @@ function CFPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="font-display text-3xl font-bold flex items-center gap-2"><Coins className="text-amber-400" />Coin Flip</h1>
+      <h1 className="font-display text-3xl font-medium flex items-center gap-2"><Coins className="text-foreground" />Coin Flip</h1>
       <Tabs defaultValue="bot">
         <TabsList>
           <TabsTrigger value="bot">Solo vs Bot</TabsTrigger>
@@ -132,18 +132,18 @@ function CFPage() {
         </TabsList>
         <TabsContent value="bot"><BotPanel /></TabsContent>
         <TabsContent value="pvp" className="space-y-4">
-          <CasinoFrame title="Create a lobby" subtitle="Heads or tails — winner takes the pot" icon={<Coins className="size-6 text-amber-400" />}>
-            <p className="text-sm text-amber-100/80">First to lock in a side gets it; the other gets the opposite.</p>
+          <CasinoFrame title="Create a lobby" subtitle="Heads or tails — winner takes the pot" icon={<Coins className="size-6 text-foreground" />}>
+            <p className="text-sm text-muted-foreground">First to lock in a side gets it; the other gets the opposite.</p>
             <div className="mt-4">
-              <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+              <div className="flex justify-between text-sm text-foreground"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
               <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
-              <label className="flex items-center gap-2 mt-3 text-sm text-amber-100"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private (invite code)</label>
+              <label className="flex items-center gap-2 mt-3 text-sm text-foreground"><Switch checked={isPrivate} onCheckedChange={setIsPrivate} /> Private (invite code)</label>
             </div>
             <Button className="mt-4 glow-red" onClick={host}>Create lobby</Button>
           </CasinoFrame>
 
           <Card className="glass p-5">
-            <h2 className="font-display text-lg font-semibold">Open lobbies</h2>
+            <h2 className="font-display text-lg font-medium">Open lobbies</h2>
             <div className="mt-3 space-y-2">
               {(rooms.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No public lobbies. Create one!</p>}
               {(rooms.data ?? []).map((r: any) => (
@@ -191,7 +191,7 @@ function BotPanel() {
   }
 
   return (
-    <CasinoFrame title="Coin Flip vs Bot" subtitle="50/50 · pure luck" icon={<Coins className="size-6 text-amber-400" />}>
+    <CasinoFrame title="Coin Flip vs Bot" subtitle="50/50 · pure luck" icon={<Coins className="size-6 text-foreground" />}>
       <div className="grid place-items-center py-4">
         <Coin3D side={result?.flip ?? null} flipping={flipping} />
       </div>
@@ -199,14 +199,14 @@ function BotPanel() {
         {(["heads", "tails"] as const).map((s) => (
           <button key={s} disabled={flipping}
             onClick={() => setSide(s)}
-            className={`rounded-lg px-5 py-2 font-display text-lg uppercase tracking-wider transition ${side === s ? "bg-amber-400 text-black" : "bg-black/30 text-amber-100 hover:bg-black/50"}`}
-            style={{ border: "1px solid rgba(201,168,76,0.5)" }}>
+            className={`rounded-lg px-5 py-2 font-display text-lg uppercase tracking-wider transition ${side === s ? "bg-primary text-black" : "bg-black/30 text-foreground hover:bg-black/50"}`}
+            style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
             {s}
           </button>
         ))}
       </div>
       <div className="mt-4 max-w-md mx-auto">
-        <div className="flex justify-between text-sm text-amber-100"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
+        <div className="flex justify-between text-sm text-foreground"><span>Stake</span><span className="font-semibold">{fmt(stake)} DICE</span></div>
         <Slider min={10} max={Math.min(2000, Number(wallet?.balance ?? 100))} step={10} value={[stake]} onValueChange={(v) => setStake(v[0])} className="mt-2" />
         <Button onClick={play} disabled={flipping} className="mt-4 w-full glow-red">{flipping ? "Flipping…" : `Flip — ${fmt(stake)} DICE`}</Button>
         {result && !flipping && (
@@ -280,7 +280,7 @@ function RoomView({ roomId, onLeave }: { roomId: string; onLeave: () => void }) 
   return (
     <div className="max-w-xl mx-auto space-y-4">
       <Card className="glass p-6 text-center felt-bg">
-        <h1 className="font-display text-2xl font-bold">Lobby · {fmt(r.stake)} DICE</h1>
+        <h1 className="font-display text-2xl font-medium">Lobby · {fmt(r.stake)} DICE</h1>
         {r.invite_code && <p className="text-xs text-muted-foreground mt-1">Invite code: <span className="font-mono font-bold text-foreground">{r.invite_code}</span></p>}
 
         {r.status === "waiting" && (

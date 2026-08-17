@@ -55,7 +55,7 @@ export function LoadoutCard({ profile }: { profile: any }) {
 
   return (
     <Card className="glass p-5">
-      <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
+      <h2 className="font-display text-lg font-medium mb-3 flex items-center gap-2">
         <Sparkles className="size-4 text-primary" />Loadout
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

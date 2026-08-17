@@ -169,7 +169,7 @@ function SeasonPassPage() {
       <div className="mx-auto max-w-6xl px-4 py-10">
         <Card className="p-10 text-center border-[color:var(--gold)]/25">
           <Crown className="mx-auto h-10 w-10 text-[color:var(--gold)]" />
-          <h1 className="mt-3 font-display text-2xl font-bold">Season Pass</h1>
+          <h1 className="mt-3 font-display text-2xl font-medium">Season Pass</h1>
           <p className="mt-2 text-sm text-muted-foreground">No season is running right now. Check back soon!</p>
         </Card>
       </div>
@@ -329,7 +329,7 @@ function SeasonPassPage() {
       {currentTier >= tierCount && (
         <Card className="p-4 overflow-hidden border-[color:var(--gold)]/30">
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+            <h2 className="font-display text-lg font-medium flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-[color:var(--gold)]" /> Prestige tiers
               <Badge variant="outline" className="ml-1">Infinite</Badge>
             </h2>

@@ -42,10 +42,10 @@ function NumberGuess() {
       <CasinoFrame
         title="Number Guess"
         subtitle="Pick a mode · guess the number · win up to 100x"
-        icon={<Target className="size-6 text-amber-300" />}
+        icon={<Target className="size-6 text-foreground" />}
       >
         <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 h-11 bg-black/40 border border-amber-300/30">
+          <TabsList className="grid w-full grid-cols-3 h-11 bg-black/40 border border-white/10">
             <TabsTrigger value="10">1 – 10</TabsTrigger>
             <TabsTrigger value="100">1 – 100</TabsTrigger>
             <TabsTrigger value="1000">1 – 1000</TabsTrigger>
@@ -63,7 +63,7 @@ function BalancePill() {
   const { user } = useAuth();
   const { data: wallet } = useWallet(user?.id);
   return (
-    <div className="flex items-center gap-1.5 text-amber-200 text-sm font-mono">
+    <div className="flex items-center gap-1.5 text-foreground text-sm font-mono">
       <Coins className="size-4" /> {fmt(wallet?.balance ?? 0)} DICE
     </div>
   );
@@ -164,9 +164,9 @@ function Mode10() {
 
       {active && (
         <>
-          <div className="rounded-lg border border-amber-300/20 bg-amber-400/5 p-4 text-center">
-            <div className="text-xs uppercase tracking-widest text-amber-200/70">Guesses left</div>
-            <div className="font-display text-4xl text-amber-100">{remaining}</div>
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Guesses left</div>
+            <div className="font-display text-4xl text-foreground">{remaining}</div>
             {tried.length > 0 && (
               <div className="text-xs text-muted-foreground mt-2">
                 Tried: <span className="font-mono">{tried.join(", ")}</span>
@@ -284,7 +284,7 @@ function ModeOneShot({ mode }: { mode: "100" | "1000" }) {
                 disabled={busy}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition ${
                   rangeSize === sz
-                    ? "bg-amber-400/25 border-amber-300 text-amber-100"
+                    ? "bg-white/5 border-white/10 text-foreground"
                     : "border-white/10 text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -363,7 +363,7 @@ function PayoutPreview({ bet, lines }: { bet: number; lines: { label: string; mu
       {lines.map((l) => (
         <div key={l.label} className="flex justify-between text-sm">
           <span className="text-muted-foreground">{l.label} ({l.mult}x)</span>
-          <span className="font-mono text-amber-200">{fmt(bet * l.mult)} DICE</span>
+          <span className="font-mono text-foreground">{fmt(bet * l.mult)} DICE</span>
         </div>
       ))}
     </div>
@@ -379,10 +379,10 @@ function ResultBanner({
   return (
     <div
       className={`rounded-lg border p-4 text-center ${
-        result.won ? "border-emerald-400/40 bg-emerald-400/10" : "border-rose-400/40 bg-rose-400/10"
+        result.won ? "border-emerald-400/40 bg-emerald-400/10" : "border-white/10 bg-white/5"
       }`}
     >
-      <div className="font-display text-lg font-bold">
+      <div className="font-display text-lg font-medium">
         {result.won ? `You won +${fmt(result.payout)} DICE!` : "No win this round"}
       </div>
       <div className="text-sm text-muted-foreground mt-1">
