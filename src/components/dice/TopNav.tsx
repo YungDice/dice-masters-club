@@ -293,16 +293,20 @@ export function TopNav() {
 
           <form onSubmit={onSearch} className="flex-1 max-w-xl">
             <label className="relative flex items-center">
-              <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
+              <Search className="pointer-events-none absolute left-3 size-4 text-fog" strokeWidth={1.5} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search marketplace, players, challenges…"
+                placeholder="Search DICE"
                 aria-label="Search"
-                className="w-full h-9 rounded bg-charcoal pl-9 pr-4 text-sm outline-none ring-1 ring-white/10 focus:ring-primary placeholder:text-muted-foreground/70 transition"
+                className="w-full h-10 rounded bg-charcoal pl-9 pr-12 text-[14px] outline-none ring-1 ring-white/10 focus:ring-ice placeholder:text-fog transition"
               />
+              <kbd className="pointer-events-none absolute right-2 hidden sm:grid h-5 w-5 place-items-center rounded border border-iron text-[10px] text-fog">
+                /
+              </kbd>
             </label>
           </form>
+
 
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
             <div className="hidden sm:block"><DiceBadge amount={wallet?.balance ?? 0} /></div>
