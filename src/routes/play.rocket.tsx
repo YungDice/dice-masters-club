@@ -126,7 +126,7 @@ function RocketGame() {
           <div
             className="relative rounded-xl overflow-hidden h-[360px]"
             style={{
-              background: "linear-gradient(to top, #04201a 0%, #073023 40%, #0a1a3a 90%, #000814 100%)",
+              background: "linear-gradient(to top, #080809 0%, #141415 40%, #0a1a3a 90%, #000814 100%)",
               border: "1px solid rgba(255,255,255,0.08)",
             }}
           >

@@ -203,7 +203,7 @@ function ObbyGame() {
       camRef.current = Math.max(0, Math.min(p.x - VIEW_W / 2 + PLAYER_W / 2, cols * TILE - VIEW_W));
 
       // Draw
-      ctx.fillStyle = "#04201a";
+      ctx.fillStyle = "#080809";
       ctx.fillRect(0, 0, VIEW_W, VIEW_H);
       const cam = camRef.current;
       const startTx = Math.max(0, Math.floor(cam / TILE) - 1);
@@ -213,7 +213,7 @@ function ObbyGame() {
           const t = map[ty][tx];
           const px = tx * TILE - cam, py = ty * TILE;
           if (t === "#") {
-            ctx.fillStyle = "#0b4d3a";
+            ctx.fillStyle = "#141415";
             ctx.fillRect(px, py, TILE, TILE);
             ctx.strokeStyle = "rgba(255,255,255,0.08)";
             ctx.strokeRect(px + 0.5, py + 0.5, TILE - 1, TILE - 1);
@@ -224,7 +224,7 @@ function ObbyGame() {
             ctx.fillStyle = "#e23b3b";
             ctx.fillRect(px, py + 4 + wob, TILE, 4);
           } else if (t === "G") {
-            ctx.fillStyle = "#c9a84c";
+            ctx.fillStyle = "rgba(255,255,255,0.08)";
             ctx.fillRect(px + 6, py + 4, 4, TILE - 8);
             ctx.beginPath();
             ctx.moveTo(px + 10, py + 4);
@@ -242,12 +242,12 @@ function ObbyGame() {
       ctx.translate(dx + PLAYER_W / 2, dy + PLAYER_H / 2);
       ctx.rotate(((p.x % 360) / 360) * Math.PI * 2);
       ctx.fillStyle = "#fef3c7";
-      ctx.strokeStyle = "#c9a84c";
+      ctx.strokeStyle = "rgba(255,255,255,0.08)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.roundRect(-PLAYER_W / 2, -PLAYER_H / 2, PLAYER_W, PLAYER_H, 4);
       ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#0b4d3a";
+      ctx.fillStyle = "#141415";
       ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
 
@@ -277,7 +277,7 @@ function ObbyGame() {
             width={VIEW_W}
             height={VIEW_H}
             className="rounded-xl border border-white/10 max-w-full h-auto select-none"
-            style={{ background: "#04201a" }}
+            style={{ background: "#080809" }}
           />
           {status !== "playing" && (
             <div className="absolute inset-0 grid place-items-center bg-black/65 rounded-xl">

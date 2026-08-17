@@ -30,8 +30,8 @@ function GameTile({ g }: { g: Game }) {
       <div
         className="relative h-full rounded-2xl p-5 overflow-hidden transition-transform group-hover:-translate-y-0.5"
         style={{
-          background: "radial-gradient(ellipse at top, #0b4d3a 0%, #073023 60%, #04201a 100%)",
-          border: "1.5px solid #c9a84c",
+          background: "#141415",
+          border: "1px solid rgba(255,255,255,0.08)",
           boxShadow: "inset 0 0 40px rgba(0,0,0,0.55), 0 8px 24px -10px rgba(0,0,0,0.6)",
         }}
       >

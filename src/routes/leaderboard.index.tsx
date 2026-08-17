@@ -76,7 +76,7 @@ function Podium({ top, unit }: { top: Row[]; unit: string }) {
   return (
     <div className="relative rounded-2xl overflow-hidden border-2 border-white/10 mb-6"
       style={{
-        background: "radial-gradient(ellipse at top, #0b4d3a 0%, #073023 55%, #04201a 100%)",
+        background: "#141415",
         boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 10px 40px -10px rgba(0,0,0,0.7)",
       }}
     >

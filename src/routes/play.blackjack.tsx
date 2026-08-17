@@ -125,7 +125,7 @@ function Solo() {
       <Card className="p-10 felt-bg relative overflow-hidden border-0"
         style={{
           borderRadius: 24,
-          boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 0 6px #3a1f0a, 0 0 0 8px #c9a84c, 0 24px 60px -10px rgba(0,0,0,0.7)",
+          boxShadow: "inset 0 0 80px rgba(0,0,0,0.6), 0 0 0 6px #3a1f0a, 0 0 0 8px rgba(255,255,255,0.08), 0 24px 60px -10px rgba(0,0,0,0.7)",
         }}>
         {/* Gold arc trim */}
         <div aria-hidden className="absolute inset-x-10 top-6 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent)" }} />

@@ -43,7 +43,7 @@ function FlappyGame() {
   const equipped = useEquippedFor(prof.data);
   const skin = (equipped.data as any)?.dice_skin;
   const skinColor = String(skin?.meta?.color ?? "#fef3c7");
-  const skinPip = String(skin?.meta?.pip ?? "#0b4d3a");
+  const skinPip = String(skin?.meta?.pip ?? "#141415");
   const skinImage = (skin?.meta?.image_url ?? null) as string | null;
   const skinImgRef = useRef<HTMLImageElement | null>(null);
   useEffect(() => {
@@ -153,23 +153,23 @@ function FlappyGame() {
       }
 
       // Draw
-      ctx.fillStyle = "#04201a";
+      ctx.fillStyle = "#080809";
       ctx.fillRect(0, 0, W, H);
       // Felt grid
       ctx.strokeStyle = "rgba(255,255,255,0.08)";
       for (let i = 0; i < W; i += 32) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
       // Ground
-      ctx.fillStyle = "#0b4d3a";
+      ctx.fillStyle = "#141415";
       ctx.fillRect(0, H - 30, W, 30);
-      ctx.fillStyle = "#c9a84c";
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
       ctx.fillRect(0, H - 30, W, 2);
 
       // Pipes (gold-trimmed)
       for (const p of s.pipes) {
-        ctx.fillStyle = "#0b4d3a";
+        ctx.fillStyle = "#141415";
         ctx.fillRect(p.x, 0, PIPE_W, p.topH);
         ctx.fillRect(p.x, p.topH + GAP, PIPE_W, H - 30 - (p.topH + GAP));
-        ctx.strokeStyle = "#c9a84c";
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
         ctx.lineWidth = 2;
         ctx.strokeRect(p.x, 0, PIPE_W, p.topH);
         ctx.strokeRect(p.x, p.topH + GAP, PIPE_W, H - 30 - (p.topH + GAP));
@@ -192,12 +192,12 @@ function FlappyGame() {
         ctx.clip();
         ctx.drawImage(img, -DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE);
         ctx.restore();
-        ctx.strokeStyle = "#c9a84c";
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
         ctx.lineWidth = 2;
         ctx.stroke();
       } else {
         ctx.fillStyle = skinColor;
-        ctx.strokeStyle = "#c9a84c";
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(-DIE_SIZE / 2, -DIE_SIZE / 2, DIE_SIZE, DIE_SIZE, 6);
@@ -239,7 +239,7 @@ function FlappyGame() {
             onMouseDown={flap}
             onTouchStart={(e) => { e.preventDefault(); flap(); }}
             className="rounded-xl border border-white/10 max-w-full h-auto cursor-pointer select-none"
-            style={{ background: "#04201a", touchAction: "none" }}
+            style={{ background: "#080809", touchAction: "none" }}
           />
           {status !== "playing" && (
             <div className="absolute inset-0 grid place-items-center bg-black/60 rounded-xl">

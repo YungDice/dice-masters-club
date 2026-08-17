@@ -89,7 +89,7 @@ function Wheel({ angle }: { angle: number }) {
         className="absolute inset-0 rounded-full"
         style={{
           background: "radial-gradient(circle at 50% 50%, #3b1f10, #1a0c06)",
-          border: "8px solid #c9a84c",
+          border: "8px solid rgba(255,255,255,0.08)",
           boxShadow: "0 0 40px -6px rgba(255,255,255,0.08), inset 0 0 24px rgba(0,0,0,0.7)",
         }}
       >
@@ -107,19 +107,19 @@ function Wheel({ angle }: { angle: number }) {
             const ty = r + (r - 22) * Math.sin(mid * Math.PI / 180);
             return (
               <g key={i}>
-                <path d={path} fill={fill} stroke="#c9a84c" strokeWidth={0.5} />
+                <path d={path} fill={fill} stroke="rgba(255,255,255,0.08)" strokeWidth={0.5} />
                 <text x={tx} y={ty} fill="white" fontSize="10" fontWeight="700" textAnchor="middle"
                   dominantBaseline="middle" transform={`rotate(${mid + 90} ${tx} ${ty})`}>{p}</text>
               </g>
             );
           })}
-          <circle cx={r} cy={r} r={48} fill="#1a0c06" stroke="#c9a84c" strokeWidth={3} />
-          <circle cx={r} cy={r} r={20} fill="#c9a84c" />
+          <circle cx={r} cy={r} r={48} fill="#1a0c06" stroke="rgba(255,255,255,0.08)" strokeWidth={3} />
+          <circle cx={r} cy={r} r={20} fill="rgba(255,255,255,0.08)" />
         </svg>
       </motion.div>
       {/* Pointer at top */}
       <div className="absolute left-1/2 -translate-x-1/2 -top-2 z-10"
-        style={{ width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "16px solid #c9a84c" }} />
+        style={{ width: 0, height: 0, borderLeft: "10px solid transparent", borderRight: "10px solid transparent", borderTop: "16px solid rgba(255,255,255,0.08)" }} />
     </div>
   );
 }

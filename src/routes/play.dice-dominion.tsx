@@ -202,7 +202,7 @@ function Dominion() {
             <span className="text-xs text-muted-foreground">/ {derived.commandEnergyCap}</span>
           </div>
         </div>
-        <ResourceBar label="Scrap"        icon={Hammer} value={profile.scrap}        cap={derived.capacity} color="#c9a84c" />
+        <ResourceBar label="Scrap"        icon={Hammer} value={profile.scrap}        cap={derived.capacity} color="rgba(255,255,255,0.08)" />
         <ResourceBar label="Power"        icon={Zap}    value={profile.power}        cap={derived.capacity} color="#3ee0a1" />
         <ResourceBar label="Roll Credits" icon={Coins}  value={profile.roll_credits} cap={derived.capacity} color="#f5d071" />
 

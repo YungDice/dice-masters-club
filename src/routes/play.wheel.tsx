@@ -135,7 +135,7 @@ function Wheel() {
               initial={{ rotate: 0 }}
               style={{ transformOrigin: "50% 50%" }}
             >
-              <circle cx={cx} cy={cx} r={cx - 2} fill="#0b0a14" stroke="#c9a84c" strokeWidth={4} />
+              <circle cx={cx} cy={cx} r={cx - 2} fill="#0b0a14" stroke="rgba(255,255,255,0.08)" strokeWidth={4} />
               {WHEEL_SEGMENTS.map((mult, i) => {
                 // Start at top (-90deg), clockwise
                 const a0 = (-90 + i * SEG_DEG) * Math.PI / 180;
@@ -167,7 +167,7 @@ function Wheel() {
                   </g>
                 );
               })}
-              <circle cx={cx} cy={cx} r={22} fill="#c9a84c" stroke="#8a6608" strokeWidth={3} />
+              <circle cx={cx} cy={cx} r={22} fill="rgba(255,255,255,0.08)" stroke="#8a6608" strokeWidth={3} />
             </motion.svg>
           </div>
         </div>
